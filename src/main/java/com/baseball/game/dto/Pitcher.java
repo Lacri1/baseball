@@ -3,9 +3,7 @@ package com.baseball.game.dto;
 import lombok.Data;
 
 @Data
-public class Pitcher {
-	private String name;
-	private String team;
+public class Pitcher extends Player {
 	private int control; // 컨트롤 (볼/스트라이크 정확도)
 	private int speed; // 구속 (공의 속도)
 	private int stamina; // 체력 (이닝 소화 능력)

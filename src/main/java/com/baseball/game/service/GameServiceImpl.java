@@ -73,7 +73,7 @@ public class GameServiceImpl implements GameService {
 		games.put(game.getGameId(), game);
 		
 		logger.info("게임 생성 완료: gameId={}, homeTeam={}, awayTeam={}", 
-			game.getGameId(), homeTeam, awayTeam);
+			new Object[] {game.getGameId(), homeTeam, awayTeam});
 		
 		return game;
 	}
@@ -204,7 +204,7 @@ public class GameServiceImpl implements GameService {
 		// gameRepository.save(game);
 
 		logger.info("타격 처리 완료: gameId={}, result={}, score={}-{}", 
-			gameId, result, game.getHomeScore(), game.getAwayScore());
+			new Object[] {gameId, result, game.getHomeScore(), game.getAwayScore()});
 
 		return result;
 	}
@@ -316,7 +316,7 @@ public class GameServiceImpl implements GameService {
 		// gameRepository.save(game);
 		
 		logger.info("게임 종료: gameId={}, winner={}, finalScore={}-{}", 
-			gameId, game.getWinner(), game.getHomeScore(), game.getAwayScore());
+			new Object[] {gameId, game.getWinner(), game.getHomeScore(), game.getAwayScore()});
 		
 		return game;
 	}

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Repository
 public class RedisGameRepository implements GameRepository {
@@ -76,7 +77,7 @@ public class RedisGameRepository implements GameRepository {
                     .map(id -> findById(id.toString()))
                     .filter(Optional::isPresent)
                     .map(Optional::get)
-                    .toList();
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("모든 게임 조회 실패", e);
             throw new RuntimeException("모든 게임 조회 중 오류가 발생했습니다.", e);

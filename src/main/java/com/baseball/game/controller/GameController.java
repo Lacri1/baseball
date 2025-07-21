@@ -25,8 +25,7 @@ public class GameController {
 	// 게임 생성 (이닝 수 포함)
 	@PostMapping("/game")
 	public GameDto createGame(@RequestBody GameCreateRequest request) {
-		logger.info("게임 생성 요청: 홈팀={}, 원정팀={}, 이닝={}",
-				request.getHomeTeam(), request.getAwayTeam(), request.getMaxInning());
+		logger.info("게임 생성 요청: 홈팀={}, 원정팀={}, 이닝={}", new Object[]{request.getHomeTeam(), request.getAwayTeam(), request.getMaxInning()});
 
 		// 입력값 검증
 		ValidationUtil.validateTeamName(request.getHomeTeam());
@@ -70,7 +69,7 @@ public class GameController {
 	@PostMapping("/game/{gameId}/batter")
 	public Map<String, Object> batterSwing(@PathVariable String gameId, @RequestBody Map<String, Object> request) {
 		logger.info("타격 요청: gameId={}, swing={}, timing={}",
-				gameId, request.get("swing"), request.get("timing"));
+				new Object[] {gameId, request.get("swing"), request.get("timing")});
 
 		// 입력값 검증
 		ValidationUtil.validateGameId(gameId);
