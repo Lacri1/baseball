@@ -1,8 +1,8 @@
 package com.baseball.game.mapper;
-
+import com.baseball.game.dto.MemberDto;
 public interface MemberMapper {
 	public boolean login(String Id,String Pw);
 	public boolean checkId(String Id);
 	public void register(String Id,String Pw,String Team);
-	public void member(String Id);
+	public MemberDto member(String Id);
 }
