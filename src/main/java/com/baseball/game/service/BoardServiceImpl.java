@@ -4,8 +4,9 @@ import com.baseball.game.dto.BoardRequestDto;
 import com.baseball.game.dto.BoardPageResponse;
 import com.baseball.game.mapper.BoardMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import java.util.ArrayList;
-
+@Service
 public class BoardServiceImpl implements BoardService{
 	
 	private final BoardMapper mapper;

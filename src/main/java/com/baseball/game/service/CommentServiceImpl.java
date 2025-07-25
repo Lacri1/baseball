@@ -2,8 +2,9 @@ package com.baseball.game.service;
 import com.baseball.game.dto.CommentDto;
 import com.baseball.game.mapper.CommentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import java.util.ArrayList;
-
+@Service
 public class CommentServiceImpl implements CommentService{
 	
 	public final CommentMapper mapper;
