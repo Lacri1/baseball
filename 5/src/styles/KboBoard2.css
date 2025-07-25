@@ -1,0 +1,112 @@
+/* KboBoard2 - Noticeboard 스타일 참고 */
+
+.board-container {
+  background-color: #BDFFF3;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 3rem 1rem 4rem 1rem;
+}
+
+.board-title {
+  font-size: 1.5rem;
+  max-width: 50%;
+  margin: 0 auto 2rem auto;
+  padding: 0 1rem;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.board-button {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.board-button button {
+  background: rgb(255, 131, 131);
+  
+  color: white;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.board-button button:hover {
+  background: rgb(212, 107, 107);
+}
+
+.board-posts {
+  display: flex;
+  flex-direction: column;
+  max-width: 50%;
+  margin: 0 auto;
+  padding: 0 1rem;
+  gap: 1.2rem;
+  list-style: none;
+}
+
+.board-post-item {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  border: none;
+}
+.board-post-item:hover {
+  box-shadow: 0 4px 16px rgba(52,152,219,0.15);
+}
+
+.board-post-item a {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #34495e;
+  margin-bottom: 0.5rem;
+  text-decoration: none;
+}
+.board-post-item a:hover {
+  text-decoration: underline;
+}
+
+.board-post-item span {
+  font-size: 0.95rem;
+  color: #888;
+  display: inline-block;
+  margin-right: 1.5rem;
+}
+
+.board-posts-per-page {
+  margin: 18px 300px 10px 0;
+  text-align: right;
+}
+
+.board-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2.5rem;
+}
+
+.board-pagination button {
+  background: #f1f1f1;
+  border: none;
+  color: rgb(255, 131, 131);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.board-pagination button.selected,
+.board-pagination button:hover {
+  background: rgb(255, 131, 131);
+  color: white;
+  border: none;
+} 

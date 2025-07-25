@@ -1,0 +1,60 @@
+/* BoardDetail2.css - noticeboard 스타일의 게시글 상세 */
+.boarddetail2-container {
+  background: #BDFFF3;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem 0;
+}
+.boarddetail2-content {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  padding: 2.5rem 2rem;
+  width: 500px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.boarddetail2-title {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.boarddetail2-info h5 {
+  color: #888;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+.boarddetail2-body {
+  font-size: 1.05rem;
+  color: #333;
+  background: #f8f9fa;
+  border: 1px solid #e1e8ed;
+  border-radius: 6px;
+  padding: 1rem;
+  min-height: 120px;
+}
+.boarddetail2-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.boarddetail2-buttons button {
+  background: rgb(255, 131, 131);
+  color: white;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.boarddetail2-buttons button:hover {
+  background: rgb(212, 107, 107);
+} 

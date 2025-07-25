@@ -1,0 +1,154 @@
+/* HomePage.css - Home page styles */
+.home-container {
+  background: linear-gradient(to right, #80ffe8, #caf3eb, #80ffe8);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.image-container {
+  display: flex;
+  flex-direction: row;
+  gap: 100px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.team-ranking-row {
+  display: flex;
+  flex-direction: row;
+  gap: 100px;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 2rem;
+  margin: 0 auto;
+  color: rgb(255, 131, 131);
+  max-width: 1200px;
+  width: 60%;
+  background-color: #ffffff;
+  padding: 4rem 0;
+  text-align: center;
+}
+.team-ranking {
+  flex: 1 1 0;
+}
+
+.hero-section {
+  margin: 0 auto;
+  color: rgb(255, 131, 131);
+  max-width: 1200px;
+  width: 60%;
+  background-color: #2c3e50;
+  padding: 4rem 0;
+  text-align: center;
+}
+.schedule-section {
+  margin: 0 auto;
+  color: rgb(255, 131, 131);
+  max-width: 1200px;
+  width: 60%;
+  background-color: #85b3e0;
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.hero-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.hero-title {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  color: rgb(255, 131, 131);
+
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.cta-button {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+}
+
+.features-section {
+  padding: 4rem 0;
+  background: #f8f9fa;
+}
+
+.features-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  color: #2c3e50;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.feature-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+}
+
+.feature-card h3 {
+  color: #3498db;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.feature-card p {
+  color: #7f8c8d;
+  line-height: 1.6;
+}
+
+.icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+
+.schedule-top-right {
+  position: absolute;
+  top: 70px;
+  right: 1%;
+  left: 82%;
+  z-index: 10;
+}
+
+
+

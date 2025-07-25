@@ -1,0 +1,40 @@
+.about-container {
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background:  #ddfff9;
+  margin: 0 auto;
+  padding: 20px;
+}
+.team-record {
+  background-color: #000;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 0 10px;
+} 
+
+.about-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.player-record-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  list-style: none;
+}
+
+.player-record {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  list-style: none;
+}
