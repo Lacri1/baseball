@@ -49,8 +49,7 @@ public class BoardController {
 	// 게시글 작성
 	@PostMapping
 	public ResponseEntity<Void> createBoard(@RequestBody BoardRequestDto requestDto) {
-		boardService.write(requestDto.getTitle(), requestDto.getWriter(), requestDto.getText(),
-				requestDto.getCategory());
+		boardService.write(requestDto);
 		return ResponseEntity.ok().build();
 	}
 

@@ -1,15 +1,18 @@
 package com.baseball.game.service;
 import com.baseball.game.dto.BoardDto;
+import com.baseball.game.dto.BoardRequestDto;
 import com.baseball.game.dto.BoardPageResponse;
 import com.baseball.game.mapper.BoardMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
-import lombok.Setter;
-
 
 public class BoardServiceImpl implements BoardService{
-	@Setter(onMethod_=@Autowired)
-	private BoardMapper mapper;
+	
+	private final BoardMapper mapper;
+	@Autowired
+	public BoardServiceImpl(BoardMapper mapper) {
+		this.mapper=mapper;
+	}
 	@Override
 	public ArrayList<BoardDto> getListCategory(String category){
 		ArrayList<BoardDto> m=mapper.getListCategory(category);
@@ -21,8 +24,8 @@ public class BoardServiceImpl implements BoardService{
 		return m;
 	}
 	@Override
-	public void write(String title,String writer,String text,String category) {
-		mapper.write(title, text, writer,category);
+	public void write(BoardRequestDto d) {
+		mapper.write(d);
 	}
 	@Override
 	public void modify(int no,String text) {
@@ -46,9 +49,9 @@ public class BoardServiceImpl implements BoardService{
 		return new BoardPageResponse(totalCount, list);
 	}
 	@Override
-	public BoardPageResponse getPagedListCategory(int page, int size,String category) {
+	public BoardPageResponse getPagedListCategory(int page, int size, String category) {
 		int offset = (page - 1) * size;
-		ArrayList<BoardDto> list = mapper.getPagedList(offset, size);
+		ArrayList<BoardDto> list = mapper.getPagedListCate(offset, size, category);
 		int totalCount = mapper.getTotalCount();
 		return new BoardPageResponse(totalCount, list);
 	}

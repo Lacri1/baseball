@@ -4,11 +4,11 @@ import lombok.Data;
 
 @Data
 public class BoardDto {
-	public String category;
-	public int no;
-	public String title;
-	public String text;
-	public String writer;
-	public int view;
-	public String date;
+	private String category;
+	private int no;
+	private String title;
+	private String text;
+	private String writer;
+	private int view;
+	private String date;
 }

@@ -3,10 +3,15 @@ import com.baseball.game.dto.CommentDto;
 import com.baseball.game.mapper.CommentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
-import lombok.Setter;
+
 public class CommentServiceImpl implements CommentService{
-	@Setter(onMethod_=@Autowired)
-	public CommentMapper mapper;
+	
+	public final CommentMapper mapper;
+	
+	@Autowired
+	public CommentServiceImpl(CommentMapper mapper) {
+		this.mapper=mapper;
+	}
 	
 	@Override
 	public ArrayList<CommentDto> getComment(int boardNo){

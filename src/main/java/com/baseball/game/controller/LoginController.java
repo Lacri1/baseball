@@ -18,20 +18,24 @@ public class LoginController {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
-    @Setter(onMethod_ = @Autowired)
-    private MemberService memberService;
+    
+    private final MemberService service;
+    @Autowired
+    public LoginController(MemberService service) {
+    	this.service=service;
+    }
 
     // 로그인
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody MemberDto memberDto) {
         // 모든 검증 및 로직을 서비스로 위임
-        return memberService.loginProcess(memberDto);
+        return service.loginProcess(memberDto);
     }
 
     // 회원가입
     @PostMapping("/register")
     public Map<String, Object> register(@RequestBody MemberDto memberDto) {
         // 모든 검증 및 로직을 서비스로 위임
-        return memberService.registerProcess(memberDto);
+        return service.registerProcess(memberDto);
     }
 }

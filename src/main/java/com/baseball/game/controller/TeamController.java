@@ -10,8 +10,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/team")
 public class TeamController {
-    @Setter(onMethod_ = @Autowired)
-    private TeamService service;
+    
+    private final TeamService service;
+    
+    @Autowired
+    public TeamController(TeamService service) {
+    	this.service=service;
+    }
 
     // 팀별 선수(라인업 후보) 목록 조회
     @GetMapping("/{teamId}/players")

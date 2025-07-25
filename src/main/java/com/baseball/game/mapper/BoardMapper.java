@@ -1,6 +1,7 @@
 package com.baseball.game.mapper;
 
 import com.baseball.game.dto.BoardDto;
+import com.baseball.game.dto.BoardRequestDto;
 import java.util.ArrayList;
 
 public interface BoardMapper {
@@ -8,7 +9,7 @@ public interface BoardMapper {
 
 	public ArrayList<BoardDto> getListCategory(String category);
 
-	public void write(String title, String text, String writer, String categhory);
+	public void write(BoardRequestDto d);
 
 	public void modify(int no, String text);
 
