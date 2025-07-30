@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import lombok.Setter;
-
 @Service
 public class TeamServiceImpl implements TeamService {
     @Setter(onMethod_ = @Autowired)
@@ -16,9 +15,5 @@ public class TeamServiceImpl implements TeamService {
     public List<Player> getPlayersByTeam(String teamId) {
         return mapper.selectPlayersByTeam(teamId);
     }
-
-    @Override
-    public void registerLineup(String gameId, List<String> battingOrder, String StartPitcher) {
-        mapper.registerLineup(gameId, battingOrder, StartPitcher);
-    }
+    // registerLineup 메서드 삭제
 }
