@@ -225,7 +225,7 @@ public class GameServiceImpl implements GameService {
         }
 
         // 스윙 없이 투구 결과만 계산 (볼/스트라이크 판정)
-        String pitchResult = GameLogicUtil.determinePitchResultByStats(game.getCurrentPitcher(), game.getCurrentBatter());
+        String pitchResult = GameLogicUtil.determinePitchResult(game.getCurrentPitcher(), pitchType);
 
         logger.info("게임 {}: 투수 {} 투구 ({}). 결과: {}",
             gameId, game.getCurrentPitcher().getName(), pitchType, pitchResult);

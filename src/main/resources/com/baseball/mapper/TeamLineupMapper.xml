@@ -14,8 +14,8 @@
     
     <!-- 팀별 사용 가능한 선수 목록 조회 -->
     <select id="findAvailablePlayersByTeam" resultType="String">
-        SELECT Name FROM player 
-        WHERE Team = #{teamName}
+        SELECT Name FROM kbo_hitter_stat_2024
+        WHERE Team = #{teamName} and Game_Num >90 
         ORDER BY Name
     </select>
     

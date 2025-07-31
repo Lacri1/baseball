@@ -21,6 +21,9 @@
         <maven.compiler.target>11</maven.compiler.target>
         <junit.jupiter.version>5.10.0</junit.jupiter.version> 
         <mockito.version>5.7.0</mockito.version>
+        <!-- 프로젝트 전반의 인코딩 설정 추가 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 	<dependencies>
 		<!-- Spring -->
@@ -78,6 +81,16 @@
 			</exclusions>
 			<scope>runtime</scope>
 		</dependency>
+        <!-- 
+        SLF4J: Class path contains multiple SLF4J bindings. 경고는 
+        다른 의존성이 SLF4J 구현체 (예: slf4j-simple)를 트랜지티브하게 가져오기 때문에 발생할 수 있습니다.
+        정확한 원인을 파악하려면 'mvn dependency:tree' 명령어를 사용하여 
+        어떤 의존성이 충돌을 일으키는지 확인하고, 해당 의존성에서 exclusion 처리를 해야 합니다.
+        Spring Boot 환경에서는 일반적으로 logback을 사용하므로, log4j를 유지하려면 
+        spring-boot-starter-logging을 exclude 해야 할 수도 있습니다.
+        현재 버전 유지를 위해 별도의 SLF4J 의존성은 추가/삭제하지 않습니다.
+        -->
+
 		<dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -109,12 +122,17 @@
 			<version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
-		<dependency>
+		<!-- 
+		org.junit.jupiter:junit-jupiter 의존성은 junit-jupiter-api와 junit-jupiter-engine을 포함하므로 
+		명시적으로 선언된 경우 중복될 수 있습니다. 여기서는 중복 제거를 위해 이 의존성을 제거합니다.
+		-->
+		<!-- <dependency>
     		<groupId>org.junit.jupiter</groupId>
    			<artifactId>junit-jupiter</artifactId>
     		<version>${junit.jupiter.version}</version>
    			<scope>test</scope>
-		</dependency>
+		</dependency> -->
+
 		<!-- @Inject -->
 		<dependency>
 			<groupId>javax.inject</groupId>

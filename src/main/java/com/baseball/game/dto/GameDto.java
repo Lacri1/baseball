@@ -10,6 +10,7 @@ public class GameDto {
 	private String homeTeam;
 	private String awayTeam;
 	private int inning;
+	private int maxInning;
 	private boolean isTop; // true: 초(원정팀 공격), false: 말(홈팀 공격)
 	private int out;
 	private int strike;
@@ -35,9 +36,18 @@ public class GameDto {
 	// 기존 필드 유지
 	private List<Pitcher> pitcherList; // (팀 전체 투수 목록, 필요 시 사용)
 	private boolean IsUserOffense; // 사용자가 공격 팀인지 여부 (초기 게임 생성 시 설정, 사용자의 팀이 어느 팀인지 저장)
-	private int maxInning; // 설정 이닝 수
+	
 	private int currentBatterIndex; // 현재 타순 인덱스 (현재 공격 팀의 라인업 기준)
-
+	public GameDto(String gameId,String homeTeam,String awayTeam,int maxinning,int inning,boolean isTop,boolean gameOver,String winner) {
+		this.gameId=gameId;
+		this.homeTeam=homeTeam;
+		this.awayTeam=awayTeam;
+		this.maxInning=maxinning;
+		this.inning=inning;
+		this.isTop=isTop;
+		this.gameOver=gameOver;
+		this.winner=winner;
+	}
 	public GameDto() {
 		this.baseRunners = new ArrayList<>();
 		this.bases = new Batter[4]; // 홈, 1루, 2루, 3루
