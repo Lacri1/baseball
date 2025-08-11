@@ -7,48 +7,90 @@
 	<name>baseball</name>
 	<packaging>war</packaging>
 	<version>1.0.0-BUILD-SNAPSHOT</version>
+	
+	<!-- Spring Boot Parent: 프로젝트의 의존성 버전을 관리해주는 핵심 역할 -->
 	<parent>
     	<groupId>org.springframework.boot</groupId>
     	<artifactId>spring-boot-starter-parent</artifactId>
-    	<version>2.7.18</version> <!-- 프로젝트에 맞는 Spring Boot 버전으로 수정 -->
-    	<relativePath/> <!-- lookup parent from repository -->
+    	<version>2.7.18</version>
+    	<relativePath/> <!-- repository에서 parent pom을 찾도록 설정 -->
 	</parent>
+	
 	<properties>
 		<java-version>11</java-version>
-		<org.springframework-version>5.0.7.RELEASE</org.springframework-version>
-		<org.aspectj-version>1.6.10</org.aspectj-version>
-		<maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <junit.jupiter.version>5.10.0</junit.jupiter.version> 
-        <mockito.version>5.7.0</mockito.version>
-        <!-- 프로젝트 전반의 인코딩 설정 추가 -->
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- =================================================================== -->
+		<!-- [수정] 아래 Spring Framework 버전 속성은 Spring Boot Parent가 자동으로 관리하므로 제거합니다. -->
+		<!-- <org.springframework-version>5.0.7.RELEASE</org.springframework-version> -->
+		<!-- =================================================================== -->
+		<org.aspectj-version>1.9.7</org.aspectj-version> <!-- Spring Boot 2.7.x와 호환되는 버전으로 업데이트 -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
+	
 	<dependencies>
-		<!-- Spring -->
+		<!-- Spring Boot Starter Web: Web 개발에 필요한 핵심 의존성 (내장 톰캣, Spring MVC, 기본 로깅 포함) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+    		<groupId>org.bgee.log4jdbc-log4j2</groupId>
+    		<artifactId>log4jdbc-log4j2-jdbc4</artifactId>
+   			<version>1.16</version>
+    		<exclusions>
+        		<exclusion>
+            		<groupId>org.apache.logging.log4j</groupId>
+           			<artifactId>log4j-slf4j-impl</artifactId>
+        		</exclusion>
+    		</exclusions>
+		</dependency>
+		<!-- =================================================================== -->
+		<!-- [수정] 아래 의존성들은 spring-boot-starter-web에 포함되어 있으므로 제거합니다. -->
+		<!--
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 			<version>${org.springframework-version}</version>
-			<exclusions>
-				<!-- Exclude Commons Logging in favor of SLF4j -->
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				 </exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${org.springframework-version}</version>
 		</dependency>
+		-->
+		<!-- =================================================================== -->
+		
+		<!-- Spring Boot Starter Test: 테스트에 필요한 JUnit, Mockito 등의 의존성 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Apache Commons DBCP2 -->
+		<dependency>
+    		<groupId>org.apache.commons</groupId>
+    		<artifactId>commons-dbcp2</artifactId>
+		</dependency>
+		<!-- Spring Boot Starter Data Redis -->
 		<dependency>
    			<groupId>org.springframework.boot</groupId>
     		<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
 		
+		<!-- Spring Boot Starter for MyBatis -->
+		<dependency>
+		    <groupId>org.mybatis.spring.boot</groupId>
+		    <artifactId>mybatis-spring-boot-starter</artifactId>
+		    <version>2.2.2</version>
+		</dependency>
+
+		<!-- Lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
 		<!-- AspectJ -->
 		<dependency>
 			<groupId>org.aspectj</groupId>
@@ -56,232 +98,51 @@
 			<version>${org.aspectj-version}</version>
 		</dependency>	
 		
-		<!-- Logging -->
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.mail</groupId>
-					<artifactId>mail</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.jms</groupId>
-					<artifactId>jms</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jdmk</groupId>
-					<artifactId>jmxtools</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jmx</groupId>
-					<artifactId>jmxri</artifactId>
-				</exclusion>
-			</exclusions>
-			<scope>runtime</scope>
-		</dependency>
-        <!-- 
-        SLF4J: Class path contains multiple SLF4J bindings. 경고는 
-        다른 의존성이 SLF4J 구현체 (예: slf4j-simple)를 트랜지티브하게 가져오기 때문에 발생할 수 있습니다.
-        정확한 원인을 파악하려면 'mvn dependency:tree' 명령어를 사용하여 
-        어떤 의존성이 충돌을 일으키는지 확인하고, 해당 의존성에서 exclusion 처리를 해야 합니다.
-        Spring Boot 환경에서는 일반적으로 logback을 사용하므로, log4j를 유지하려면 
-        spring-boot-starter-logging을 exclude 해야 할 수도 있습니다.
-        현재 버전 유지를 위해 별도의 SLF4J 의존성은 추가/삭제하지 않습니다.
-        -->
-
-		<dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-            <version>${junit.jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-			<version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-		<!-- 
-		org.junit.jupiter:junit-jupiter 의존성은 junit-jupiter-api와 junit-jupiter-engine을 포함하므로 
-		명시적으로 선언된 경우 중복될 수 있습니다. 여기서는 중복 제거를 위해 이 의존성을 제거합니다.
-		-->
-		<!-- <dependency>
-    		<groupId>org.junit.jupiter</groupId>
-   			<artifactId>junit-jupiter</artifactId>
-    		<version>${junit.jupiter.version}</version>
-   			<scope>test</scope>
-		</dependency> -->
-
-		<!-- @Inject -->
+		<!-- JSR-330 의존성 주입 표준 -->
 		<dependency>
 			<groupId>javax.inject</groupId>
 			<artifactId>javax.inject</artifactId>
 			<version>1</version>
 		</dependency>
 				
-		<!-- Servlet -->
+		<!-- Servlet API (provided scope) -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
-			<version>4.0.1</version>
-			<scope>provided</scope>
+			<scope>provided</scope> <!-- Spring Boot 내장 WAS를 사용하므로 provided로 유지 -->
 		</dependency>
-		<dependency>
-			<groupId>javax.servlet.jsp</groupId>
-			<artifactId>jsp-api</artifactId>
-			<version>2.1</version>
-			<scope>provided</scope>
-		</dependency>
+		<!-- JSTL -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>jstl</artifactId>
-			<version>1.2</version>
 		</dependency>
 	
-		<!-- Test -->
-					
-		<dependency>	
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
-			<version>${org.springframework-version}</version>
-		</dependency>
-			
-		<dependency>	
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
-			<version>${org.springframework-version}</version>
+		<!-- JDBC 드라이버 -->
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 		
-		<dependency>	
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>${org.springframework-version}</version>
-		</dependency>
-		
-		<dependency>	
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-dbcp2</artifactId>
-			<version>2.8.0</version>
-		</dependency>
-		
-		<dependency>	
-			<groupId>org.mybatis</groupId>
-			<artifactId>mybatis</artifactId>
-			<version>3.4.6</version>
-		</dependency>
-			
-		<dependency>	
-			<groupId>org.mybatis</groupId>
-			<artifactId>mybatis-spring</artifactId>
-			<version>1.3.2</version>
-		</dependency>
-			
-		<dependency>	
+		<!-- SQL 로깅용 라이브러리 (Log4jdbc) -->
+		<dependency>
 			<groupId>org.bgee.log4jdbc-log4j2</groupId>
 			<artifactId>log4jdbc-log4j2-jdbc4</artifactId>
 			<version>1.16</version>
 		</dependency>
-			
-		<dependency>		
-			<groupId>org.projectlombok</groupId>	
-			<artifactId>lombok</artifactId>	
-			<version>1.18.0</version>	
-			<scope>provided</scope>	
-		</dependency>
-		       
-		<dependency>
-    		<groupId>com.fasterxml.jackson.core</groupId>
-    		<artifactId>jackson-databind</artifactId>
-    		<version>2.13.5</version>
-		</dependency>
-		<dependency>
-   			<groupId>org.hamcrest</groupId>
-    		<artifactId>hamcrest</artifactId>
-   			<version>2.2</version>
-    		<scope>test</scope>
-		</dependency>
-		<dependency>
-    		<groupId>com.jayway.jsonpath</groupId>
-   			<artifactId>json-path</artifactId>
-    		<version>2.8.0</version>
-    		<scope>test</scope>
-		</dependency> 
 	</dependencies>
 	
-	<dependencyManagement>
- 		<dependencies>
-    		<dependency>
-     		<groupId>org.junit</groupId>
-     		<artifactId>junit-bom</artifactId>
-     		<version>${junit.jupiter.version}</version>
-     		<type>pom</type>
-      		<scope>import</scope>
-    		</dependency>
-  	</dependencies>
-</dependencyManagement>
-    <build>
+	<build>
         <plugins>
-            <plugin>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-                    <additionalProjectnatures>
-                        <projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
-                    </additionalProjectnatures>
-                    <additionalBuildcommands>
-                        <buildcommand>org.springframework.ide.eclipse.core.springbuilder</buildcommand>
-                    </additionalBuildcommands>
-                    <downloadSources>true</downloadSources>
-                    <downloadJavadocs>true</downloadJavadocs>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
-                    <encoding>UTF-8</encoding>
+                    <source>${java-version}</source>
+                    <target>${java-version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
-                <configuration>
-                    <mainClass>org.test.int1.Main</mainClass>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
-                 <configuration>
-                	<argLine>-Dfile.encoding=UTF-8</argLine>
-           		</configuration>
-           	</plugin>
         </plugins>
     </build>
 </project>

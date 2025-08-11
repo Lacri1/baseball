@@ -1,43 +1,54 @@
-// src/main/java/com/baseball/game/service/GameService.java
 package com.baseball.game.service;
 
 import com.baseball.game.dto.GameDto;
-import com.baseball.game.dto.Batter;
-import com.baseball.game.dto.Pitcher;
-import java.util.List;
-import java.util.Map;
 
+/**
+ * 게임 서비스 인터페이스
+ */
 public interface GameService {
+    
+    /**
+     * 새로운 게임을 생성합니다.
+     */
     GameDto createGame(String homeTeam, String awayTeam, int maxInning, boolean isUserOffense);
+    
+    /**
+     * 게임 ID로 게임을 조회합니다.
+     */
     GameDto getGame(String gameId);
+    
+    /**
+     * 타자가 스윙합니다.
+     */
     String batterSwing(String gameId, Boolean swing, Double timing);
+    
+    /**
+     * 투수가 투구합니다.
+     */
     String pitcherThrow(String gameId, String pitchType);
+    
+    /**
+     * 컴퓨터의 턴을 진행합니다.
+     */
+    String playComputerTurn(String gameId);
+    
+    /**
+     * 다음 이닝으로 진행합니다.
+     */
     GameDto nextInning(String gameId);
+    
+    /**
+     * 게임을 종료합니다.
+     */
     GameDto endGame(String gameId);
-    void advanceRunners(String gameId, Integer bases);
-    String getGameStats(String gameId);
-
+    
     /**
-     * 특정 팀의 타순 및 선발 투수를 설정합니다.
-     * @param gameId 게임 ID
-     * @param teamName 설정할 팀 이름 (홈팀 또는 원정팀)
-     * @param battingOrderPlayerNames 타순에 포함될 선수 이름 리스트
-     * @param startingPitcherName 선발 투수 이름
+     * 베이스 러너를 진루시킵니다.
      */
-    void setTeamLineupAndPitcher(String gameId, String teamName, List<String> battingOrderPlayerNames, String startingPitcherName);
-
+    void advanceRunners(String gameId, Integer basesToAdvance);
+    
     /**
-     * (컴퓨터 팀을 위한 별도 명명법, 실제 로직은 setTeamLineupAndPitcher와 동일)
-     * @param gameId 게임 ID
-     * @param teamName 설정할 팀 이름 (홈팀 또는 원정팀)
-     * @param battingOrderPlayerNames 타순에 포함될 선수 이름 리스트
-     * @param startingPitcherName 선발 투수 이름
+     * 게임을 리셋합니다.
      */
-    void setComputerLineupAndPitcher(String gameId, String teamName, List<String> battingOrderPlayerNames, String startingPitcherName);
-
-    // 기타 GameServiceImpl에 protected로 선언된 메서드들은 인터페이스에 노출시키지 않습니다.
-    // protected void checkCount(GameDto game);
-    // protected void advanceBattingOrder(GameDto game);
-    // protected void checkGameOver(GameDto game);
-    // protected void handleScore(GameDto game, int score);
+    void resetGame(String gameId);
 }

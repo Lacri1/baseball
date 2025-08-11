@@ -8,7 +8,6 @@
     <select id="findDefaultLineupByTeam" resultType="com.baseball.game.dto.TeamLineup">
         SELECT * FROM team_lineup
         WHERE team_name = #{teamName}
-        AND is_active = true
         ORDER BY position
     </select>
     

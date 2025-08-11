@@ -4,9 +4,9 @@
 	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.baseball.game.mapper.PitcherMapper">
 	<select id="findByTeam" resultType="com.baseball.game.dto.Pitcher">
-		select Player_Name,Player_Team,Base_On_Balls,Strike_Out,WHIP from kbo_pitcher_stats_2024 where Team=#{team}
+		select Player_Name,Player_Team,Base_On_Balls,Strike_Out,WHIP,Hit_By_Pitch,Pitchers_Batters_Faced from kbo_pitcher_stats_2024 where Team=#{team}
 	</select>
 	<select id="findByNames" resultType="List">
-		select Name from player where Team=#{team} and Innings_Pitched >100
+		select Name from kbo_pitcher_stats_2024 where Team=#{team} and Innings_Pitched >100
 	</select>
 </mapper>
