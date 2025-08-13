@@ -10,9 +10,23 @@
 		select count(*) from member where id=#{Id}
 	</select>
 	<insert id="register">
-		insert into member(Id,Pw,Team) values (#{Id},#{Pw},#{Team})
+		insert into member(Id,Pw) values (#{Id},#{Pw},#{email})
 	</insert>
-	<select id="member" resultType="com.baseball.game.dto.member">
+	<select id="member" resultType="com.baseball.game.dto.MemberDto">
 		select * from member where id=#{Id}
 	</select>
+
+	<!-- 게임/승/패 카운트 증가 쿼리 -->
+	<update id="incrementGame">
+		UPDATE member SET Game = COALESCE(Game,0) + 1 WHERE Id = #{Id}
+	</update>
+	<update id="incrementWin">
+		UPDATE member SET Win = COALESCE(Win,0) + 1 WHERE Id = #{Id}
+	</update>
+	<update id="incrementLose">
+		UPDATE member SET Lose = COALESCE(Lose,0) + 1 WHERE Id = #{Id}
+	</update>
+	<update id="incrementDraw">
+		UPDATE member SET Draw = COALESCE(Draw,0) + 1 WHERE Id = #{Id}
+	</update>
 </mapper>
