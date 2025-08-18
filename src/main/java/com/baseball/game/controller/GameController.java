@@ -2,11 +2,13 @@ package com.baseball.game.controller;
 
 import com.baseball.game.dto.GameCreateRequest;
 import com.baseball.game.dto.GameDto;
+import com.baseball.game.dto.GamePlayView;
 import com.baseball.game.dto.ApiResponse;
 import com.baseball.game.dto.GameActionRequest;
 import com.baseball.game.exception.ValidationException;
 import com.baseball.game.service.GameService;
 import com.baseball.game.util.ValidationUtil;
+import com.baseball.game.dto.TeamLineupSetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
@@ -36,6 +38,8 @@ public class GameController {
 		ValidationUtil.validateGameCreateRequest(request);
 		GameDto game = service.createGame(request.getHomeTeam(), request.getAwayTeam(), request.getMaxInning(),
 				request.isIsUserOffense());
+		// 사용자 ID를 GameDto에 저장 (MemberDto의 Id와 매핑)
+		game.setUserId(request.getUserId());
 		return ApiResponse.success(game, "게임이 생성되었습니다. ID: " + game.getGameId());
 	}
 
@@ -59,7 +63,7 @@ public class GameController {
 	 * @return 성공 시 결과 메시지와 업데이트된 게임 DTO를 포함하는 ApiResponse
 	 */
 	@PostMapping("/game/{gameId}/pitch")
-	public ApiResponse<GameDto> pitcherThrow(@PathVariable String gameId, @RequestBody GameActionRequest request) {
+	public ApiResponse<GamePlayView> pitcherThrow(@PathVariable String gameId, @RequestBody GameActionRequest request) {
 		String pitchType = request.getPitchType();
 		if (pitchType == null || pitchType.isEmpty()) {
 			throw new ValidationException("투구 유형을 지정해주세요.");
@@ -67,8 +71,28 @@ public class GameController {
 
 		String result = service.pitcherThrow(gameId, pitchType);
 		GameDto game = service.getGame(gameId);
+		GamePlayView view = GamePlayView.builder()
+				.gameId(game.getGameId())
+				.userId(game.getUserId())
+				.homeTeam(game.getHomeTeam())
+				.awayTeam(game.getAwayTeam())
+				.inning(game.getInning())
+				.isTop(game.isTop())
+				.offenseTeam(game.getOffenseTeam())
+				.defenseTeam(game.getDefenseTeam())
+				.offenseSide(game.getOffenseSide())
+				.out(game.getOut())
+				.strike(game.getStrike())
+				.ball(game.getBall())
+				.homeScore(game.getHomeScore())
+				.awayScore(game.getAwayScore())
+				.currentBatter(game.getCurrentBatter())
+				.currentPitcher(game.getCurrentPitcher())
+				.baseRunners(game.getBaseRunners())
+				.bases(game.getBases())
+				.build();
 
-		return ApiResponse.success(game, "투구 처리 완료: " + result);
+		return ApiResponse.success(view, "투구 처리 완료: " + result);
 	}
 
 	/**
@@ -79,17 +103,38 @@ public class GameController {
 	 * @return 성공 시 결과 메시지와 업데이트된 게임 DTO를 포함하는 ApiResponse
 	 */
 	@PostMapping("/game/{gameId}/swing")
-	public ApiResponse<GameDto> batterSwing(@PathVariable String gameId, @RequestBody GameActionRequest request) {
-		Boolean decisionToSwing = request.getDecisionToSwing();
+	public ApiResponse<GamePlayView> batterSwing(@PathVariable String gameId, @RequestBody GameActionRequest request) {
+		Boolean Swing = request.getSwing();
 		Double timing = request.getTiming();
-		if (decisionToSwing == null || timing == null) {
+		if (Swing == null || timing == null) {
 			throw new ValidationException("스윙 여부와 타이밍을 지정해주세요.");
 		}
 
-		String result = service.batterSwing(gameId, decisionToSwing, timing);
+		String result = service.batterSwing(gameId, Swing, timing);
 		GameDto game = service.getGame(gameId);
 
-		return ApiResponse.success(game, "스윙/노스윙 처리 완료: " + result);
+		GamePlayView view = GamePlayView.builder()
+				.gameId(game.getGameId())
+				.userId(game.getUserId())
+				.homeTeam(game.getHomeTeam())
+				.awayTeam(game.getAwayTeam())
+				.inning(game.getInning())
+				.isTop(game.isTop())
+				.offenseTeam(game.getOffenseTeam())
+				.defenseTeam(game.getDefenseTeam())
+				.offenseSide(game.getOffenseSide())
+				.out(game.getOut())
+				.strike(game.getStrike())
+				.ball(game.getBall())
+				.homeScore(game.getHomeScore())
+				.awayScore(game.getAwayScore())
+				.currentBatter(game.getCurrentBatter())
+				.currentPitcher(game.getCurrentPitcher())
+				.baseRunners(game.getBaseRunners())
+				.bases(game.getBases())
+				.build();
+
+		return ApiResponse.success(view, "스윙/노스윙 처리 완료: " + result);
 	}
 
 	/**
@@ -130,5 +175,21 @@ public class GameController {
 		service.resetGame(gameId);
 		GameDto game = service.getGame(gameId);
 		return ApiResponse.success(game, "게임이 성공적으로 리셋되었습니다.");
+	}
+
+	/**
+	 * 특정 게임에 팀 라인업/선발 투수를 적용
+	 * - teamName: 홈/원정팀 중 하나
+	 * - battingOrder: 타자 9명 이름(타순 순서)
+	 * - startingPitcher: 선발 투수 이름
+	 */
+	@PostMapping("/game/{gameId}/lineup")
+	public ApiResponse<GameDto> applyTeamLineup(
+			@PathVariable String gameId,
+			@RequestBody TeamLineupSetRequest request) {
+		ValidationUtil.validateGameId(gameId);
+		ValidationUtil.validateTeamLineupSetRequest(request);
+		GameDto game = service.applyTeamLineup(gameId, request);
+		return ApiResponse.success(game, "라인업이 적용되었습니다.");
 	}
 }

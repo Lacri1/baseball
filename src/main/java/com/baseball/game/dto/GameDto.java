@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.util.List;
 import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @Builder
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 @AllArgsConstructor
 public class GameDto {
 	private String gameId;
+	private String userId; // 게임을 시작한 사용자 ID
 	private String homeTeam;
 	private String awayTeam;
 	private int inning;
@@ -31,6 +33,8 @@ public class GameDto {
 	private String winner;
 	private List<Batter> battingOrder;
 	private Pitcher startingPitcher;
+	// 마지막 투구 존 정보("strike"/"ball") - 스윙 로직에서 존 판정에 사용
+	private String lastPitchType;
 	// 새로 추가: 홈팀 및 원정팀의 타순 (Batter 객체 리스트)
 	private List<Batter> homeBattingOrder;
 	private List<Batter> awayBattingOrder;
@@ -44,6 +48,9 @@ public class GameDto {
 	private boolean isUserOffense; // 사용자가 공격 팀인지 여부 (초기 게임 생성 시 설정, 사용자의 팀이 어느 팀인지 저장)
 
 	private int currentBatterIndex; // 현재 타순 인덱스 (현재 공격 팀의 라인업 기준)
+	// 팀별 타순 인덱스(야구 규칙: 타순은 이닝이 넘어가도 팀별로 이어짐)
+	private int homeBatterIndex;
+	private int awayBatterIndex;
 
 	// 상수 정의
 	public static final int MAX_BASES = 4;
@@ -79,6 +86,8 @@ public class GameDto {
 		this.awayBattingOrder = new ArrayList<>(); // 초기화
 		this.pitcherList = new ArrayList<>(); // 초기화 (필요 시 사용)
 		this.currentBatterIndex = 0;
+		this.homeBatterIndex = 0;
+		this.awayBatterIndex = 0;
 	}
 
 	// 현재 공격 팀의 타순을 반환하는 헬퍼 메서드
@@ -115,5 +124,21 @@ public class GameDto {
 	// 게임 종료 조건 확인
 	public boolean isGameEndCondition() {
 		return inning >= maxInning && !isTop && isInningOver();
+	}
+
+	// 응답 편의 필드: 현재 공격/수비 팀 및 초/말 표시
+	@JsonProperty("offenseTeam")
+	public String getOffenseTeam() {
+		return isTop ? awayTeam : homeTeam;
+	}
+
+	@JsonProperty("defenseTeam")
+	public String getDefenseTeam() {
+		return isTop ? homeTeam : awayTeam;
+	}
+
+	@JsonProperty("offenseSide")
+	public String getOffenseSide() {
+		return isTop ? "TOP" : "BOTTOM";
 	}
 }

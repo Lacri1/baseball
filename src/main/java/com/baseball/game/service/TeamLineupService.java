@@ -6,7 +6,7 @@ import com.baseball.game.dto.CustomLineupRequest;
 
 public interface TeamLineupService {
 
-    // 기본 라인업 조회 (컴퓨터용)
+    // 기본 라인업 조회 (컴퓨터용) - 인메모리 제공
     List<TeamLineup> getDefaultLineup(String teamName);
 
     // 유저 커스텀 라인업 조회
@@ -20,4 +20,7 @@ public interface TeamLineupService {
 
     // 팀별 사용 가능한 선수 목록 조회
     List<String> getAvailablePlayers(String teamName);
+
+    // 팀별 사용 가능한 투수 목록 조회 (이름만)
+    List<String> getAvailablePitchers(String teamName);
 }

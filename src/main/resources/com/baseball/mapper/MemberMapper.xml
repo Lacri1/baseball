@@ -10,7 +10,7 @@
 		select count(*) from member where id=#{Id}
 	</select>
 	<insert id="register">
-		insert into member(Id,Pw) values (#{Id},#{Pw},#{email})
+		insert into member(Id,Pw,email) values (#{Id},#{Pw},#{email})
 	</insert>
 	<select id="member" resultType="com.baseball.game.dto.MemberDto">
 		select * from member where id=#{Id}

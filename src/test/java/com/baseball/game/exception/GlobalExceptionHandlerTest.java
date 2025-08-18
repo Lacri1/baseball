@@ -3,12 +3,19 @@ package com.baseball.game.exception;
 import com.baseball.game.controller.GameController;
 import com.baseball.game.dto.GameActionRequest;
 import com.baseball.game.service.GameService;
+import com.baseball.game.mapper.BatterMapper;
+import com.baseball.game.mapper.PitcherMapper;
+import com.baseball.game.mapper.TeamLineupMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.baseball.game.mapper.BoardMapper;
+import com.baseball.game.mapper.CommentMapper;
+import com.baseball.game.mapper.MemberMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,6 +26,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(GameController.class)
+@ImportAutoConfiguration(exclude = {
+        org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration.class,
+        org.mybatis.spring.boot.autoconfigure.MybatisLanguageDriverAutoConfiguration.class,
+        org.mybatis.spring.boot.autoconfigure.MybatisProperties.class
+})
 class GlobalExceptionHandlerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -26,6 +38,21 @@ class GlobalExceptionHandlerTest {
     private ObjectMapper objectMapper;
     @MockBean
     private GameService gameService;
+
+    // 매퍼 스캔으로 인한 의존성 로딩을 차단하기 위해 목으로 대체
+    @MockBean
+    private BatterMapper batterMapper;
+    @MockBean
+    private PitcherMapper pitcherMapper;
+    @MockBean
+    private TeamLineupMapper teamLineupMapper;
+    @MockBean
+    private BoardMapper boardMapper;
+    @MockBean
+    private CommentMapper commentMapper;
+    @MockBean
+    private MemberMapper memberMapper;
+    // TeamMapper 제거
 
     @Test
     @DisplayName("ValidationException 발생 시 400 반환")

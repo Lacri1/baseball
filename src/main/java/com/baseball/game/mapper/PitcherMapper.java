@@ -15,4 +15,7 @@ public interface PitcherMapper {
 
     // 여러 이름으로 투수 리스트
     List<Pitcher> findByNames(@Param("names") List<String> names);
+
+    // 팀별 투수 이름만 리스트
+    List<String> findNamesByTeam(@Param("team") String team);
 }

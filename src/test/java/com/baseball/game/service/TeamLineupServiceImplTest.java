@@ -29,23 +29,12 @@ class TeamLineupServiceImplTest {
     }
 
     @Test
-    @DisplayName("getDefaultLineup: DB에서 라인업 조회 성공")
-    void getDefaultLineup_success() {
-        List<TeamLineup> dummy = List.of(new TeamLineup());
-        given(teamLineupMapper.findDefaultLineupByTeam("Giants")).willReturn(dummy);
-
-        List<TeamLineup> result = service.getDefaultLineup("Giants");
-
-        assertThat(result).isEqualTo(dummy);
-    }
-
-    @Test
-    @DisplayName("getDefaultLineup: DB에 라인업 없으면 예외 발생")
-    void getDefaultLineup_fail() {
-        given(teamLineupMapper.findDefaultLineupByTeam("Unknown")).willReturn(Collections.emptyList());
-
-        assertThatThrownBy(() -> service.getDefaultLineup("Unknown"))
-                .isInstanceOf(ValidationException.class);
+    @DisplayName("getDefaultLineup: 인메모리 기본 라인업 제공(9타자+선발투수)")
+    void getDefaultLineup_inMemory() {
+        List<TeamLineup> result = service.getDefaultLineup("SSG 랜더스");
+        assertThat(result).hasSize(10);
+        assertThat(result.stream().filter(t -> t.getPosition().endsWith("_Batter")).count()).isEqualTo(9);
+        assertThat(result.stream().anyMatch(t -> "Starting_Pitcher".equals(t.getPosition()))).isTrue();
     }
 
     @Test
@@ -55,7 +44,7 @@ class TeamLineupServiceImplTest {
         String teamName = "Giants";
         List<CustomLineupRequest.LineupPosition> lineup = new ArrayList<>();
         // 9명의 타자
-        String[] batters = {"이대호", "손아섭", "전준우", "안치홍", "강민호", "김주찬", "민병헌", "정훈", "정보근"};
+        String[] batters = {"황성빈", "윤동희", "레이예스", "전준우", "나승엽", "손호영", "손성빈", "고승민", "박승욱"};
         for (int i = 0; i < 9; i++) {
             CustomLineupRequest.LineupPosition pos = new CustomLineupRequest.LineupPosition();
             pos.setPlayerName(batters[i]);
@@ -64,7 +53,7 @@ class TeamLineupServiceImplTest {
         }
         // 선발 투수
         CustomLineupRequest.LineupPosition pitcherPos = new CustomLineupRequest.LineupPosition();
-        pitcherPos.setPlayerName("장원준");
+        pitcherPos.setPlayerName("박세웅");
         pitcherPos.setPosition(null); // 투수는 position 필요 없음
         lineup.add(pitcherPos);
 
@@ -89,13 +78,13 @@ class TeamLineupServiceImplTest {
         // 8명만 추가
         for (int i = 0; i < 8; i++) {
             CustomLineupRequest.LineupPosition pos = new CustomLineupRequest.LineupPosition();
-            pos.setPlayerName("이대호");
+            pos.setPlayerName("황성빈");
             pos.setPosition(i + 1);
             lineup.add(pos);
         }
         // 투수
         CustomLineupRequest.LineupPosition pitcherPos = new CustomLineupRequest.LineupPosition();
-        pitcherPos.setPlayerName("장원준");
+        pitcherPos.setPlayerName("박세웅");
         lineup.add(pitcherPos);
 
         CustomLineupRequest req = new CustomLineupRequest();
@@ -111,20 +100,20 @@ class TeamLineupServiceImplTest {
     @Test
     @DisplayName("getAvailablePlayers: 팀별 타자 이름 반환")
     void getAvailablePlayers() {
-        List<String> giants = service.getAvailablePlayers("Giants");
-        assertThat(giants).contains("이대호", "손아섭");
-        List<String> dinos = service.getAvailablePlayers("Dinos");
-        assertThat(dinos).contains("박민우", "알테어");
+        List<String> giants = service.getAvailablePlayers("롯데 자이언츠");
+        assertThat(giants).contains("황성빈", "윤동희");
+        List<String> dinos = service.getAvailablePlayers("NC 다이노스");
+        assertThat(dinos).contains("박민우", "서호철");
     }
 
     @Test
     @DisplayName("getBatterByName/getPitcherByName: 선수 객체 반환")
     void getBatterAndPitcherByName() {
-        Batter batter = service.getBatterByName("이대호");
+        Batter batter = service.getBatterByName("황성빈");
         assertThat(batter).isNotNull();
         assertThat(batter.getTeam()).isEqualTo("Giants");
 
-        Pitcher pitcher = service.getPitcherByName("장원준");
+        Pitcher pitcher = service.getPitcherByName("박세웅");
         assertThat(pitcher).isNotNull();
         assertThat(pitcher.getTeam()).isEqualTo("Giants");
     }

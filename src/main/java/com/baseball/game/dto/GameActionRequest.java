@@ -9,6 +9,6 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class GameActionRequest {
     private String pitchType;
-    private Boolean decisionToSwing;
+    private Boolean swing;
     private Double timing;
 }

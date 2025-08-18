@@ -18,11 +18,11 @@ public class LoginController {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
-    
     private final MemberService service;
+
     @Autowired
     public LoginController(MemberService service) {
-    	this.service=service;
+        this.service = service;
     }
 
     // 로그인

@@ -17,7 +17,7 @@
 		destroy-method="close">
 		<!-- log4jdbc.log4j2 때문에 기존 코드 주석친거 -->
 		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
-		<property name="url" value="jdbc:mysql://localhost:3306/project" /><!-- db포트, db명에 맞게 수정 -->
+		<property name="url" value="jdbc:mysql://localhost:3306/my_cat" /><!-- db포트, db명에 맞게 수정 -->
 		<!-- 시작 끝-->
 		<!-- log4jdbc.log4j2 때문에 수정 삽입한거 -->
 		<!-- 시작 -->
@@ -36,6 +36,8 @@
 	<bean id="sqlSessionFactory"
 		class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource"></property>
+		<!-- MyBatis XML 매퍼 로딩 경로 등록 (XML의 namespace/id 사용 가능해짐) -->
+		<property name="mapperLocations" value="classpath*:com/baseball/mapper/*.xml" />
 	</bean>
 
 

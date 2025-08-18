@@ -37,4 +37,10 @@ public interface GameLifecycleService {
      * @return 존재 여부
      */
     boolean existsGame(String gameId);
+
+    /**
+     * 현재 메모리 상의 게임 상태를 영속 저장소(예: Redis)에 저장합니다.
+     * 영속 저장소가 주입되지 않은 환경에서는 no-op.
+     */
+    void saveGame(String gameId);
 }

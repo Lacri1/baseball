@@ -9,6 +9,12 @@ import java.util.ArrayList;
 public class GameLogicUtil {
 
     /**
+     * 게임 진행 중 공통으로 사용되는 순수 로직 모음.
+     * - 입력으로 전달된 DTO의 상태를 기반으로 확률/점수 등을 계산하여 결과 문자열 또는 점수를 산출합니다.
+     * - 외부 자원 접근(DB/네트워크)이 없어 테스트가 쉽고, 비즈니스 규칙 변경 시 이 클래스만 집중해서 수정할 수 있습니다.
+     * 주의: 이 유틸은 상태를 저장하지 않으며, 부수효과가 필요한 경우(GameDto 변경 등)에는 메서드에 명시적으로 나타냅니다.
+     */
+    /**
      * 투수의 WHIP을 기반으로 control 스탯 (0-100)을 계산합니다.
      * 낮은 WHIP은 높은 control을 의미합니다.
      * 
@@ -42,6 +48,8 @@ public class GameLogicUtil {
      * @return "스트라이크" 또는 "볼"
      */
     public static String determinePitchResultByStats(Pitcher pitcher, Batter batter) {
+        // 목적: 투수/타자 양측의 과거 성적을 기반으로 스트라이크/볼의 확률을 가중 평균하여 단일 투구 결과를 도출
+        // 특징: 투수의 삼진/볼넷 성향과 타자의 삼진/볼넷 성향을 동시에 반영하여 극단값을 완화합니다.
         // DTO에 아래와 같은 getter가 있다고 가정합니다.
         // pitcher: getStrikeouts(), getTotalBattersFaced(), getWalks(), getHitByPitch()
         // batter: getStrikeouts(), getPlateAppearances(), getWalks(), getHitByPitch()
@@ -84,6 +92,7 @@ public class GameLogicUtil {
      * @return 계산된 contact 스탯 (0-100)
      */
     public static int calculateContactFromBattingAverage(double battingAverage) {
+        // 목적: 직관적인 타율을 0~100 스케일의 컨택 값으로 변환하여 다른 요소(파워, 제구)와 가중 합산하기 위함
         // 타율 범위를 0.150 (낮음) ~ 0.350 (높음)으로 가정
         double minAvg = 0.150;
         double maxAvg = 0.350;
@@ -107,6 +116,8 @@ public class GameLogicUtil {
      * @return 계산된 power 스탯 (0-100)
      */
     private static int calculatePowerFromHomeRuns(int homeRuns) {
+        // 목적: 시즌 누적 홈런 개수를 단순 선형 변환하여 파워 점수로 사용
+        // 주의: 파워의 세밀한 보정(경기수, 홈런율 등)은 추후 필요 시 이 메서드를 확장합니다.
         // 홈런 수에 비례하여 파워를 계산. 예를 들어, 50홈런을 치면 파워 100으로 간주
         // 더 정교한 계산을 위해 홈런율 (HR/PA) 등을 사용할 수 있으나, 현재 필드 기준 단순화
         double calculatedPower = homeRuns * 2.0; // 홈런 50개면 파워 100
@@ -122,6 +133,8 @@ public class GameLogicUtil {
      * @return "스트라이크" 또는 "볼"
      */
     public static String determinePitchResult(Pitcher pitcher, String pitchType) {
+        // 목적: 사용자가 선택한 투구 타입(의도)이 투수의 제구력에 의해 실제 결과로 얼마나 잘 반영되는지 모델링
+        // 직관: WHIP이 낮을수록 의도한 결과가 나올 확률이 높음
         // control 스탯을 WHIP으로부터 실시간 계산
         int control = calculateControlFromWhip(pitcher.getWhip());
 
@@ -162,6 +175,11 @@ public class GameLogicUtil {
      */
     public static String determineHitResultWithTiming(boolean swing, Pitcher pitcher, String pitchType, double timing,
             Batter batter) {
+        // 목적: 스윙을 한 경우, 타자/투수 능력과 타이밍을 조합해 최종 타격 결과를 결정합니다.
+        // 설계 의도:
+        // - 컨택(=타율 기반)과 파워(=홈런 기반)를 가중 합산해 타격 기본 점수를 구성
+        // - 투수 제구력은 페널티로 반영(제구력이 좋을수록 타격 점수에서 불리)
+        // - 타이밍은 미세 조정(과도한 랜덤성 보다는 플레이어 입력 영향 강조)
         // 스윙을 하지 않았을 경우, 투구 결과만 반환
         if (!swing) {
             return pitchType.equals("strike") ? "스트라이크" : "볼";
@@ -192,6 +210,8 @@ public class GameLogicUtil {
      * @return 타격 결과 문자열
      */
     private static String getActualHitResultBasedOnFinalScore(double finalScore) {
+        // 목적: 연속값의 타격 점수를 실제 이벤트로 매핑하는 계단 함수
+        // 주의: 임계값은 체감 난이도/리워드 밸런싱 포인트로, 향후 게임 튜닝 시 조정됩니다.
         if (finalScore > 95)
             return "홈런";
         if (finalScore > 90)
@@ -216,6 +236,8 @@ public class GameLogicUtil {
      * @return "땅볼 아웃" 또는 "병살타"
      */
     public static String processGroundBall(GameDto game, Batter batter) {
+        // 목적: 땅볼 안타/아웃 상황에서 병살 가능성 및 아웃 카운트 증가를 처리
+        // 특징: 2아웃 시에는 추가 처리 없이 이닝 종료까지 고려, 1루 주자 존재 시 30% 확률로 병살 처리
         Batter[] bases = game.getBases();
         int currentOuts = game.getOut();
 
@@ -244,6 +266,7 @@ public class GameLogicUtil {
      * @param game 현재 게임 DTO
      */
     public static void resetBases(GameDto game) {
+        // 목적: 모든 루 상황을 초기화하여 이닝 시작/홈런/병살 등 특정 이벤트 이후 상태를 정리
         game.setBases(new Batter[4]);
         game.setBaseRunners(new ArrayList<>());
     }
@@ -256,6 +279,8 @@ public class GameLogicUtil {
      * @param runner 해당 주자 Batter 객체
      */
     public static void addRunnerToBase(GameDto game, int base, Batter runner) {
+        // 목적: 타격 결과에 따라 특정 루에 주자를 배치
+        // 주의: 베이스 범위는 1~3만 허용(0은 홈, 배열 크기는 4)
         if (base >= 1 && base <= 3) {
             Batter[] bases = game.getBases();
             bases[base] = runner;
@@ -273,6 +298,10 @@ public class GameLogicUtil {
      * @param basesToAdvance 진루시킬 베이스 수
      */
     public static void advanceRunners(GameDto game, int basesToAdvance) {
+        // 목적: 주자들을 뒤에서 앞으로 이동시키며 홈인한 주자 수만큼 득점을 반영
+        // 구현 포인트:
+        // - 3루부터 역순으로 이동시켜 중복 덮어쓰기를 방지
+        // - 홈을 넘는 경우(team 공격/수비에 따라) 점수 가산
         Batter[] oldBases = game.getBases();
         Batter[] newBases = new Batter[4];
         List<Batter> newBaseRunners = new ArrayList<>();

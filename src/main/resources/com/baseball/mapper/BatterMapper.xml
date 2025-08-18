@@ -4,9 +4,47 @@
 	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.baseball.game.mapper.BatterMapper">
 	<select id="findByTeam" resultType="com.baseball.game.dto.Batter">
-		select Player_Name,Player_Team,Plate_Appearance,At_Bat,Hit,two_Base,three_Base,Home_Run from kbo_batter_stats_2024 where Team=#{team}
+		SELECT
+			Player_Name AS name,
+			Player_Team AS team,
+			Plate_Appearance AS plateAppearances,
+			At_Bat AS atBats,
+			Hit AS hits,
+			two_Base AS twoBases,
+			three_Base AS threeBases,
+			Home_Run AS homeRuns
+		FROM kbo_hitter_stats_2024
+		WHERE Player_Team = #{team}
 	</select>
-	<select id="findByNames" resultType="List">
-		select Name from kbo_batter_stats_2024 where Team=#{Team} and Game_Num>=90
+
+	<select id="findByNames" resultType="com.baseball.game.dto.Batter">
+		SELECT
+			Player_Name AS name,
+			Player_Team AS team,
+			Plate_Appearance AS plateAppearances,
+			At_Bat AS atBats,
+			Hit AS hits,
+			two_Base AS twoBases,
+			three_Base AS threeBases,
+			Home_Run AS homeRuns
+		FROM kbo_hitter_stats_2024
+		WHERE Player_Name IN
+		<foreach collection="names" item="n" open="(" separator="," close=")">
+			#{n}
+		</foreach>
+	</select>
+
+	<select id="findByName" resultType="com.baseball.game.dto.Batter">
+		SELECT
+			Player_Name AS name,
+			Player_Team AS team,
+			Plate_Appearance AS plateAppearances,
+			At_Bat AS atBats,
+			Hit AS hits,
+			two_Base AS twoBases,
+			three_Base AS threeBases,
+			Home_Run AS homeRuns
+		FROM kbo_hitter_stats_2024
+		WHERE Player_Name = #{name}
 	</select>
 </mapper>

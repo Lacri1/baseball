@@ -82,3 +82,29 @@ class GameLogicUtilTest {
         assertThat(result).isIn("땅볼 아웃", "병살타");
     }
 }
+
+// 추가 테스트
+class GameLogicUtilExtraTest {
+    @org.junit.jupiter.api.Test
+    @org.junit.jupiter.api.DisplayName("resetBases: 베이스와 주자 리스트 초기화")
+    void resetBases_clears() {
+        GameDto game = new GameDto();
+        game.setBases(new Batter[] { new Batter(), new Batter(), new Batter(), new Batter() });
+        game.setBaseRunners(new java.util.ArrayList<>(java.util.List.of(new Batter())));
+        GameLogicUtil.resetBases(game);
+        org.assertj.core.api.Assertions.assertThat(game.getBases()).containsOnlyNulls();
+        org.assertj.core.api.Assertions.assertThat(game.getBaseRunners()).isEmpty();
+    }
+
+    @org.junit.jupiter.api.Test
+    @org.junit.jupiter.api.DisplayName("addRunnerToBase: 지정 베이스에 주자 추가 및 리스트 반영")
+    void addRunner_adds() {
+        GameDto game = new GameDto();
+        GameLogicUtil.resetBases(game);
+        Batter runner = new Batter();
+        runner.setName("Runner1");
+        GameLogicUtil.addRunnerToBase(game, 1, runner);
+        org.assertj.core.api.Assertions.assertThat(game.getBases()[1]).isEqualTo(runner);
+        org.assertj.core.api.Assertions.assertThat(game.getBaseRunners()).contains(runner);
+    }
+}

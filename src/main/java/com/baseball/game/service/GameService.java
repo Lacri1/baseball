@@ -1,6 +1,7 @@
 package com.baseball.game.service;
 
 import com.baseball.game.dto.GameDto;
+import com.baseball.game.dto.TeamLineupSetRequest;
 
 /**
  * 게임 서비스 인터페이스
@@ -51,4 +52,11 @@ public interface GameService {
      * 게임을 리셋합니다.
      */
     void resetGame(String gameId);
+
+    /**
+     * 특정 게임의 홈/원정 팀 라인업과 선발 투수를 설정합니다.
+     * request.teamName 이 게임의 homeTeam/awayTeam 중 하나여야 하며,
+     * 타자 9명과 선발 투수 1명을 포함해야 합니다.
+     */
+    GameDto applyTeamLineup(String gameId, TeamLineupSetRequest request);
 }

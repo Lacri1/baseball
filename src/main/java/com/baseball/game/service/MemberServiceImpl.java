@@ -30,7 +30,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void register(MemberDto memberDto) {
-        memberMapper.register(memberDto.getId(), memberDto.getPw(), memberDto.getTeam());
+        memberMapper.register(memberDto.getId(), memberDto.getPw(), memberDto.getEmail());
     }
 
     @Override
@@ -39,7 +39,7 @@ public class MemberServiceImpl implements MemberService {
         // 반환 타입이 MemberDto와 일치해야 함
         return memberMapper.member(id);
     }
-
+    
     @Override
     public Map<String, Object> loginProcess(MemberDto memberDto) {
         logger.info("로그인 요청: id={}", memberDto.getId());
@@ -81,8 +81,8 @@ public class MemberServiceImpl implements MemberService {
         if (memberDto.getPw() == null || memberDto.getPw().trim().isEmpty()) {
             throw new ValidationException("비밀번호는 필수입니다.");
         }
-        if (memberDto.getTeam() == null || memberDto.getTeam().trim().isEmpty()) {
-            throw new ValidationException("팀명은 필수입니다.");
+        if (memberDto.getEmail() == null || memberDto.getEmail().trim().isEmpty()) {
+            throw new ValidationException("이메일은 필수입니다.");
         }
         try {
             if (checkId(memberDto.getId())) {
