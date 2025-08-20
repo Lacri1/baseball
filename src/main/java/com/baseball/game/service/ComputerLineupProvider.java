@@ -39,7 +39,7 @@ public final class ComputerLineupProvider {
 		pitchers.put("LG 트윈스", "엔스");
         // 두산 베어스
 		batting.put("두산 베어스", Arrays.asList(
-			"정수빈", "김재호", "재러드", "김재환",
+			"정수빈", "김재호", "제러드", "김재환",
 			"양석환", "양의지", "강승호", "허경민", "조수행"
 		));
 		pitchers.put("두산 베어스", "곽빈");
