@@ -5,6 +5,7 @@ import com.baseball.game.dto.Pitcher;
 import com.baseball.game.dto.GameDto;
 import java.util.List;
 import java.util.ArrayList;
+import com.baseball.game.constant.GameConstants;
 
 public class GameLogicUtil {
 
@@ -22,9 +23,9 @@ public class GameLogicUtil {
      * @return 계산된 control 스탯 (0-100)
      */
     private static int calculateControlFromWhip(double whipValue) {
-        // KBO 투수의 일반적인 WHIP 범위를 0.9 (매우 좋음) ~ 2.0 (매우 나쁨)으로 가정
-        double minWHIP = 0.9;
-        double maxWHIP = 2.0;
+
+        double minWHIP = 1.2;
+        double maxWHIP = 1.9;
 
         double calculatedControl;
         if (whipValue <= minWHIP) {
@@ -92,20 +93,24 @@ public class GameLogicUtil {
      * @return 계산된 contact 스탯 (0-100)
      */
     public static int calculateContactFromBattingAverage(double battingAverage) {
-        // 목적: 직관적인 타율을 0~100 스케일의 컨택 값으로 변환하여 다른 요소(파워, 제구)와 가중 합산하기 위함
-        // 타율 범위를 0.150 (낮음) ~ 0.350 (높음)으로 가정
-        double minAvg = 0.150;
-        double maxAvg = 0.350;
+        // 목적: 리그 평균을 중심으로 컨택 값을 동적으로 산출하여 밸런싱
+        double avg = GameConstants.LEAGUE_AVG_BA; // 예: 0.260
+        double spread = GameConstants.LEAGUE_BA_SPREAD; // 예: 0.080 → [0.180, 0.340]
+
+        double minAvg = Math.max(0.0, avg - spread);
+        double maxAvg = Math.min(1.0, avg + spread);
+        final double EPS = 1e-9; // 경계 부동소수 비교용
 
         double calculatedContact;
-        if (battingAverage <= minAvg) {
+        if (battingAverage <= minAvg + EPS) {
             calculatedContact = 0.0;
-        } else if (battingAverage >= maxAvg) {
+        } else if (battingAverage >= maxAvg - EPS) {
             calculatedContact = 100.0;
         } else {
             calculatedContact = ((battingAverage - minAvg) / (maxAvg - minAvg)) * 100;
         }
-        return (int) Math.max(0, Math.min(100, calculatedContact));
+        // 반올림으로 경계값(예: 99.999...)을 안정적으로 100 처리
+        return (int) Math.round(Math.max(0, Math.min(100, calculatedContact)));
     }
 
     /**
@@ -185,22 +190,88 @@ public class GameLogicUtil {
             return pitchType.equals("strike") ? "스트라이크" : "볼";
         }
 
-        // 스윙을 한 경우, 타격 점수를 계산하여 결과 결정
-        // 파워, 컨택, 컨트롤 페널티를 실제 성적에서 실시간 계산
-        int contact = calculateContactFromBattingAverage(batter.getBattingAverage());
-        int power = calculatePowerFromHomeRuns(batter.getHomeRuns());
-        int pitcherControl = calculateControlFromWhip(pitcher.getWhip()); // 투수 컨트롤도 실시간 계산
+        // 1) 컨택 확률: 배터 K%와 피처 K% 기반 + 존/타이밍 보정
+        double batterPA = batter.getPlateAppearances() > 0 ? batter.getPlateAppearances() : 1;
+        double batterKRate = Math.max(0.0, Math.min(1.0, (double) batter.getStrikeOuts() / batterPA));
+        double pitcherBF = pitcher.getPitchersBattersFaced() > 0 ? pitcher.getPitchersBattersFaced() : 1;
+        double pitcherKRate = Math.max(0.0, Math.min(1.0, (double) pitcher.getStrikeouts() / pitcherBF));
 
-        // 타격 점수 = 계산된 컨택 * 0.4 + 계산된 파워 * 0.3 + 투수 제구력 페널티(컨트롤 역영향) * 0.2 + 타이밍 * 0.1
-        double contactScore = contact * 0.4;
-        double powerScore = power * 0.3;
-        double controlPenalty = (100 - pitcherControl) * 0.2; // 계산된 투수 컨트롤 사용
-        double timingScore = timing * 100 * 0.1;
+        double contactProb = 1.0 - ((batterKRate * 0.5) + (pitcherKRate * 0.5));
+        // 존 보정
+        contactProb += "strike".equals(pitchType) ? 0.07 : -0.10;
+        // 타이밍 보정: 정타에 가까울수록 컨택↑
+        double timingDelta = Math.abs(timing - 0.5); // 0~0.5
+        contactProb += (0.2 - timingDelta * 0.4); // 최대 +0.2, 최소 -0.0
+        contactProb = Math.max(0.10, Math.min(0.95, contactProb));
 
-        double finalScore = contactScore + powerScore - controlPenalty + timingScore;
-        finalScore = Math.max(0, Math.min(100, finalScore));
+        if (Math.random() > contactProb) {
+            return "헛스윙";
+        }
 
-        return getActualHitResultBasedOnFinalScore(finalScore);
+        // 2) 인플레이 시 안타 확률: 배터 BA와 투수 피안타율 기반 + 존/타이밍 보정
+        double batterBA = batter.getBattingAverage() > 0 ? batter.getBattingAverage()
+                : batter.calculateBattingAverage();
+        double pitcherHitRate = pitcher.getPitchersBattersFaced() > 0
+                ? ((double) pitcher.getHits() / pitcher.getPitchersBattersFaced())
+                : 0.25;
+        double pHit = batterBA * 0.6 + pitcherHitRate * 0.4; // 기본 가중 평균
+        pHit += "strike".equals(pitchType) ? 0.03 : -0.05; // 존 보정
+        pHit += (0.1 - timingDelta * 0.2); // 타이밍 보정
+        pHit += GameConstants.HIT_SCORE_BIAS / 100.0; // 전역 상향치(점수→확률 환산)
+        pHit = Math.max(0.12, Math.min(0.60, pHit));
+
+        if (Math.random() >= pHit) {
+            // 아웃 유형 결정: 파워 낮으면 GB↑, 높으면 FB↑
+            int power = calculatePowerFromHomeRuns(batter.getHomeRuns());
+            double gbProb = 0.55 - power * 0.003 + ("strike".equals(pitchType) ? -0.03 : 0.03) + (timingDelta * 0.1);
+            gbProb = Math.max(0.25, Math.min(0.75, gbProb));
+            return Math.random() < gbProb ? "땅볼 아웃" : "뜬공 아웃";
+        }
+
+        // 3) 안타일 때 단타/장타 분배: 실제 분포 기반 + 타이밍에 따른 장타 가중
+        int hits = Math.max(0, batter.getHits());
+        int doubles = Math.max(0, batter.getTwoBases());
+        int triples = Math.max(0, batter.getThreeBases());
+        int homers = Math.max(0, batter.getHomeRuns());
+
+        double base = Math.max(1.0, hits); // 분모 0 방지
+        double w2B = doubles / base;
+        double w3B = triples / base;
+        double wHR = homers / base;
+        double w1B = Math.max(0.0, 1.0 - (w2B + w3B + wHR));
+
+        // 타이밍 스위트스팟일수록 장타 가중 강화
+        double sweet = Math.max(0.0, 1.0 - (timingDelta * 10.0)); // 0~1 (정타에 가까울수록 1)
+        double boost = 0.25 * sweet; // 최대 +25%
+        double hrBoost = 1.0 + boost * 0.6; // HR에 더 큰 가중
+        double t3Boost = 1.0 + boost * 0.4;
+        double t2Boost = 1.0 + boost * 0.3;
+        double s1Boost = 1.0 - boost * 0.4; // 정타면 단타 비중 소폭 감소
+
+        wHR *= hrBoost;
+        w3B *= t3Boost;
+        w2B *= t2Boost;
+        w1B *= s1Boost;
+
+        // 정규화
+        double sum = w1B + w2B + w3B + wHR;
+        if (sum <= 0) {
+            // 분포가 비정상일 경우 안전하게 단타 처리
+            return "안타";
+        }
+        w1B /= sum;
+        w2B /= sum;
+        w3B /= sum;
+        wHR /= sum;
+
+        double r = Math.random();
+        if (r < wHR)
+            return "홈런";
+        if (r < wHR + w3B)
+            return "3루타";
+        if (r < wHR + w3B + w2B)
+            return "2루타";
+        return "안타";
     }
 
     /**
@@ -208,24 +279,40 @@ public class GameLogicUtil {
      * 
      * @param finalScore 계산된 타격 점수
      * @return 타격 결과 문자열
+     * 
+     *         private static String getActualHitResultBasedOnFinalScore(double
+     *         finalScore) {
+     *         // 목적: 리그 평균이 높을수록 안타/장타가 좀 더 잘 나오도록 임계값을 동적으로 보정
+     *         double avg = GameConstants.LEAGUE_AVG_BA; // 기준 0.260
+     *         double sensitivity = GameConstants.LEAGUE_THRESHOLD_SENSITIVITY; //
+     *         100.0 → 0.01 변동당 1점 조정
+     *         // 평균이 기준(0.260)보다 높으면 임계값을 낮추고, 낮으면 높임
+     *         double delta = avg - 0.260;
+     *         double adjust = sensitivity * delta; // 점수 조정치(+이면 기준 낮춤)
+     * 
+     *         // 타자 우호적으로 임계값을 완만히 낮춤
+     *         double hr = 92 - adjust;
+     *         double t3 = 87 - adjust;
+     *         double t2 = 77 - adjust;
+     *         double hit = 56 - adjust;
+     *         double gbOut = 36 - adjust;
+     *         double fbOut = 16 - adjust;
+     * 
+     *         if (finalScore > hr)
+     *         return "홈런";
+     *         if (finalScore > t3)
+     *         return "3루타";
+     *         if (finalScore > t2)
+     *         return "2루타";
+     *         if (finalScore > hit)
+     *         return "안타";
+     *         if (finalScore > gbOut)
+     *         return "땅볼 아웃";
+     *         if (finalScore > fbOut)
+     *         return "뜬공 아웃";
+     *         return "삼진 아웃";
+     *         }
      */
-    private static String getActualHitResultBasedOnFinalScore(double finalScore) {
-        // 목적: 연속값의 타격 점수를 실제 이벤트로 매핑하는 계단 함수
-        // 주의: 임계값은 체감 난이도/리워드 밸런싱 포인트로, 향후 게임 튜닝 시 조정됩니다.
-        if (finalScore > 95)
-            return "홈런";
-        if (finalScore > 90)
-            return "3루타";
-        if (finalScore > 80)
-            return "2루타";
-        if (finalScore > 60)
-            return "안타";
-        if (finalScore > 40)
-            return "땅볼 아웃";
-        if (finalScore > 20)
-            return "뜬공 아웃";
-        return "삼진 아웃";
-    }
 
     /**
      * 땅볼 처리: 병살/진루/아웃
@@ -240,6 +327,10 @@ public class GameLogicUtil {
         // 특징: 2아웃 시에는 추가 처리 없이 이닝 종료까지 고려, 1루 주자 존재 시 30% 확률로 병살 처리
         Batter[] bases = game.getBases();
         int currentOuts = game.getOut();
+        // 스냅샷(포스 여부 판단용)
+        boolean preFirst = bases[1] != null;
+        boolean preSecond = bases[2] != null;
+        boolean preThird = bases[3] != null;
 
         if (currentOuts == 2) {
             game.setOut(currentOuts + 1);
@@ -247,17 +338,80 @@ public class GameLogicUtil {
         }
         if (bases[1] != null) {
             if (Math.random() < 0.3) {
+                // 병살타: 타자와 1루 주자 아웃
                 game.setOut(currentOuts + 2);
-                GameLogicUtil.resetBases(game);
+                // 1루 주자 제거
+                Batter firstRunner = bases[1];
+                bases[1] = null;
+                if (firstRunner != null && game.getBaseRunners() != null) {
+                    java.util.List<Batter> newRunners = new java.util.ArrayList<>(game.getBaseRunners());
+                    newRunners.remove(firstRunner);
+                    game.setBaseRunners(newRunners);
+                }
+                // 강제 주자만 1베이스 진루(득점 반영 포함). 1루 주자는 아웃이므로 이동 제외
+                advanceForcedRunnersWithSnapshot(game, preFirst, preSecond, preThird, false);
                 return "병살타";
             } else {
                 game.setOut(currentOuts + 1);
+                // 일반 땅볼 아웃: 타자 아웃 + 강제 주자만 1베이스 진루(득점 반영)
+                advanceForcedRunnersWithSnapshot(game, preFirst, preSecond, preThird, true);
                 return "땅볼 아웃";
             }
         } else {
             game.setOut(currentOuts + 1);
             return "땅볼 아웃";
         }
+    }
+
+    // 강제 진루만 처리하는 유틸리티 (스냅샷 기반)
+    private static void advanceForcedRunnersWithSnapshot(GameDto game,
+            boolean preFirst,
+            boolean preSecond,
+            boolean preThird,
+            boolean includeFirstRunnerAdvance) {
+        Batter[] oldBases = game.getBases();
+        Batter[] newBases = new Batter[4];
+        // 초기화: 현재 상태를 복사
+        newBases[1] = oldBases[1];
+        newBases[2] = oldBases[2];
+        newBases[3] = oldBases[3];
+
+        // 3루 주자: 1,2,3루 모두 점유(사전)였다면 홈으로 강제 진루 → 득점
+        if (preThird && preSecond && preFirst && oldBases[3] != null) {
+            // 득점 처리
+            if (game.isTop()) {
+                game.setAwayScore(game.getAwayScore() + 1);
+            } else {
+                game.setHomeScore(game.getHomeScore() + 1);
+            }
+            newBases[3] = null; // 홈인
+        }
+
+        // 2루 주자: 사전에 1루도 점유되어 있었다면 3루로 강제 진루
+        if (preSecond && preFirst && oldBases[2] != null) {
+            // 3루가 비어 있으면 2루 주자를 3루로 이동
+            newBases[3] = (newBases[3] != null) ? newBases[3] : oldBases[2];
+            newBases[2] = (newBases[3] == oldBases[2]) ? null : newBases[2];
+        }
+
+        // 1루 주자: 일반 땅볼에서는 2루로 강제 진루, 병살에서는 제외
+        if (includeFirstRunnerAdvance && preFirst && oldBases[1] != null) {
+            // 2루가 비어 있으면 1루 주자를 2루로 이동
+            if (newBases[2] == null) {
+                newBases[2] = oldBases[1];
+                newBases[1] = null;
+            }
+        }
+
+        // 베이스/주자 목록 갱신
+        game.setBases(newBases);
+        java.util.List<Batter> newRunnersList = new java.util.ArrayList<>();
+        for (int i = 1; i <= 3; i++) {
+            if (newBases[i] != null && !newRunnersList.contains(newBases[i])) {
+                newRunnersList.add(newBases[i]);
+            }
+        }
+        game.setBaseRunners(newRunnersList);
     }
 
     /**
