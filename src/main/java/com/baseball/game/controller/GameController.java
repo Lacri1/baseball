@@ -88,7 +88,6 @@ public class GameController {
 				.awayScore(game.getAwayScore())
 				.currentBatter(game.getCurrentBatter())
 				.currentPitcher(game.getCurrentPitcher())
-				.baseRunners(game.getBaseRunners())
 				.bases(game.getBases())
 				.build();
 
