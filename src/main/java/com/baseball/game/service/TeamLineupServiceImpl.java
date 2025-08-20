@@ -61,6 +61,8 @@ public class TeamLineupServiceImpl implements TeamLineupService {
     private static final Map<String, String> DB_TEAM_NAMES = new HashMap<>();
     // 컴퓨터 기본 라인업 제공자가 기대하는 한글 풀네임 매핑 (내부 코드/별칭 → 풀네임)
     private static final Map<String, String> DISPLAY_TEAM_NAMES = new HashMap<>();
+    // 응답 표기를 위한 영어 풀네임 매핑 (내부 코드 → 영어 표기)
+    private static final Map<String, String> ENGLISH_DISPLAY_NAMES = new HashMap<>();
 
     public TeamLineupServiceImpl() {
         // 팀명 별칭 초기화
@@ -87,6 +89,28 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         TEAM_ALIASES.put("NC", "Dinos");
         TEAM_ALIASES.put("키움", "Heros");
         TEAM_ALIASES.put("KIA", "Tigers");
+
+        // 영어 약어/별칭도 인식
+        TEAM_ALIASES.put("SSG", "Landers");
+        TEAM_ALIASES.put("Landers", "Landers");
+        TEAM_ALIASES.put("Doosan", "Bears");
+        TEAM_ALIASES.put("Bears", "Bears");
+        TEAM_ALIASES.put("Samsung", "Lions");
+        TEAM_ALIASES.put("Lions", "Lions");
+        TEAM_ALIASES.put("LG", "Twins");
+        TEAM_ALIASES.put("Twins", "Twins");
+        TEAM_ALIASES.put("KT", "Wiz");
+        TEAM_ALIASES.put("Wiz", "Wiz");
+        TEAM_ALIASES.put("Lotte", "Giants");
+        TEAM_ALIASES.put("Giants", "Giants");
+        TEAM_ALIASES.put("Hanwha", "Eagels"); // 내부 코드는 기존 철자 유지
+        TEAM_ALIASES.put("Eagles", "Eagels");
+        TEAM_ALIASES.put("NC", "Dinos");
+        TEAM_ALIASES.put("Dinos", "Dinos");
+        TEAM_ALIASES.put("Kiwoom", "Heros");
+        TEAM_ALIASES.put("Heroes", "Heros");
+        TEAM_ALIASES.put("KIA", "Tigers");
+        TEAM_ALIASES.put("Tigers", "Tigers");
 
         // 내부 코드/풀네임/축약 → DB 저장값 매핑
         DB_TEAM_NAMES.put("Landers", "SSG");
@@ -196,29 +220,44 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         allPitchersByName.put("박세웅", new Pitcher("박세웅", "Giants"));
 
 		allPitchersByName.put("신민혁", new Pitcher("신민혁", "Dinos"));
+        // 영어 응답 표기 매핑 (내부 코드 → 영어 풀네임)
+        ENGLISH_DISPLAY_NAMES.put("Landers", "SSG Landers");
+        ENGLISH_DISPLAY_NAMES.put("Bears", "Doosan Bears");
+        ENGLISH_DISPLAY_NAMES.put("Lions", "Samsung Lions");
+        ENGLISH_DISPLAY_NAMES.put("Twins", "LG Twins");
+        ENGLISH_DISPLAY_NAMES.put("Wiz", "KT Wiz");
+        ENGLISH_DISPLAY_NAMES.put("Giants", "Lotte Giants");
+        ENGLISH_DISPLAY_NAMES.put("Eagels", "Hanwha Eagles"); // 표기는 올바른 Eagles 사용
+        ENGLISH_DISPLAY_NAMES.put("Dinos", "NC Dinos");
+        ENGLISH_DISPLAY_NAMES.put("Heros", "Kiwoom Heroes"); // 표기는 Heroes 사용
+        ENGLISH_DISPLAY_NAMES.put("Tigers", "KIA Tigers");
     }
 
     @Override
     public List<TeamLineup> getDefaultLineup(String teamName) {
         // 인메모리 기본 라인업 제공: ComputerLineupProvider 기반으로 TeamLineup 형태 생성
-        List<String> names = ComputerLineupProvider.getDefaultBattingOrder(teamName);
+        // 팀명을 정규화(내부 코드)하고, 제공자 호출용 한글 풀네임으로 변환
+        String normalizedCode = normalizeTeamName(teamName);
+        String displayTeam = resolveDisplayTeamName(normalizedCode);
+        List<String> names = ComputerLineupProvider.getDefaultBattingOrder(displayTeam);
         if (names == null || names.size() != 9) {
             throw new ValidationException("기본 라인업은 9명의 타자로 구성되어야 합니다.");
         }
+        String englishTeam = resolveEnglishTeamName(normalizedCode);
         List<TeamLineup> lineup = new ArrayList<>();
         for (int i = 0; i < names.size(); i++) {
             TeamLineup tl = new TeamLineup();
-            tl.setTeamName(teamName);
+            tl.setTeamName(englishTeam);
             tl.setPosition((i + 1) + "th_Batter");
             tl.setPlayerName(names.get(i));
             lineup.add(tl);
         }
-        String sp = ComputerLineupProvider.getDefaultStartingPitcher(teamName);
+        String sp = ComputerLineupProvider.getDefaultStartingPitcher(displayTeam);
         if (sp == null || sp.isEmpty()) {
             throw new ValidationException("선발 투수가 지정되어야 합니다.");
         }
         TeamLineup tlPitcher = new TeamLineup();
-        tlPitcher.setTeamName(teamName);
+        tlPitcher.setTeamName(englishTeam);
         tlPitcher.setPosition("Starting_Pitcher");
         tlPitcher.setPlayerName(sp);
         lineup.add(tlPitcher);
@@ -450,21 +489,48 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
     private String normalizeTeamName(String teamName) {
         if (teamName == null) return null;
-        return TEAM_ALIASES.getOrDefault(teamName, teamName);
+        String key = teamName.trim();
+        String mapped = getOrDefaultIgnoreCase(TEAM_ALIASES, key, null);
+        return mapped != null ? mapped : key;
     }
 
     // DB 조회용 팀명 변환
     private String resolveDbTeamName(String teamName) {
         if (teamName == null) return null;
-        String normalized = TEAM_ALIASES.getOrDefault(teamName, teamName);
-        return DB_TEAM_NAMES.getOrDefault(normalized, DB_TEAM_NAMES.getOrDefault(teamName, teamName));
+        String normalized = normalizeTeamName(teamName);
+        String db = getOrDefaultIgnoreCase(DB_TEAM_NAMES, normalized, null);
+        if (db != null) return db;
+        String key = teamName.trim();
+        db = getOrDefaultIgnoreCase(DB_TEAM_NAMES, key, null);
+        return db != null ? db : key;
     }
 
     // ComputerLineupProvider가 기대하는 한글 풀네임으로 변환
     private String resolveDisplayTeamName(String teamName) {
         if (teamName == null) return null;
-        String normalized = TEAM_ALIASES.getOrDefault(teamName, teamName);
-        return DISPLAY_TEAM_NAMES.getOrDefault(normalized, DISPLAY_TEAM_NAMES.getOrDefault(teamName, normalized));
+        String normalized = normalizeTeamName(teamName);
+        String display = getOrDefaultIgnoreCase(DISPLAY_TEAM_NAMES, normalized, null);
+        if (display != null) return display;
+        String key = teamName.trim();
+        display = getOrDefaultIgnoreCase(DISPLAY_TEAM_NAMES, key, null);
+        return display != null ? display : normalized;
+    }
+
+    private String resolveEnglishTeamName(String teamName) {
+        if (teamName == null) return null;
+        String normalized = normalizeTeamName(teamName);
+        String eng = ENGLISH_DISPLAY_NAMES.get(normalized);
+        return eng != null ? eng : normalized;
+    }
+
+    private String getOrDefaultIgnoreCase(Map<String, String> map, String key, String defaultValue) {
+        if (key == null) return defaultValue;
+        for (Map.Entry<String, String> e : map.entrySet()) {
+            if (e.getKey() != null && e.getKey().equalsIgnoreCase(key)) {
+                return e.getValue();
+            }
+        }
+        return defaultValue;
     }
 
     // JDBC 조회 유틸
