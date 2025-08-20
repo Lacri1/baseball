@@ -6,14 +6,18 @@
     
     <!-- 팀별 사용 가능한 선수 목록 조회 -->
     <select id="findAvailablePlayersByTeamBatters" resultType="String">
+        <![CDATA[
         SELECT Player_Name FROM kbo_hitter_stats_2024
-        WHERE Player_Team = #{teamName} and Game_Num >90 
+        WHERE Player_Team = #{teamName} and Game_Num >60 
         ORDER BY Player_Name
+        ]]>
     </select>
     <select id="findAvailablePlayersByTeamPitchers" resultType="String">
+        <![CDATA[
         SELECT Player_Name FROM kbo_pitcher_stats_2024
-        WHERE Player_Team = #{teamName} and Inning_Pitched >90 
+        WHERE Player_Team = #{teamName} and Innings_Pitched > 50 and Game_Num <= 35 
         ORDER BY Player_Name
+        ]]>
     </select>
     
 </mapper> 
