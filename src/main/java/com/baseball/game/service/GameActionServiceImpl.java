@@ -86,32 +86,65 @@ public class GameActionServiceImpl implements GameActionService {
         log.info("게임 {}: 투수 {} 투구. 결과: {}",
                 gameId, game.getCurrentPitcher().getName(), pitchResult);
 
-        switch (pitchResult) {
-            case "스트라이크":
-                game.setStrike(game.getStrike() + 1);
-                break;
-            case "볼":
-                game.setBall(game.getBall() + 1);
-                break;
-        }
-        // 카운트 검사: 삼진/볼넷 처리 및 타순 진행
-        stateService.checkCount(gameId);
-        // 삼진으로 아웃 누적이 3 이상이면 이닝 전환
-        if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
-            stateService.nextInning(gameId);
-        }
-
-        // 현재 턴이 컴퓨터 공격이면, 즉시 컴퓨터 타격 자동 진행
+        // 현재 턴이 컴퓨터 공격인지 선 판별 (중복 카운트 방지의 핵심 분기)
         boolean isComputerOffense = (game.isUserOffense() && !game.isTop()) || (!game.isUserOffense() && game.isTop());
         if (isComputerOffense) {
             try {
                 String computerResult = playComputerTurn(gameId);
+                // 컴퓨터가 스윙하지 않은 경우에만 투구 결과를 카운트에 반영
+                if ("스윙 안함".equals(computerResult)) {
+                    switch (pitchResult) {
+                        case "스트라이크":
+                            game.setStrike(game.getStrike() + 1);
+                            break;
+                        case "볼":
+                            game.setBall(game.getBall() + 1);
+                            break;
+                    }
+                    stateService.checkCount(gameId);
+                    if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
+                        stateService.nextInning(gameId);
+                    }
+                } else {
+                    // 컴퓨터가 스윙하여 타구가 처리된 경우에도 카운트 일관성 유지를 위해 checkCount 1회 호출
+                    stateService.checkCount(gameId);
+                }
                 return pitchResult + " | 컴퓨터 타격: " + computerResult;
             } catch (Exception e) {
                 log.warn("컴퓨터 타격 자동 진행 중 오류 발생", e);
+                // 오류 시 기본 투구 결과를 반영하여 게임 진행 유지
+                switch (pitchResult) {
+                    case "스트라이크":
+                        game.setStrike(game.getStrike() + 1);
+                        break;
+                    case "볼":
+                        game.setBall(game.getBall() + 1);
+                        break;
+                }
+                stateService.checkCount(gameId);
+                if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
+                    stateService.nextInning(gameId);
+                }
+                return pitchResult;
             }
+        } else {
+            // 유저 공격 턴: 기존처럼 투구 결과를 즉시 반영
+            switch (pitchResult) {
+                case "스트라이크":
+                    game.setStrike(game.getStrike() + 1);
+                    break;
+                case "볼":
+                    game.setBall(game.getBall() + 1);
+                    break;
+            }
+            // 카운트 검사: 삼진/볼넷 처리 및 타순 진행
+            stateService.checkCount(gameId);
+            // 삼진으로 아웃 누적이 3 이상이면 이닝 전환
+            if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
+                stateService.nextInning(gameId);
+            }
+            return pitchResult;
         }
-        return pitchResult;
     }
 
     @Override
@@ -172,14 +205,24 @@ public class GameActionServiceImpl implements GameActionService {
             case "스트라이크":
                 game.setStrike(game.getStrike() + 1);
                 stateService.checkCount(gameId);
+                // 스윙 유무와 관계없이 삼진으로 3아웃이 되면 이닝 전환
+                if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
+                    stateService.nextInning(gameId);
+                }
                 break;
             case "볼":
                 game.setBall(game.getBall() + 1);
                 stateService.checkCount(gameId);
+                if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
+                    stateService.nextInning(gameId);
+                }
                 break;
             case "헛스윙":
                 game.setStrike(game.getStrike() + 1);
                 stateService.checkCount(gameId);
+                if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
+                    stateService.nextInning(gameId);
+                }
                 break;
             case "안타":
             case "2루타":
@@ -198,19 +241,37 @@ public class GameActionServiceImpl implements GameActionService {
                 stateService.advanceBattingOrder(gameId);
                 break;
             }
-            case "홈런":
+            case "홈런": {
+                int runs = 1;
+                com.baseball.game.dto.Batter[] bases = game.getBases();
+                if (bases != null) {
+                    if (bases[1] != null)
+                        runs++;
+                    if (bases[2] != null)
+                        runs++;
+                    if (bases[3] != null)
+                        runs++;
+                }
+                if (game.isTop()) {
+                    game.setAwayScore(game.getAwayScore() + runs);
+                } else {
+                    game.setHomeScore(game.getHomeScore() + runs);
+                }
                 GameLogicUtil.resetBases(game);
                 game.setStrike(0);
                 game.setBall(0);
                 stateService.advanceBattingOrder(gameId);
                 break;
+            }
             case "뜬공 아웃":
             case "삼진 아웃":
             case "땅볼 아웃":
             case "병살타": {
                 int beforeOuts = game.getOut();
                 if ("땅볼 아웃".equals(hitResult) || "병살타".equals(hitResult)) {
-                    String ignored = GameLogicUtil.processGroundBall(game, game.getCurrentBatter());
+                    String gbResult = GameLogicUtil.processGroundBall(game, game.getCurrentBatter());
+                    // 실제 처리 결과(병살타 등)로 결과 문자열 업데이트
+                    hitResult = gbResult;
                 }
                 if ("삼진 아웃".equals(hitResult) || "뜬공 아웃".equals(hitResult)) {
                     game.setOut(beforeOuts + 1);

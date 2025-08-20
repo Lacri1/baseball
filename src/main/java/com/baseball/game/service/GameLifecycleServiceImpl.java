@@ -101,7 +101,11 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
         GameLogicUtil.resetBases(game);
         game.setGameOver(false);
         game.setWinner(null);
+        // 라인업/선발투수도 기본값으로 재설정 (게임 생성 당시 팀 기준)
         game.setCurrentBatterIndex(0);
+        game.setHomeBatterIndex(0);
+        game.setAwayBatterIndex(0);
+        applyInMemoryDefaultLineups(game, game.getHomeTeam(), game.getAwayTeam());
 
         log.info("Game reset: {}", gameId);
     }

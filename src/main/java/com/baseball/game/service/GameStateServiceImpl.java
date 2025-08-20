@@ -212,14 +212,14 @@ public class GameStateServiceImpl implements GameStateService {
         // 역할: 규정 이닝 도달/초말 상태에 따른 경기 종료 조건 확인
         GameDto game = lifecycleService.getGame(gameId);
 
-        if (game.getInning() > GameConstants.MAX_INNINGS && !game.isTop()) {
+        if (game.getInning() > game.getMaxInning() && !game.isTop()) {
             if (game.getHomeScore() != game.getAwayScore()) {
                 endGame(gameId);
                 return;
             }
         }
 
-        if (game.getInning() >= GameConstants.MAX_INNINGS && !game.isTop()) {
+        if (game.getInning() >= game.getMaxInning() && !game.isTop()) {
             if (game.getHomeScore() == game.getAwayScore()) {
                 log.info("Extra innings will continue");
             }
