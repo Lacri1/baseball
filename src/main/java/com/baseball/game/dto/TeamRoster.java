@@ -12,6 +12,6 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class TeamRoster {
     private String teamId;
-    private List<Player> batters;
+    private List<Batter> batters;
     private List<Pitcher> pitchers;
 }

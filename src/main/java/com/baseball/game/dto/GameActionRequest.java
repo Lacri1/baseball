@@ -10,5 +10,6 @@ import lombok.AllArgsConstructor;
 public class GameActionRequest {
     private String pitchType;
     private Boolean swing;
-    private Double timing;
+    // 사용자가 "타이밍 보너스"를 사용할지 여부
+    private Boolean timing;
 }

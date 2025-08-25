@@ -14,14 +14,13 @@ public class Batter extends Player {
     private int atBats; // 타수
     private int hits; // 안타
     private int homeRuns; // 홈런
-    private int rbis; // 타점
     private double battingAverage; // 타율
     private int plateAppearances; // 타석 (타율/홈런율 계산에 활용)
-    private int strikeOuts; // 삼진 (컨택 관련)
-    private int walks; // 볼넷 (선구안 관련, 필요한 경우)
+    private int strike_Out; // 삼진 (컨택 관련)
+    private int four_Ball; // 볼넷 (선구안 관련, 필요한 경우)
     private int twoBases; // 2루타 (장타력 관련)
     private int threeBases; // 3루타 (장타력 관련)
-    private int hitByPitch;
+    private int hit_By_Pitch;
 
     public Batter(String name, String team) {
         this.setName(name);
@@ -37,7 +36,7 @@ public class Batter extends Player {
     public double calculateOnBasePercentage() {
         if (plateAppearances == 0)
             return 0.0;
-        return (double) (hits + walks + hitByPitch) / plateAppearances;
+        return (double) (hits + four_Ball + hit_By_Pitch) / plateAppearances;
     }
 
     // 장타율 계산 메서드
