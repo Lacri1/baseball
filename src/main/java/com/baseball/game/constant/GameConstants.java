@@ -12,6 +12,7 @@ public final class GameConstants {
     public static final int MAX_OUTS = 3;
     public static final int MAX_STRIKES = 3;
     public static final int MAX_BALLS = 4;
+    public static final int MAX_BASES = 4;
     public static final int PLAYERS_PER_TEAM = 9;
 
     // 밸런싱 설정 (리그 평균 기반 동적 조정)
