@@ -65,7 +65,7 @@ class GameFlowIntegrationTest {
         game.setStrike(0);
         game.setBall(0);
         // 다음 타석 처리로 3아웃 유도
-        action.batterSwing(game.getGameId(), true, 0.5);
+        action.batterSwing(game.getGameId(), true, true);
 
         // 3아웃 후 말로 전환되어야 함
         assertThat(game.isTop()).isFalse();

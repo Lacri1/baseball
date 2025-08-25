@@ -36,9 +36,9 @@ class GameLogicWithStatsTest {
 
         Batter b = new Batter();
         b.setPlateAppearances(600);
-        b.setStrikeOuts(120); // 20% K
-        b.setWalks(40); // 6.7% BB
-        b.setHitByPitch(5);
+        b.setStrike_Out(120); // 20% K
+        b.setFour_Ball(40); // 6.7% BB
+        b.setHit_By_Pitch(5);
 
         String result = GameLogicUtil.determinePitchResultByStats(p, b);
         assertThat(result).isIn("스트라이크", "볼");

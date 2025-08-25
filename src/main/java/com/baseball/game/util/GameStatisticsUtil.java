@@ -27,7 +27,7 @@ public class GameStatisticsUtil {
     public static double calculateOnBasePercentage(Batter batter) {
         if (batter.getPlateAppearances() == 0)
             return 0.0;
-        return (double) (batter.getHits() + batter.getWalks() + batter.getHitByPitch()) / batter.getPlateAppearances();
+        return (double) (batter.getHits() + batter.getFour_Ball() + batter.getHit_By_Pitch()) / batter.getPlateAppearances();
     }
 
     /**
@@ -106,7 +106,7 @@ public class GameStatisticsUtil {
      * @return 계산된 삼진율 (0.000 ~ 1.000)
      */
     public static double calculateBatterStrikeoutRate(Batter batter) {
-        return batter.getPlateAppearances() > 0 ? (double) batter.getStrikeOuts() / batter.getPlateAppearances() : 0.0;
+        return batter.getPlateAppearances() > 0 ? (double) batter.getStrike_Out() / batter.getPlateAppearances() : 0.0;
     }
 
     /**
@@ -116,6 +116,6 @@ public class GameStatisticsUtil {
      * @return 계산된 볼넷율 (0.000 ~ 1.000)
      */
     public static double calculateBatterWalkRate(Batter batter) {
-        return batter.getPlateAppearances() > 0 ? (double) batter.getWalks() / batter.getPlateAppearances() : 0.0;
+        return batter.getPlateAppearances() > 0 ? (double) batter.getFour_Ball() / batter.getPlateAppearances() : 0.0;
     }
 }

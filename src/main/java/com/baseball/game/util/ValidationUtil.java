@@ -82,7 +82,7 @@ public class ValidationUtil {
 
         if (maxInning < GameConstants.MIN_INNINGS || maxInning > GameConstants.MAX_INNINGS) {
             throw new ValidationException(
-                    "최대 이닝 수는 " + GameConstants.MIN_INNINGS + "에서 " + GameConstants.MAX_INNINGS + "사이여야 합니다.");
+                    "최대 이닝 수는 " + GameConstants.MIN_INNINGS + "에서 " + GameConstants.MAX_INNINGS + " 사이여야 합니다.");
         }
     }
 

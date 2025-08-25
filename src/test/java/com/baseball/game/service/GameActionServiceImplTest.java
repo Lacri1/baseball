@@ -34,7 +34,7 @@ class GameActionServiceImplTest {
         GameDto game = new GameDto();
         game.setGameOver(true);
         given(lifecycleService.getGame("id")).willReturn(game);
-        assertThatThrownBy(() -> service.batterSwing("id", true, 0.5))
+        assertThatThrownBy(() -> service.batterSwing("id", true, true))
                 .isInstanceOf(InvalidGameStateException.class);
     }
 
@@ -163,7 +163,7 @@ class GameActionServiceImplTest {
         game.setCurrentBatter(null);
         game.setCurrentPitcher(null);
         given(lifecycleService.getGame("gid")).willReturn(game);
-        assertThatThrownBy(() -> service.batterSwing("gid", true, 0.5))
+        assertThatThrownBy(() -> service.batterSwing("gid", true, true))
                 .isInstanceOf(InvalidGameStateException.class);
     }
 }

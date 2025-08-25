@@ -3,8 +3,6 @@ package com.baseball.game.util;
 import com.baseball.game.dto.Batter;
 import com.baseball.game.dto.Pitcher;
 import com.baseball.game.dto.GameDto;
-import java.util.List;
-import java.util.ArrayList;
 import com.baseball.game.constant.GameConstants;
 
 public class GameLogicUtil {
@@ -61,12 +59,12 @@ public class GameLogicUtil {
 
         // 1. 스트라이크 확률 계산
         double pitcherStrikeoutRate = pitcher.getStrikeouts() / pitcherTotalBatters;
-        double batterStrikeoutRate = batter.getStrikeOuts() / batterTotalPAs;
+        double batterStrikeoutRate = batter.getStrike_Out() / batterTotalPAs;
         double finalStrikeProb = (pitcherStrikeoutRate + batterStrikeoutRate) / 2.0;
 
         // 2. 볼 확률 계산
         double pitcherWalkRate = (pitcher.getWalks() + pitcher.getHitByPitch()) / pitcherTotalBatters;
-        double batterWalkRate = (batter.getWalks() + batter.getHitByPitch()) / batterTotalPAs;
+        double batterWalkRate = (batter.getFour_Ball() + batter.getHit_By_Pitch()) / batterTotalPAs;
         double finalBallProb = (pitcherWalkRate + batterWalkRate) / 2.0;
 
         // 3. 최종 확률에 기반한 결과 결정
@@ -174,11 +172,12 @@ public class GameLogicUtil {
      * @param swing     스윙 여부 (true = 스윙, false = 노스윙)
      * @param pitcher   현재 투수 객체
      * @param pitchType 투수가 던진 공의 실제 유형 ("strike" 또는 "ball") - 투구의 존 여부
-     * @param timing    0.0 ~ 1.0 (0.5가 정타)
+     * @param timing    Boolean(true=보너스, false/NULL=보정 없음) 또는 Double(0.0~1.0, 0.5가
+     *                  정타)
      * @param batter    현재 타자 객체
      * @return 타격 결과 문자열 ("스트라이크", "볼", "헛스윙", "안타", "홈런", "삼진 아웃" 등)
      */
-    public static String determineHitResultWithTiming(boolean swing, Pitcher pitcher, String pitchType, double timing,
+    public static String determineHitResultWithTiming(boolean swing, Pitcher pitcher, String pitchType, Object timing,
             Batter batter) {
         // 목적: 스윙을 한 경우, 타자/투수 능력과 타이밍을 조합해 최종 타격 결과를 결정합니다.
         // 설계 의도:
@@ -189,19 +188,32 @@ public class GameLogicUtil {
         if (!swing) {
             return pitchType.equals("strike") ? "스트라이크" : "볼";
         }
-
+        // timing이 Boolean인 경우: true면 타이밍 보너스 가산, false/null이면 보정 없음
+        boolean timingBonus = false;
+        double timingDelta;
+        if (timing instanceof Boolean) {
+            timingBonus = (Boolean) timing;
+            timingDelta = 0.25; // 중립값
+        } else if (timing instanceof Number) {
+            double t = ((Number) timing).doubleValue();
+            timingDelta = Math.abs(t - 0.5);
+        } else {
+            timingDelta = 0.25;
+        }
         // 1) 컨택 확률: 배터 K%와 피처 K% 기반 + 존/타이밍 보정
         double batterPA = batter.getPlateAppearances() > 0 ? batter.getPlateAppearances() : 1;
-        double batterKRate = Math.max(0.0, Math.min(1.0, (double) batter.getStrikeOuts() / batterPA));
+        double batterKRate = Math.max(0.0, Math.min(1.0, (double) batter.getStrike_Out() / batterPA));
         double pitcherBF = pitcher.getPitchersBattersFaced() > 0 ? pitcher.getPitchersBattersFaced() : 1;
         double pitcherKRate = Math.max(0.0, Math.min(1.0, (double) pitcher.getStrikeouts() / pitcherBF));
 
         double contactProb = 1.0 - ((batterKRate * 0.5) + (pitcherKRate * 0.5));
         // 존 보정
         contactProb += "strike".equals(pitchType) ? 0.07 : -0.10;
-        // 타이밍 보정: 정타에 가까울수록 컨택↑
-        double timingDelta = Math.abs(timing - 0.5); // 0~0.5
-        contactProb += (0.2 - timingDelta * 0.4); // 최대 +0.2, 최소 -0.0
+        // 타이밍 보정: 정타에 가까울수록 컨택↑ (위에서 계산한 timingDelta 사용)
+        contactProb += (0.2 - timingDelta * 0.4);
+        if (timingBonus) {
+            contactProb += 0.05; // 타이밍 보너스 소폭 가산
+        }
         contactProb = Math.max(0.10, Math.min(0.95, contactProb));
 
         if (Math.random() > contactProb) {
@@ -216,7 +228,10 @@ public class GameLogicUtil {
                 : 0.25;
         double pHit = batterBA * 0.6 + pitcherHitRate * 0.4; // 기본 가중 평균
         pHit += "strike".equals(pitchType) ? 0.03 : -0.05; // 존 보정
-        pHit += (0.1 - timingDelta * 0.2); // 타이밍 보정
+        pHit += (0.1 - timingDelta * 0.2);
+        if (timingBonus) {
+            pHit += 0.03; // 보너스 시 안타 확률 소폭 증가
+        }
         pHit += GameConstants.HIT_SCORE_BIAS / 100.0; // 전역 상향치(점수→확률 환산)
         pHit = Math.max(0.12, Math.min(0.60, pHit));
 
@@ -242,6 +257,9 @@ public class GameLogicUtil {
 
         // 타이밍 스위트스팟일수록 장타 가중 강화
         double sweet = Math.max(0.0, 1.0 - (timingDelta * 10.0)); // 0~1 (정타에 가까울수록 1)
+        if (timingBonus) {
+            sweet = Math.min(1.0, sweet + 0.1);
+        }
         double boost = 0.25 * sweet; // 최대 +25%
         double hrBoost = 1.0 + boost * 0.6; // HR에 더 큰 가중
         double t3Boost = 1.0 + boost * 0.4;
@@ -343,11 +361,7 @@ public class GameLogicUtil {
                 // 1루 주자 제거
                 Batter firstRunner = bases[1];
                 bases[1] = null;
-                if (firstRunner != null && game.getBaseRunners() != null) {
-                    java.util.List<Batter> newRunners = new java.util.ArrayList<>(game.getBaseRunners());
-                    newRunners.remove(firstRunner);
-                    game.setBaseRunners(newRunners);
-                }
+                // baseRunners는 제거. 주자 배열만 관리
                 // 강제 주자만 1베이스 진루(득점 반영 포함). 1루 주자는 아웃이므로 이동 제외
                 advanceForcedRunnersWithSnapshot(game, preFirst, preSecond, preThird, false);
                 return "병살타";
@@ -403,15 +417,8 @@ public class GameLogicUtil {
             }
         }
 
-        // 베이스/주자 목록 갱신
+        // 베이스 갱신 (주자 목록은 bases로부터 계산 가능)
         game.setBases(newBases);
-        java.util.List<Batter> newRunnersList = new java.util.ArrayList<>();
-        for (int i = 1; i <= 3; i++) {
-            if (newBases[i] != null && !newRunnersList.contains(newBases[i])) {
-                newRunnersList.add(newBases[i]);
-            }
-        }
-        game.setBaseRunners(newRunnersList);
     }
 
     /**
@@ -422,7 +429,6 @@ public class GameLogicUtil {
     public static void resetBases(GameDto game) {
         // 목적: 모든 루 상황을 초기화하여 이닝 시작/홈런/병살 등 특정 이벤트 이후 상태를 정리
         game.setBases(new Batter[4]);
-        game.setBaseRunners(new ArrayList<>());
     }
 
     /**
@@ -438,10 +444,60 @@ public class GameLogicUtil {
         if (base >= 1 && base <= 3) {
             Batter[] bases = game.getBases();
             bases[base] = runner;
-            if (!game.getBaseRunners().contains(runner)) {
-                game.getBaseRunners().add(runner);
+            // baseRunners는 유지하지 않음
+        }
+    }
+
+    /**
+     * 볼넷 처리: 1루가 비어 있으면 타자만 1루 진루, 1루가 차 있으면 강제 주자만 1베이스씩 진루 후 타자를 1루에 배치합니다.
+     * 득점은 강제 진루에 의해 홈을 밟는 경우에만 가산됩니다.
+     *
+     * @param game   현재 게임 DTO
+     * @param batter 볼넷을 얻은 타자
+     */
+    public static void processWalk(GameDto game, Batter batter) {
+        Batter[] oldBases = game.getBases();
+        boolean preFirst = oldBases[1] != null;
+        boolean preSecond = oldBases[2] != null;
+        boolean preThird = oldBases[3] != null;
+
+        Batter[] newBases = new Batter[4];
+        newBases[1] = oldBases[1];
+        newBases[2] = oldBases[2];
+        newBases[3] = oldBases[3];
+
+        // 강제 진루만 적용
+        // 3루 주자 득점 여부 (모두 점유되어 있었다면 강제 홈인)
+        if (preThird && preSecond && preFirst && oldBases[3] != null) {
+            if (game.isTop()) {
+                game.setAwayScore(game.getAwayScore() + 1);
+            } else {
+                game.setHomeScore(game.getHomeScore() + 1);
+            }
+            newBases[3] = null;
+        }
+
+        // 2루 주자 → 3루 (1루도 점유되어 있었다면 강제)
+        if (preSecond && preFirst && oldBases[2] != null) {
+            if (newBases[3] == null) {
+                newBases[3] = oldBases[2];
+                newBases[2] = null;
             }
         }
+
+        // 1루 주자 → 2루 (1루가 점유되어 있었다면 강제)
+        if (preFirst && oldBases[1] != null) {
+            if (newBases[2] == null) {
+                newBases[2] = oldBases[1];
+                newBases[1] = null;
+            }
+        }
+
+        // 타자 1루 진루
+        newBases[1] = batter;
+
+        // 베이스 갱신
+        game.setBases(newBases);
     }
 
     /**
@@ -458,7 +514,7 @@ public class GameLogicUtil {
         // - 홈을 넘는 경우(team 공격/수비에 따라) 점수 가산
         Batter[] oldBases = game.getBases();
         Batter[] newBases = new Batter[4];
-        List<Batter> newBaseRunners = new ArrayList<>();
+        // 주자 목록은 필요 시 bases에서 계산
 
         for (int i = 3; i >= 1; i--) {
             if (oldBases[i] != null) {
@@ -473,11 +529,9 @@ public class GameLogicUtil {
                     }
                 } else {
                     newBases[newBasePosition] = runner;
-                    newBaseRunners.add(runner);
                 }
             }
         }
         game.setBases(newBases);
-        game.setBaseRunners(newBaseRunners);
     }
 }

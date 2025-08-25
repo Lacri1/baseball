@@ -19,9 +19,9 @@ class GameLogicUtilTest {
         pitcher.setHitByPitch(2);
         Batter batter = new Batter();
         batter.setPlateAppearances(100);
-        batter.setStrikeOuts(20);
-        batter.setWalks(15);
-        batter.setHitByPitch(1);
+        batter.setStrike_Out(20);
+        batter.setFour_Ball(15);
+        batter.setHit_By_Pitch(1);
         String result = GameLogicUtil.determinePitchResultByStats(pitcher, batter);
         assertThat(result).isIn("스트라이크", "볼");
     }
@@ -90,10 +90,10 @@ class GameLogicUtilExtraTest {
     void resetBases_clears() {
         GameDto game = new GameDto();
         game.setBases(new Batter[] { new Batter(), new Batter(), new Batter(), new Batter() });
-        game.setBaseRunners(new java.util.ArrayList<>(java.util.List.of(new Batter())));
+        
         GameLogicUtil.resetBases(game);
         org.assertj.core.api.Assertions.assertThat(game.getBases()).containsOnlyNulls();
-        org.assertj.core.api.Assertions.assertThat(game.getBaseRunners()).isEmpty();
+        
     }
 
     @org.junit.jupiter.api.Test
@@ -105,6 +105,6 @@ class GameLogicUtilExtraTest {
         runner.setName("Runner1");
         GameLogicUtil.addRunnerToBase(game, 1, runner);
         org.assertj.core.api.Assertions.assertThat(game.getBases()[1]).isEqualTo(runner);
-        org.assertj.core.api.Assertions.assertThat(game.getBaseRunners()).contains(runner);
+        
     }
 }

@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,9 +25,8 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
 
     private static final Logger log = LoggerFactory.getLogger(GameLifecycleServiceImpl.class);
 
-    // 게임 데이터를 메모리에 저장하는 HashMap
-    // 설계 의도: 간단한 러닝 환경에서는 인메모리로 충분하며, 운영에서는 Redis 저장소로 대체 가능
-    private final Map<String, GameDto> games = new HashMap<>();
+    // 게임 데이터를 메모리에 저장하는 Map (동시성 안전)
+    private final Map<String, GameDto> games = new ConcurrentHashMap<>();
 
     @org.springframework.beans.factory.annotation.Autowired
     private BatterMapper batterMapper;
@@ -124,19 +123,7 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
 
     @Override
     public void saveGame(String gameId) {
-        GameDto game = games.get(gameId);
-        if (game == null)
-            return;
-        try {
-            // Redis 저장소가 구성된 경우 이를 통해 저장하도록 확장 가능
-            com.baseball.game.repository.GameRepository repo = null;
-            try {
-                repo = (com.baseball.game.repository.GameRepository) (new org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor());
-            } catch (Throwable ignored) {
-            }
-            // 현재 구현은 인메모리 유지. 외부에서 RedisGameRepository 사용 시 이 메서드를 오버라이드/주입 구조로 전환 권장.
-        } catch (Throwable ignored) {
-        }
+        // 인메모리 구현에서는 별도 작업 불필요. 저장은 games 맵에 이미 반영됨.
     }
 
     private List<Batter> orderBattersByNames(List<String> names) {

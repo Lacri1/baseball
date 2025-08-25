@@ -10,7 +10,7 @@ public interface GameActionService {
      * @param timing 타이밍 (0.0 ~ 1.0)
      * @return 결과 메시지
      */
-    String batterSwing(String gameId, Boolean swing, Double timing);
+    String batterSwing(String gameId, Boolean swing, Boolean timing);
 
     /**
      * 투수가 투구합니다.

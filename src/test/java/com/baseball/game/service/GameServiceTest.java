@@ -63,12 +63,12 @@ class GameServiceImplTest {
     @Test
     @DisplayName("batterSwing은 actionService.batterSwing을 위임한다")
     void batterSwing_delegatesToActionService() {
-        given(actionService.batterSwing("id", true, 0.5)).willReturn("result");
+        given(actionService.batterSwing("id", true, true)).willReturn("result");
 
-        String result = gameService.batterSwing("id", true, 0.5);
+        String result = gameService.batterSwing("id", true, true);
 
         assertThat(result).isEqualTo("result");
-        verify(actionService).batterSwing("id", true, 0.5);
+        verify(actionService).batterSwing("id", true, true);
     }
 
     @Test

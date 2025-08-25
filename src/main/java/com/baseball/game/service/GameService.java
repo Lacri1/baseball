@@ -21,7 +21,7 @@ public interface GameService {
     /**
      * 타자가 스윙합니다.
      */
-    String batterSwing(String gameId, Boolean swing, Double timing);
+    String batterSwing(String gameId, Boolean swing, Boolean timing);
     
     /**
      * 투수가 투구합니다.
