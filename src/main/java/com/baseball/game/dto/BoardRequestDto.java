@@ -1,6 +1,5 @@
 package com.baseball.game.dto;
 import lombok.Data;
-import java.util.ArrayList;
 
 @Data
 public class BoardRequestDto {

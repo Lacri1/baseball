@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.baseball.game.dto.TeamLineup;
 import com.baseball.game.dto.CustomLineupRequest;
 import com.baseball.game.service.TeamLineupService;
-import lombok.Setter;
+
 
 @RestController
 @RequestMapping("/api/lineup")
