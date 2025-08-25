@@ -2,16 +2,13 @@ package com.baseball.game.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
-import java.util.Comparator; // Comparator import 추가
+import java.util.Comparator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.jdbc.core.JdbcTemplate;
-import javax.sql.DataSource;
 
 import com.baseball.game.dto.TeamLineup;
 import com.baseball.game.dto.CustomLineupRequest;
@@ -40,29 +37,17 @@ public class TeamLineupServiceImpl implements TeamLineupService {
     @Setter(onMethod_ = @Autowired)
     private PitcherMapper pitcherMapper;
 
-    // JDBC 직접 조회용 (MyBatis 바인딩 불일치 시 우회)
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public void setDataSource(DataSource dataSource) {
-        if (dataSource != null) {
-            this.jdbcTemplate = new JdbcTemplate(dataSource);
-        }
-    }
-
-    private final Map<String, Batter> allBattersByName = new HashMap<>();
-    private final Map<String, Pitcher> allPitchersByName = new HashMap<>();
-
-    private final Map<String, Map<String, List<Batter>>> userCustomBattingOrders = new HashMap<>();
-    private final Map<String, Map<String, Pitcher>> userCustomStartingPitchers = new HashMap<>();
+    private final Map<String, Map<String, List<Batter>>> userCustomBattingOrders = new java.util.HashMap<>();
+    private final Map<String, Map<String, Pitcher>> userCustomStartingPitchers = new java.util.HashMap<>();
+    
     // 팀명 별칭 매핑 (한국어 → 내부 코드)
-    private static final Map<String, String> TEAM_ALIASES = new HashMap<>();
+    private static final Map<String, String> TEAM_ALIASES = new java.util.HashMap<>();
     // DB 팀명 매핑 (내부/별칭 → DB 저장값)
-    private static final Map<String, String> DB_TEAM_NAMES = new HashMap<>();
+    private static final Map<String, String> DB_TEAM_NAMES = new java.util.HashMap<>();
     // 컴퓨터 기본 라인업 제공자가 기대하는 한글 풀네임 매핑 (내부 코드/별칭 → 풀네임)
-    private static final Map<String, String> DISPLAY_TEAM_NAMES = new HashMap<>();
+    private static final Map<String, String> DISPLAY_TEAM_NAMES = new java.util.HashMap<>();
     // 응답 표기를 위한 영어 풀네임 매핑 (내부 코드 → 영어 표기)
-    private static final Map<String, String> ENGLISH_DISPLAY_NAMES = new HashMap<>();
+    private static final Map<String, String> ENGLISH_DISPLAY_NAMES = new java.util.HashMap<>();
 
     public TeamLineupServiceImpl() {
         // 팀명 별칭 초기화
@@ -195,31 +180,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         DISPLAY_TEAM_NAMES.put("Tigers", "KIA 타이거즈");
         DISPLAY_TEAM_NAMES.put("KIA", "KIA 타이거즈");
         DISPLAY_TEAM_NAMES.put("KIA 타이거즈", "KIA 타이거즈");
-		// 기본 더미 데이터 (테스트 및 비주입 환경 호환)
-        // 롯데(예시 최신화)
-        allBattersByName.put("황성빈", new Batter("황성빈", "Giants"));
-        allBattersByName.put("윤동희", new Batter("윤동희", "Giants"));
-        allBattersByName.put("레이예스", new Batter("레이예스", "Giants"));
-        allBattersByName.put("전준우", new Batter("전준우", "Giants"));
-        allBattersByName.put("나승엽", new Batter("나승엽", "Giants"));
-        allBattersByName.put("손호영", new Batter("손호영", "Giants"));
-        allBattersByName.put("손성빈", new Batter("손성빈", "Giants"));
-        allBattersByName.put("고승민", new Batter("고승민", "Giants"));
-        allBattersByName.put("박승욱", new Batter("박승욱", "Giants"));
-
-		allBattersByName.put("박민우", new Batter("박민우", "Dinos"));
-		allBattersByName.put("서호철", new Batter("서호철", "Dinos"));
-		allBattersByName.put("데이비슨", new Batter("데이비슨", "Dinos"));
-		allBattersByName.put("권희동", new Batter("권희동", "Dinos"));
-		allBattersByName.put("김휘집", new Batter("김휘집", "Dinos"));
-		allBattersByName.put("천재환", new Batter("천재환", "Dinos"));
-		allBattersByName.put("김주원", new Batter("김주원", "Dinos"));
-		allBattersByName.put("김형준", new Batter("김형준", "Dinos"));
-		allBattersByName.put("한석현", new Batter("한석현", "Dinos"));
-
-        allPitchersByName.put("박세웅", new Pitcher("박세웅", "Giants"));
-
-		allPitchersByName.put("신민혁", new Pitcher("신민혁", "Dinos"));
+        
         // 영어 응답 표기 매핑 (내부 코드 → 영어 풀네임)
         ENGLISH_DISPLAY_NAMES.put("Landers", "SSG Landers");
         ENGLISH_DISPLAY_NAMES.put("Bears", "Doosan Bears");
@@ -271,7 +232,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
         // 사용자 정의 타자 라인업 조회 (메모리)
         List<Batter> customBattingOrder = userCustomBattingOrders
-            .getOrDefault(userId, new HashMap<>())
+            .getOrDefault(userId, new java.util.HashMap<>())
             .get(teamName);
 
         if (customBattingOrder != null) {
@@ -289,7 +250,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
         // 사용자 정의 선발 투수 조회 (메모리)
         Pitcher customStartingPitcher = userCustomStartingPitchers
-            .getOrDefault(userId, new HashMap<>())
+            .getOrDefault(userId, new java.util.HashMap<>())
             .get(teamName);
 
         if (customStartingPitcher != null) {
@@ -312,8 +273,8 @@ public class TeamLineupServiceImpl implements TeamLineupService {
     @Override
     @Transactional
     public void saveCustomLineup(CustomLineupRequest request) {
-        userCustomBattingOrders.computeIfAbsent(request.getUserId(), k -> new HashMap<>()).remove(request.getTeamName());
-        userCustomStartingPitchers.computeIfAbsent(request.getUserId(), k -> new HashMap<>()).remove(request.getTeamName());
+        userCustomBattingOrders.computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>()).remove(request.getTeamName());
+        userCustomStartingPitchers.computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>()).remove(request.getTeamName());
 
         // 임시 리스트에 타순과 함께 타자를 저장하여 나중에 정렬
         List<Map.Entry<Integer, Batter>> orderedBattersTemp = new ArrayList<>();
@@ -335,24 +296,20 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 					pitcher = pitcherMapper.findByName(playerName);
 				} catch (Exception ignored) {}
 			}
-			if (batter == null) {
-				batter = allBattersByName.get(playerName);
-			}
-			if (pitcher == null) {
-				pitcher = allPitchersByName.get(playerName);
-			}
+			
             if (batter != null && batter.getAtBats() > 0 && batter.getBattingAverage() == 0.0) {
                 // DB에 타율 컬럼이 없을 경우 계산값 세팅
                 batter.setBattingAverage(batter.calculateBattingAverage());
             }
 
-            if (batter != null && batter.getTeam().equals(request.getTeamName())) {
+            String normalizedTeam = normalizeTeamName(request.getTeamName());
+            if (batter != null && normalizeTeamName(batter.getTeam()).equalsIgnoreCase(normalizedTeam)) {
                 // 타자인 경우
                 if (lineupOrder == null || lineupOrder < 1 || lineupOrder > 9) {
                     throw new ValidationException("타자 '" + playerName + "'의 라인업 순서가 유효하지 않습니다: " + lineupOrder + " (1-9 사이여야 합니다).");
                 }
                 orderedBattersTemp.add(Map.entry(lineupOrder, batter));
-            } else if (pitcher != null && pitcher.getTeam().equals(request.getTeamName())) {
+            } else if (pitcher != null && normalizeTeamName(pitcher.getTeam()).equalsIgnoreCase(normalizedTeam)) {
                 // 투수인 경우
                 if (newStartingPitcher != null) {
                     throw new ValidationException("선발 투수는 한 명만 지정할 수 있습니다.");
@@ -386,11 +343,11 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
         // 새로운 커스텀 라인업을 메모리에 저장
         userCustomBattingOrders
-            .computeIfAbsent(request.getUserId(), k -> new HashMap<>())
+            .computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>())
             .put(request.getTeamName(), newBattingOrder);
 
         userCustomStartingPitchers
-            .computeIfAbsent(request.getUserId(), k -> new HashMap<>())
+            .computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>())
             .put(request.getTeamName(), newStartingPitcher);
 
         logger.info("사용자 {}의 팀 {}에 대한 커스텀 라인업이 메모리에 저장되었습니다.", request.getUserId(), request.getTeamName());
@@ -433,58 +390,111 @@ public class TeamLineupServiceImpl implements TeamLineupService {
     @Override
     public List<String> getAvailablePlayers(String teamName) {
         String normalizedTeam = normalizeTeamName(teamName);
-
-        // 1) DB 우선 조회
-        // MyBatis 매퍼 대신 JDBC 직접 조회 시도 (매퍼 바인딩 충돌 우회)
+        // 1) MyBatis 매퍼로 조회 (TeamLineupMapper XML 기준 사용)
         try {
             String dbTeam = resolveDbTeamName(teamName);
-            List<String> players = queryHitterNamesViaJdbc(dbTeam);
-            if (players != null && !players.isEmpty()) {
-                return players;
+            if (teamLineupMapper != null) {
+                List<String> names = teamLineupMapper.findAvailablePlayersByTeamBatters(dbTeam);
+                if (names != null && !names.isEmpty()) {
+                    logger.info("팀 {}의 타자 {}명을 DB에서 조회했습니다.", teamName, names.size());
+                    return names;
+                }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            logger.warn("팀 {}의 타자 DB 조회 실패: {}", teamName, e.getMessage());
+        }
 
         // 2) 기본 라인업(인메모리 제공)
         String displayTeam = resolveDisplayTeamName(teamName);
         List<String> defaultOrder = ComputerLineupProvider.getDefaultBattingOrder(displayTeam);
         if (defaultOrder != null && !defaultOrder.isEmpty()) {
+            logger.info("팀 {}의 타자 {}명을 인메모리에서 조회했습니다.", teamName, defaultOrder.size());
             return defaultOrder;
         }
 
-        // 3) 마지막 폴백: 인메모리 선수 풀에서 팀 매칭되는 이름 목록
-        return allBattersByName.values().stream()
-                .filter(b -> b.getTeam().equals(normalizedTeam))
-                .map(Batter::getName)
-                .collect(Collectors.toList());
+        // 3) 폴백 없음: 빈 목록 반환
+        logger.warn("팀 {}의 타자 정보를 찾을 수 없습니다.", teamName);
+        return java.util.Collections.emptyList();
     }
 
     @Override
     public List<String> getAvailablePitchers(String teamName) {
         String normalizedTeam = normalizeTeamName(teamName);
-        // 1) DB 우선 조회
-        // MyBatis 매퍼 대신 JDBC 직접 조회 시도 (매퍼 바인딩 충돌 우회)
+        // 1) MyBatis 매퍼로 조회 (TeamLineupMapper XML 기준 사용)
         try {
             String dbTeam = resolveDbTeamName(teamName);
-            List<String> names = queryPitcherNamesViaJdbc(dbTeam);
-            if (names != null && !names.isEmpty()) {
-                return names;
+            if (teamLineupMapper != null) {
+                List<String> names = teamLineupMapper.findAvailablePlayersByTeamPitchers(dbTeam);
+                if (names != null && !names.isEmpty()) {
+                    logger.info("팀 {}의 투수 {}명을 DB에서 조회했습니다.", teamName, names.size());
+                    return names;
+                }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            logger.warn("팀 {}의 투수 DB 조회 실패: {}", teamName, e.getMessage());
+        }
 
         // 2) 기본 선발 투수
         String displayTeam2 = resolveDisplayTeamName(teamName);
         String sp = ComputerLineupProvider.getDefaultStartingPitcher(displayTeam2);
         if (sp != null && !sp.isEmpty()) {
+            logger.info("팀 {}의 투수 1명을 인메모리에서 조회했습니다.", teamName);
             return java.util.Collections.singletonList(sp);
         }
 
-        // 3) 인메모리 풀에서 반환
-        return allPitchersByName.values().stream()
-                .filter(p -> p.getTeam().equals(normalizedTeam))
-                .map(Pitcher::getName)
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
+        // 3) 폴백 없음: 빈 목록 반환
+        logger.warn("팀 {}의 투수 정보를 찾을 수 없습니다.", teamName);
+        return java.util.Collections.emptyList();
+    }
+
+    // 새로운 메서드: 성적 데이터를 포함한 타자 목록 조회
+    public List<Batter> getAvailableBattersWithStats(String teamName) {
+        try {
+            String dbTeam = resolveDbTeamName(teamName);
+            if (teamLineupMapper != null) {
+                List<Batter> batters = teamLineupMapper.findAvailableBattersByTeam(dbTeam);
+                if (batters != null && !batters.isEmpty()) {
+                    logger.info("팀 {}의 타자 성적 데이터 {}명을 DB에서 조회했습니다.", teamName, batters.size());
+                    return batters;
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("팀 {}의 타자 성적 데이터 DB 조회 실패: {}", teamName, e.getMessage());
+        }
+
+        // DB 조회 실패 시 기본 라인업으로 폴백
+        List<String> names = getAvailablePlayers(teamName);
+        List<Batter> fallbackBatters = new ArrayList<>();
+        for (String name : names) {
+            fallbackBatters.add(new Batter(name, teamName));
+        }
+        logger.info("팀 {}의 타자 {}명을 폴백으로 생성했습니다.", teamName, fallbackBatters.size());
+        return fallbackBatters;
+    }
+
+    // 새로운 메서드: 성적 데이터를 포함한 투수 목록 조회
+    public List<Pitcher> getAvailablePitchersWithStats(String teamName) {
+        try {
+            String dbTeam = resolveDbTeamName(teamName);
+            if (teamLineupMapper != null) {
+                List<Pitcher> pitchers = teamLineupMapper.findAvailablePitchersByTeam(dbTeam);
+                if (pitchers != null && !pitchers.isEmpty()) {
+                    logger.info("팀 {}의 투수 성적 데이터 {}명을 DB에서 조회했습니다.", teamName, pitchers.size());
+                    return pitchers;
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("팀 {}의 투수 성적 데이터 DB 조회 실패: {}", teamName, e.getMessage());
+        }
+
+        // DB 조회 실패 시 기본 라인업으로 폴백
+        List<String> names = getAvailablePitchers(teamName);
+        List<Pitcher> fallbackPitchers = new ArrayList<>();
+        for (String name : names) {
+            fallbackPitchers.add(new Pitcher(name, teamName));
+        }
+        logger.info("팀 {}의 투수 {}명을 폴백으로 생성했습니다.", teamName, fallbackPitchers.size());
+        return fallbackPitchers;
     }
 
     private String normalizeTeamName(String teamName) {
@@ -533,19 +543,6 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         return defaultValue;
     }
 
-    // JDBC 조회 유틸
-    private List<String> queryHitterNamesViaJdbc(String dbTeam) {
-        if (jdbcTemplate == null) return java.util.Collections.emptyList();
-        final String sql = "SELECT Player_Name FROM kbo_hitter_stats_2024 WHERE Player_Team = ? and Game_Num > 80 ORDER BY Player_Name";
-        return jdbcTemplate.query(sql, new Object[] { dbTeam }, (rs, i) -> rs.getString(1));
-    }
-
-    private List<String> queryPitcherNamesViaJdbc(String dbTeam) {
-        if (jdbcTemplate == null) return java.util.Collections.emptyList();
-        final String sql = "SELECT Player_Name FROM kbo_pitcher_stats_2024 WHERE Player_Team = ? and Innings_Pitched > 110 ORDER BY Player_Name";
-        return jdbcTemplate.query(sql, new Object[] { dbTeam }, (rs, i) -> rs.getString(1));
-    }
-
 	public Batter getBatterByName(String playerName) {
 		Batter batter = null;
 		try {
@@ -553,9 +550,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 				batter = batterMapper.findByName(playerName);
 			}
 		} catch (Exception ignored) {}
-		if (batter == null) {
-			batter = allBattersByName.get(playerName);
-		}
+		
 		if (batter != null && batter.getAtBats() > 0 && batter.getBattingAverage() == 0.0) {
 			batter.setBattingAverage(batter.calculateBattingAverage());
 		}
@@ -569,6 +564,6 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 				if (p != null) return p;
 			}
 		} catch (Exception ignored) {}
-		return allPitchersByName.get(pitcherName);
+		return null;
 	}
 }

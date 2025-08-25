@@ -3,6 +3,8 @@ package com.baseball.game.service;
 import java.util.List;
 import com.baseball.game.dto.TeamLineup;
 import com.baseball.game.dto.CustomLineupRequest;
+import com.baseball.game.dto.Batter;
+import com.baseball.game.dto.Pitcher;
 
 public interface TeamLineupService {
 
@@ -23,4 +25,10 @@ public interface TeamLineupService {
 
     // 팀별 사용 가능한 투수 목록 조회 (이름만)
     List<String> getAvailablePitchers(String teamName);
+
+    // 성적 포함: 팀별 사용 가능한 타자 목록 조회
+    List<Batter> getAvailableBattersWithStats(String teamName);
+
+    // 성적 포함: 팀별 사용 가능한 투수 목록 조회
+    List<Pitcher> getAvailablePitchersWithStats(String teamName);
 }
