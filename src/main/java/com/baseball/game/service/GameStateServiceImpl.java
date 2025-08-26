@@ -197,6 +197,9 @@ public class GameStateServiceImpl implements GameStateService {
             String pitcherName = game.getCurrentPitcher() != null ? game.getCurrentPitcher().getName() : null;
 
             game.setOut(game.getOut() + 1);
+            // 이벤트에 최종 볼카운트를 남기기 위해 리셋 전 값을 보존
+            int strikeAtEnd = game.getStrike();
+            int ballAtEnd = game.getBall();
             game.setStrike(0);
             game.setBall(0);
 
@@ -226,7 +229,7 @@ public class GameStateServiceImpl implements GameStateService {
             } catch (Exception ignored) {
             }
 
-            // 이벤트 로그 추가: 삼진 아웃
+            // 이벤트 로그 추가: 삼진 아웃 (리셋 전 카운트 기록)
             try {
                 com.baseball.game.dto.PlayEvent ev = com.baseball.game.dto.PlayEvent.builder()
                         .type("PA_END")
@@ -238,8 +241,8 @@ public class GameStateServiceImpl implements GameStateService {
                         .result("삼진 아웃")
                         .description("삼진 아웃")
                         .out(game.getOut())
-                        .strike(game.getStrike())
-                        .ball(game.getBall())
+                        .strike(strikeAtEnd)
+                        .ball(ballAtEnd)
                         .homeScore(game.getHomeScore())
                         .awayScore(game.getAwayScore())
                         .build();
@@ -255,6 +258,9 @@ public class GameStateServiceImpl implements GameStateService {
         }
 
         if (game.getBall() >= GameConstants.MAX_BALLS) {
+            // 이벤트에 최종 볼카운트를 남기기 위해 리셋 전 값을 보존
+            int strikeAtEnd = game.getStrike();
+            int ballAtEnd = game.getBall();
             game.setBall(0);
             game.setStrike(0);
             // 볼넷: 강제 주자만 진루 후 타자 1루, 1루가 비어 있으면 타자만 1루
@@ -305,7 +311,7 @@ public class GameStateServiceImpl implements GameStateService {
             } catch (Exception ignored) {
             }
 
-            // 이벤트 로그: 볼넷 기록 (PA_END를 먼저 기록)
+            // 이벤트 로그: 볼넷 기록 (리셋 전 카운트 기록, PA_END를 먼저 기록)
             try {
                 com.baseball.game.dto.PlayEvent ev = com.baseball.game.dto.PlayEvent.builder()
                         .type("PA_END")
@@ -317,8 +323,8 @@ public class GameStateServiceImpl implements GameStateService {
                         .result("볼넷")
                         .description("볼넷")
                         .out(game.getOut())
-                        .strike(game.getStrike())
-                        .ball(game.getBall())
+                        .strike(strikeAtEnd)
+                        .ball(ballAtEnd)
                         .homeScore(game.getHomeScore())
                         .awayScore(game.getAwayScore())
                         .build();

@@ -31,7 +31,7 @@ public class GamePlayView {
     private int awayWalks;
     private Batter currentBatter;
     private Pitcher currentPitcher;
-    // 주자/베이스 상태 (GameDto와 동일하게 1~3 인덱스 사용)
+    // 주자/베이스 상태 (1루, 2루, 3루만 포함)
     private Batter[] bases;
     // 타석/경기 이벤트 로그
     private List<PlayEvent> eventLog;

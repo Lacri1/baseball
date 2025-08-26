@@ -32,6 +32,16 @@ public class GameController {
 	@Setter(onMethod_ = @Autowired)
 	private GameService service;
 
+	/**
+	 * 스코어보드: 이닝별 득점 + 합계 정보를 제공
+	 */
+	@GetMapping(value = "/game/{gameId}/scoreboard")
+	public ApiResponse<com.baseball.game.dto.ScoreboardDto> getScoreboard(@PathVariable String gameId) {
+		GameDto game = service.getGame(gameId);
+		com.baseball.game.dto.ScoreboardDto view = buildScoreboardView(game);
+		return ApiResponse.success(view);
+	}
+
 	@GetMapping(value = "/game/{gameId}/team-stats")
 	public ApiResponse<java.util.Map<String, Object>> getTeamStats(@PathVariable String gameId) {
 		GameDto game = service.getGame(gameId);
@@ -77,6 +87,16 @@ public class GameController {
 		// 응답 직전에 타자/투수 스탯 맵을 팀/타순 기준으로 정렬
 		sortStatsMapsForResponse(game);
 		return ApiResponse.success(game);
+	}
+
+	/**
+	 * 경량 게임 뷰: 중복 필드를 제거한 표시용 응답
+	 */
+	@GetMapping(value = "/game/{gameId}/view")
+	public ApiResponse<GamePlayView> getGameView(@PathVariable String gameId) {
+		GameDto game = service.getGame(gameId);
+		GamePlayView view = buildGamePlayView(game);
+		return ApiResponse.success(view);
 	}
 
 	/**
@@ -274,11 +294,92 @@ public class GameController {
 				.awayWalks(game.getAwayWalks())
 				.currentBatter(game.getCurrentBatter())
 				.currentPitcher(game.getCurrentPitcher())
-				.bases(game.getBases())
+				// 홈 슬록(0)을 제외하고 1루, 2루, 3루만 응답으로 제공
+				.bases(extractBasesWithoutHome(game.getBases()))
 				.eventLog(game.getEventLog())
 				.batterGameStats(batterStats)
 				.pitcherGameStats(pitcherStats)
 				.build();
+	}
+
+	// 이닝별 득점과 합계를 집계한 스코어보드 뷰 구성
+	private com.baseball.game.dto.ScoreboardDto buildScoreboardView(GameDto game) {
+		int max = Math.max(1, game.getMaxInning());
+		java.util.List<Integer> home = new java.util.ArrayList<>(java.util.Collections.nCopies(max, 0));
+		java.util.List<Integer> away = new java.util.ArrayList<>(java.util.Collections.nCopies(max, 0));
+
+		// 이벤트 로그에서 PA_END 단위로 이닝별 득점을 집계
+		if (game.getEventLog() != null) {
+			for (com.baseball.game.dto.PlayEvent ev : game.getEventLog()) {
+				if (ev == null)
+					continue;
+				if (!"PA_END".equals(ev.getType()))
+					continue;
+				int inningIdx = Math.max(1, ev.getInning()) - 1; // 0-based
+				if (inningIdx >= max)
+					continue;
+				int hs = Math.max(0, ev.getHomeScore());
+				int as = Math.max(0, ev.getAwayScore());
+				// 해당 이벤트 시점의 총점으로부터 해당 이닝 점수를 추론하기는 어렵기 때문에,
+				// 간단히 이전 이벤트 대비 증가분을 계산. 단, 이닝 경계 변경 시에도 누적 증가만 반영됨
+				// 안정적으로 계산하려면 runsBefore/After를 이벤트에 담아야 하지만, 현재는 스냅샷만 있음.
+				// 따라서 스냅샷 기반 차분: 직전 같은 팀 점수 대비 증가를 이 이닝에 더함.
+			}
+		}
+
+		// 차분 계산을 위해 시계열 순회
+		int prevHome = 0, prevAway = 0;
+		if (game.getEventLog() != null) {
+			for (com.baseball.game.dto.PlayEvent ev : game.getEventLog()) {
+				if (ev == null)
+					continue;
+				if (!"PA_END".equals(ev.getType()))
+					continue;
+				int inningIdx = Math.max(1, ev.getInning()) - 1;
+				if (inningIdx >= max)
+					continue;
+				int hs = Math.max(0, ev.getHomeScore());
+				int as = Math.max(0, ev.getAwayScore());
+				int dh = Math.max(0, hs - prevHome);
+				int da = Math.max(0, as - prevAway);
+				if (dh > 0) {
+					home.set(inningIdx, home.get(inningIdx) + dh);
+				}
+				if (da > 0) {
+					away.set(inningIdx, away.get(inningIdx) + da);
+				}
+				prevHome = hs;
+				prevAway = as;
+			}
+		}
+
+		return com.baseball.game.dto.ScoreboardDto.builder()
+				.gameId(game.getGameId())
+				.homeTeam(game.getHomeTeam())
+				.awayTeam(game.getAwayTeam())
+				.currentInning(game.getInning())
+				.maxInning(game.getMaxInning())
+				.isTop(game.isTop())
+				.homeByInning(home)
+				.awayByInning(away)
+				.homeScore(game.getHomeScore())
+				.awayScore(game.getAwayScore())
+				.homeHit(game.getHomeHit())
+				.awayHit(game.getAwayHit())
+				.homeWalks(game.getHomeWalks())
+				.awayWalks(game.getAwayWalks())
+				.build();
+	}
+
+	// bases[0](홈)을 제외하고 1루~3루만 3칸 배열로 변환
+	private com.baseball.game.dto.Batter[] extractBasesWithoutHome(com.baseball.game.dto.Batter[] bases) {
+		if (bases == null)
+			return null;
+		com.baseball.game.dto.Batter[] threeBases = new com.baseball.game.dto.Batter[3];
+		threeBases[0] = bases.length > 1 ? bases[1] : null; // 1루
+		threeBases[1] = bases.length > 2 ? bases[2] : null; // 2루
+		threeBases[2] = bases.length > 3 ? bases[3] : null; // 3루
+		return threeBases;
 	}
 
 	// batterGameStatsMap, pitcherGameStatsMap을 팀과 타순 순서로 정렬
