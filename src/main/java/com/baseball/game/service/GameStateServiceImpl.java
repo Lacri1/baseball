@@ -200,7 +200,7 @@ public class GameStateServiceImpl implements GameStateService {
             game.setStrike(0);
             game.setBall(0);
 
-            // 이번 경기 스탯 누적: 타자 삼진 +1, 투수 삼진 +1, 투수 이닝(아웃) +1
+            // 이번 경기 스탯 누적: 타자 PA/AB +1, 삼진 +1, 투수 삼진 +1, 투수 이닝(아웃) +1
             try {
                 if (batterName != null) {
                     if (game.getBatterGameStatsMap() == null)
@@ -208,6 +208,8 @@ public class GameStateServiceImpl implements GameStateService {
                     com.baseball.game.dto.BatterGameStats bs = game.getBatterGameStatsMap()
                             .getOrDefault(batterName, com.baseball.game.dto.BatterGameStats.builder()
                                     .playerName(batterName).build());
+                    bs.setPlateAppearances(bs.getPlateAppearances() + 1);
+                    bs.setAtBats(bs.getAtBats() + 1);
                     bs.setStrikeouts(bs.getStrikeouts() + 1);
                     game.getBatterGameStatsMap().put(batterName, bs);
                 }
