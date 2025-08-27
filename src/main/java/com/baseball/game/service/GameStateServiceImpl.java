@@ -195,8 +195,9 @@ public class GameStateServiceImpl implements GameStateService {
             // 삼진 전 스냅샷 (현재 타자/투수 이름)
             String batterName = game.getCurrentBatter() != null ? game.getCurrentBatter().getName() : null;
             String pitcherName = game.getCurrentPitcher() != null ? game.getCurrentPitcher().getName() : null;
-
-            game.setOut(game.getOut() + 1);
+            // 로그에는 타석 결과 적용 전 아웃카운트를 기록
+            int outsBefore = game.getOut();
+            game.setOut(outsBefore + 1);
             // 이벤트에 최종 볼카운트를 남기기 위해 리셋 전 값을 보존
             int strikeAtEnd = game.getStrike();
             int ballAtEnd = game.getBall();
@@ -240,7 +241,7 @@ public class GameStateServiceImpl implements GameStateService {
                         .pitcher(pitcherName)
                         .result("삼진 아웃")
                         .description("삼진 아웃")
-                        .out(game.getOut())
+                        .out(outsBefore)
                         .strike(strikeAtEnd)
                         .ball(ballAtEnd)
                         .homeScore(game.getHomeScore())
