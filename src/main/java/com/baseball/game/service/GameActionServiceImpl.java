@@ -441,11 +441,11 @@ public class GameActionServiceImpl implements GameActionService {
                 }
                 game.setStrike(0);
                 game.setBall(0);
+                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "타구 결과: " + hitResult);
                 stateService.checkGameOver(gameId);
                 if (game.getOut() < 3 && !game.isGameOver()) {
                     stateService.advanceBattingOrder(gameId);
                 }
-                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "타구 결과: " + hitResult);
                 break;
             }
             case "홈런": {
@@ -476,11 +476,11 @@ public class GameActionServiceImpl implements GameActionService {
                 GameLogicUtil.resetBases(game);
                 game.setStrike(0);
                 game.setBall(0);
+                addPlayEvent(game, "PA_END", "홈런", batterName, pitcherName, "홈런으로 " + runs + "득점");
                 stateService.checkGameOver(gameId);
                 if (game.getOut() < 3 && !game.isGameOver()) {
                     stateService.advanceBattingOrder(gameId);
                 }
-                addPlayEvent(game, "PA_END", "홈런", batterName, pitcherName, "홈런으로 " + runs + "득점");
                 accumulateBatterPaAbHit(game, batterName, true, true, true);
                 incrementBatterHomer(game, batterName);
                 incrementPitcherHitAllowed(game, pitcherName);
@@ -507,11 +507,11 @@ public class GameActionServiceImpl implements GameActionService {
                 int outsGained = game.getOut() - beforeOuts;
                 game.setStrike(0);
                 game.setBall(0);
+                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "아웃: " + hitResult);
                 if (game.getOut() >= 3)
                     stateService.nextInning(gameId);
                 else
                     stateService.advanceBattingOrder(gameId);
-                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "아웃: " + hitResult);
                 accumulateBatterPaAbHit(game, batterName, true, true, false);
                 if ("삼진 아웃".equals(hitResult)) {
                     incrementBatterStrikeout(game, batterName);
@@ -626,11 +626,11 @@ public class GameActionServiceImpl implements GameActionService {
                 }
                 game.setStrike(0);
                 game.setBall(0);
+                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "타구 결과: " + hitResult);
                 stateService.checkGameOver(gameId);
                 if (game.getOut() < 3 && !game.isGameOver()) {
                     stateService.advanceBattingOrder(gameId);
                 }
-                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "타구 결과: " + hitResult);
                 break;
             }
             case "홈런": {
@@ -662,11 +662,11 @@ public class GameActionServiceImpl implements GameActionService {
                 GameLogicUtil.resetBases(game);
                 game.setStrike(0);
                 game.setBall(0);
+                addPlayEvent(game, "PA_END", "홈런", batterName, pitcherName, "홈런으로 " + runs + "득점");
                 stateService.checkGameOver(gameId);
                 if (game.getOut() < 3 && !game.isGameOver()) {
                     stateService.advanceBattingOrder(gameId);
                 }
-                addPlayEvent(game, "PA_END", "홈런", batterName, pitcherName, "홈런으로 " + runs + "득점");
                 // 스탯 누적: 타자 PA/AB/H + HR, 투수 피안타/피홈런
                 accumulateBatterPaAbHit(game, batterName, true, true, true);
                 incrementBatterHomer(game, batterName);
@@ -693,9 +693,9 @@ public class GameActionServiceImpl implements GameActionService {
                 int runsAfter = getOffenseScore(game);
                 int runsScored = Math.max(0, runsAfter - runsBefore);
                 int outsGained = game.getOut() - beforeOuts; // 전환 전 계산
-                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "아웃: " + hitResult);
                 game.setStrike(0);
                 game.setBall(0);
+                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "아웃: " + hitResult);
                 if (game.getOut() >= 3)
                     stateService.nextInning(gameId);
                 else
