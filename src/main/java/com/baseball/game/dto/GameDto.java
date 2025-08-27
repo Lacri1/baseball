@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.baseball.game.constant.GameConstants;
 
 @Data
@@ -38,7 +39,9 @@ public class GameDto {
 	private String winner;
 
 	// 새로 추가: 홈팀 및 원정팀의 타순 (Batter 객체 리스트)
+	@JsonIgnore
 	private List<Batter> homeBattingOrder;
+	@JsonIgnore
 	private List<Batter> awayBattingOrder;
 
 	// 새로 추가: 홈팀 및 원정팀의 선발 투수 (Pitcher 객체)
