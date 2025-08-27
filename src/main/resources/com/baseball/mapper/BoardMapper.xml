@@ -26,12 +26,15 @@
 	<select id="getTotalCount" resultType="int">
 		SELECT COUNT(*) FROM board
 	</select>
-	<insert id="write">
-		insert into board(title,writer,text,category) values(#{title},#{writer},#{text},#{category})
-	</insert>
-	<update id="modify">
-		update board set text=#{text} where no=#{no}
-	</update>
+    <insert id="write">
+        INSERT INTO board(title,writer,text,category) 
+        VALUES(#{title},#{writer},#{text},#{category})
+    </insert>
+    <update id="modify">
+        UPDATE board 
+        SET text=#{text}, updated_at=CURRENT_TIMESTAMP 
+        WHERE no=#{no}
+    </update>
 	<delete id="delete">
 		delete from board where no=#{no}
 	</delete>

@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import lombok.Setter;
 import java.util.Map;
 
 @RestController
@@ -18,11 +17,11 @@ public class LoginController {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
-    
     private final MemberService service;
+
     @Autowired
     public LoginController(MemberService service) {
-    	this.service=service;
+        this.service = service;
     }
 
     // 로그인

@@ -21,8 +21,14 @@
 		<beans:property name="suffix" value=".jsp" />
 	</beans:bean>
 	
-	<context:component-scan base-package="com.baseball.game" />
-	
+	<!-- 컨트롤러만 스캔: 루트 패키지 전체에서 @Controller/@ControllerAdvice 포함, Boot 구성은 제외 -->
+	<context:component-scan base-package="com.baseball.game" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.boot.SpringBootConfiguration"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.boot.autoconfigure.SpringBootApplication"/>
+		<context:exclude-filter type="assignable" expression="com.baseball.game.GameApplication"/>
+	</context:component-scan>
 	
 	
 </beans:beans>

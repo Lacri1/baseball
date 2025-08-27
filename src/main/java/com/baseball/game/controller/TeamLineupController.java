@@ -7,18 +7,17 @@ import org.springframework.web.bind.annotation.*;
 import com.baseball.game.dto.TeamLineup;
 import com.baseball.game.dto.CustomLineupRequest;
 import com.baseball.game.service.TeamLineupService;
-import lombok.Setter;
+
 
 @RestController
 @RequestMapping("/api/lineup")
 public class TeamLineupController {
 
-    
     private final TeamLineupService service;
-    
+
     @Autowired
     public TeamLineupController(TeamLineupService service) {
-    	this.service=service;
+        this.service = service;
     }
 
     // 기본 라인업 조회 (컴퓨터용)
@@ -56,5 +55,12 @@ public class TeamLineupController {
     public ResponseEntity<List<String>> getAvailablePlayers(@PathVariable String teamName) {
         List<String> players = service.getAvailablePlayers(teamName);
         return ResponseEntity.ok(players);
+    }
+
+    // 팀별 사용 가능한 투수 목록 조회 (이름만)
+    @GetMapping("/pitchers/{teamName}")
+    public ResponseEntity<List<String>> getAvailablePitchers(@PathVariable String teamName) {
+        List<String> pitchers = service.getAvailablePitchers(teamName);
+        return ResponseEntity.ok(pitchers);
     }
 }

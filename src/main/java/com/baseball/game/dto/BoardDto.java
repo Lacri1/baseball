@@ -10,5 +10,6 @@ public class BoardDto {
 	private String text;
 	private String writer;
 	private int view;
-	private String date;
+	private String createdAt;
+	private String updatedAt;
 }

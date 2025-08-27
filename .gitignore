@@ -70,3 +70,4 @@ bin/
 /dist/
 /nbdist/
 /.nb-gradle/
+mysql-connector-j-8.0.33.jar
