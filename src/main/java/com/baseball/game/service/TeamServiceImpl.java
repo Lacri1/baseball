@@ -24,12 +24,29 @@ public class TeamServiceImpl implements TeamService {
     private TeamLineupMapper teamLineupMapper;
 
     @Override
+    public List<String> getTeamList() {
+        List<String> teams = new ArrayList<>();
+        teams.add("SSG 랜더스");
+        teams.add("두산 베어스");
+        teams.add("삼성 라이온즈");
+        teams.add("LG 트윈스");
+        teams.add("kt 위즈");
+        teams.add("롯데 자이언츠");
+        teams.add("한화 이글스");
+        teams.add("NC 다이노스");
+        teams.add("키움 히어로즈");
+        teams.add("KIA 타이거즈");
+        return teams;
+    }
+
+    @Override
     public List<Player> getPlayersByTeam(String teamId) {
         List<Player> players = new ArrayList<>();
-        
+
         try {
             // TeamLineupService의 성적 포함 메서드 사용
-            List<Batter> batters = lineupService != null ? lineupService.getAvailableBattersWithStats(teamId) : java.util.Collections.emptyList();
+            List<Batter> batters = lineupService != null ? lineupService.getAvailableBattersWithStats(teamId)
+                    : java.util.Collections.emptyList();
             if (batters != null && !batters.isEmpty()) {
                 players.addAll(batters);
                 log.info("팀 {}의 타자 {}명을 LineupService에서 조회했습니다.", teamId, batters.size());
@@ -40,7 +57,8 @@ public class TeamServiceImpl implements TeamService {
         }
 
         // 폴백: 인메모리 라인업 사용 (이름만)
-        List<String> names = lineupService != null ? lineupService.getAvailablePlayers(teamId) : java.util.Collections.emptyList();
+        List<String> names = lineupService != null ? lineupService.getAvailablePlayers(teamId)
+                : java.util.Collections.emptyList();
         for (String name : names) {
             Batter b = new Batter(name, teamId);
             players.add(b);
@@ -54,7 +72,8 @@ public class TeamServiceImpl implements TeamService {
         // 타자: LineupService 성적 포함 메서드 사용
         List<Batter> batters = new ArrayList<>();
         try {
-            batters = lineupService != null ? lineupService.getAvailableBattersWithStats(teamId) : java.util.Collections.emptyList();
+            batters = lineupService != null ? lineupService.getAvailableBattersWithStats(teamId)
+                    : java.util.Collections.emptyList();
             if (batters != null && !batters.isEmpty()) {
                 log.info("팀 {}의 타자 {}명을 LineupService에서 조회했습니다.", teamId, batters.size());
             }
@@ -65,7 +84,8 @@ public class TeamServiceImpl implements TeamService {
         // 투수: LineupService 성적 포함 메서드 사용
         List<Pitcher> pitchers = new ArrayList<>();
         try {
-            pitchers = lineupService != null ? lineupService.getAvailablePitchersWithStats(teamId) : java.util.Collections.emptyList();
+            pitchers = lineupService != null ? lineupService.getAvailablePitchersWithStats(teamId)
+                    : java.util.Collections.emptyList();
             if (pitchers != null && !pitchers.isEmpty()) {
                 log.info("팀 {}의 투수 {}명을 LineupService에서 조회했습니다.", teamId, pitchers.size());
             }
@@ -75,7 +95,8 @@ public class TeamServiceImpl implements TeamService {
 
         // 폴백: 인메모리 데이터 사용
         if (batters.isEmpty()) {
-            List<String> batterNames = lineupService != null ? lineupService.getAvailablePlayers(teamId) : java.util.Collections.emptyList();
+            List<String> batterNames = lineupService != null ? lineupService.getAvailablePlayers(teamId)
+                    : java.util.Collections.emptyList();
             for (String name : batterNames) {
                 batters.add(new Batter(name, teamId));
             }
@@ -83,7 +104,8 @@ public class TeamServiceImpl implements TeamService {
         }
 
         if (pitchers.isEmpty()) {
-            List<String> pitcherNames = lineupService != null ? lineupService.getAvailablePitchers(teamId) : java.util.Collections.emptyList();
+            List<String> pitcherNames = lineupService != null ? lineupService.getAvailablePitchers(teamId)
+                    : java.util.Collections.emptyList();
             for (String name : pitcherNames) {
                 pitchers.add(new Pitcher(name, teamId));
             }

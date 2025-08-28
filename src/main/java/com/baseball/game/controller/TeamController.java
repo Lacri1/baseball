@@ -19,6 +19,11 @@ public class TeamController {
         this.service = service;
     }
 
+    @GetMapping("/list")
+    public List<String> getTeamList() {
+        return service.getTeamList();
+    }
+
     /**
      * 팀별 선수(라인업 후보) 목록 조회
      * 
