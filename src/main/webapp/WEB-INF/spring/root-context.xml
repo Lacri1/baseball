@@ -17,7 +17,7 @@
 		destroy-method="close">
 		<!-- log4jdbc.log4j2 때문에 기존 코드 주석친거 -->
 		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
-		<property name="url" value="jdbc:mysql://localhost:3306/my_cat" /><!-- db포트, db명에 맞게 수정 -->
+		<property name="url" value="jdbc:mysql://localhost:3306/my_cat?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;serverTimezone=UTC" /><!-- db포트, db명에 맞게 수정 -->
 		<!-- 시작 끝-->
 		<!-- log4jdbc.log4j2 때문에 수정 삽입한거 -->
 		<!-- 시작 -->
@@ -29,6 +29,14 @@
 
 		<property name="username" value="root" /><!-- db 계정에 맞게 수정 -->
 		<property name="password" value="root" /><!-- db 계정에 맞게 수정 -->
+		<!-- Ensure connections default to UTF-8 at the session level -->
+		<property name="connectionInitSqls">
+			<list>
+				<value>SET NAMES utf8mb4</value>
+				<value>SET character_set_connection = utf8mb4</value>
+				<value>SET collation_connection = utf8mb4_general_ci</value>
+			</list>
+		</property>
 	</bean>
 
 	<!-- 내가 추가한거 -->
@@ -37,21 +45,21 @@
 		class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource"></property>
 		<!-- MyBatis XML 매퍼 로딩 경로 등록 (XML의 namespace/id 사용 가능해짐) -->
-		<property name="mapperLocations" value="classpath*:com/baseball/mapper/*.xml" />
+		<property name="mapperLocations" value="classpath*:com/baseball/**/mapper/*.xml" />
 	</bean>
 
 
 	<!-- 내가 추가한거 -->
 	<!-- mybatis - mapper 설정 -->
 	<mybatis-spring:scan
-		base-package="com.baseball.game.mapper" /><!-- 패키지명에 맞게 수정 -->
-	<context:component-scan base-package="com.baseball.game.service" use-default-filters="false">
+		base-package="com.baseball.game.mapper, com.baseball.ranking.mapper" /><!-- game, ranking 통합 -->
+	<context:component-scan base-package="com.baseball.game.service, com.baseball.ranking.service" use-default-filters="false">
 		<context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/>
 	</context:component-scan>
 
 	<!-- 내가 추가한거 -->
 	<!-- <context:component-scan base-package="org.zerock.sample"> </context:component-scan> -->
-	<context:component-scan base-package="com.baseball.game.repository" use-default-filters="false">
+	<context:component-scan base-package="com.baseball.game.repository, com.baseball.ranking.repository" use-default-filters="false">
 		<context:include-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
 	</context:component-scan>
 

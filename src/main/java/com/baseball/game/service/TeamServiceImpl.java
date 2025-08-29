@@ -26,16 +26,16 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public List<String> getTeamList() {
         List<String> teams = new ArrayList<>();
-        teams.add("SSG 랜더스");
-        teams.add("두산 베어스");
+        teams.add("KIA 타이거즈");
         teams.add("삼성 라이온즈");
         teams.add("LG 트윈스");
+        teams.add("두산 베어스");
         teams.add("kt 위즈");
+        teams.add("SSG 랜더스");
         teams.add("롯데 자이언츠");
         teams.add("한화 이글스");
         teams.add("NC 다이노스");
         teams.add("키움 히어로즈");
-        teams.add("KIA 타이거즈");
         return teams;
     }
 
