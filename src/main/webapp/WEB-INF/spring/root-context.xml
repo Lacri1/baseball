@@ -17,7 +17,7 @@
 		destroy-method="close">
 		<!-- log4jdbc.log4j2 때문에 기존 코드 주석친거 -->
 		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
-		<property name="url" value="jdbc:mysql://localhost:3306/my_cat?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;serverTimezone=UTC" /><!-- db포트, db명에 맞게 수정 -->
+		<property name="url" value="jdbc:mysql://localhost:3306/my_cat?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;serverTimezone=UTC&amp;allowPublicKeyRetrieval=true" /><!-- db포트, db명에 맞게 수정 -->
 		<!-- 시작 끝-->
 		<!-- log4jdbc.log4j2 때문에 수정 삽입한거 -->
 		<!-- 시작 -->

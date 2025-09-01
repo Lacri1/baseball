@@ -12,4 +12,5 @@ public class BoardDto {
 	private int view;
 	private String createdAt;
 	private String updatedAt;
+	private String keyword;
 }

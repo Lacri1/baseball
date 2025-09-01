@@ -19,12 +19,82 @@
 	</select>
 	<select id="getPagedListCate" resultType="com.baseball.game.dto.BoardDto">
 		SELECT * FROM board
-		WHERE category=#{category}
+		<where>
+			<if test="category != null and category != ''">
+				AND category = #{category}
+			</if>
+		</where>
 		ORDER BY no DESC
 		LIMIT #{size} OFFSET #{offset}
 	</select>
 	<select id="getTotalCount" resultType="int">
 		SELECT COUNT(*) FROM board
+	</select>
+	<select id="getTotalCountCate" resultType="int">
+		SELECT COUNT(*) FROM board
+		<where>
+			<if test="category != null and category != ''">
+				AND category = #{category}
+			</if>
+		</where>
+	</select>
+	<select id="getPagedListSearch" resultType="com.baseball.game.dto.BoardDto">
+		SELECT * FROM board
+		<where>
+			<if test="keyword != null and keyword != ''">
+				AND (
+					title LIKE CONCAT('%', #{keyword}, '%')
+					OR text LIKE CONCAT('%', #{keyword}, '%')
+					OR writer LIKE CONCAT('%', #{keyword}, '%')
+				)
+			</if>
+		</where>
+		ORDER BY no DESC
+		LIMIT #{size} OFFSET #{offset}
+	</select>
+	<select id="getPagedListCateSearch" resultType="com.baseball.game.dto.BoardDto">
+		SELECT * FROM board
+		<where>
+			<if test="category != null and category != ''">
+				AND category = #{category}
+			</if>
+			<if test="keyword != null and keyword != ''">
+				AND (
+					title LIKE CONCAT('%', #{keyword}, '%')
+					OR text LIKE CONCAT('%', #{keyword}, '%')
+					OR writer LIKE CONCAT('%', #{keyword}, '%')
+				)
+			</if>
+		</where>
+		ORDER BY no DESC
+		LIMIT #{size} OFFSET #{offset}
+	</select>
+	<select id="getTotalCountSearch" resultType="int">
+		SELECT COUNT(*) FROM board
+		<where>
+			<if test="keyword != null and keyword != ''">
+				AND (
+					title LIKE CONCAT('%', #{keyword}, '%')
+					OR text LIKE CONCAT('%', #{keyword}, '%')
+					OR writer LIKE CONCAT('%', #{keyword}, '%')
+				)
+			</if>
+		</where>
+	</select>
+	<select id="getTotalCountCateSearch" resultType="int">
+		SELECT COUNT(*) FROM board
+		<where>
+			<if test="category != null and category != ''">
+				AND category = #{category}
+			</if>
+			<if test="keyword != null and keyword != ''">
+				AND (
+					title LIKE CONCAT('%', #{keyword}, '%')
+					OR text LIKE CONCAT('%', #{keyword}, '%')
+					OR writer LIKE CONCAT('%', #{keyword}, '%')
+				)
+			</if>
+		</where>
 	</select>
     <insert id="write">
         INSERT INTO board(title,writer,text,category) 

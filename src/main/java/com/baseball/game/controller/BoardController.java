@@ -31,10 +31,20 @@ public class BoardController {
 	public ResponseEntity<BoardPageResponse> getBoards(
 			@RequestParam(defaultValue = "1") int page,
 			@RequestParam(defaultValue = "10") int size,
-			@RequestParam(required = false) String category) {
-		BoardPageResponse response = (category == null)
-				? boardService.getPagedList(page, size)
-				: boardService.getPagedListCategory(page, size, category);
+			@RequestParam(required = false) String category,
+			@RequestParam(required = false) String keyword) {
+		String normalizedCategory = (category != null && category.trim().isEmpty()) ? null : category;
+		String normalizedKeyword = (keyword != null && keyword.trim().isEmpty()) ? null : keyword;
+		BoardPageResponse response;
+		if (normalizedKeyword != null) {
+			response = (normalizedCategory == null)
+					? boardService.getPagedListSearch(page, size, normalizedKeyword)
+					: boardService.getPagedListCategorySearch(page, size, normalizedCategory, normalizedKeyword);
+		} else {
+			response = (normalizedCategory == null)
+					? boardService.getPagedList(page, size)
+					: boardService.getPagedListCategory(page, size, normalizedCategory);
+		}
 		return ResponseEntity.ok(response);
 	}
 
