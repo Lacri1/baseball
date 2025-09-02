@@ -14,9 +14,9 @@ public interface BoardMapper {
 
 	public void write(BoardRequestDto d);
 
-	public void modify(int no, String text);
+	public int modify(@Param("no") int no, @Param("text") String text, @Param("writer") String writer);
 
-	public void delete(int no);
+	public int delete(@Param("no") int no, @Param("writer") String writer);
 
 	public BoardDto getBoard(int no);
 

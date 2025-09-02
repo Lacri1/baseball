@@ -46,6 +46,12 @@
 		<property name="dataSource" ref="dataSource"></property>
 		<!-- MyBatis XML 매퍼 로딩 경로 등록 (XML의 namespace/id 사용 가능해짐) -->
 		<property name="mapperLocations" value="classpath*:com/baseball/**/mapper/*.xml" />
+		<!-- underscore_to_camelCase 자동 매핑 활성화 -->
+		<property name="configuration">
+			<bean class="org.apache.ibatis.session.Configuration">
+				<property name="mapUnderscoreToCamelCase" value="true" />
+			</bean>
+		</property>
 	</bean>
 
 

@@ -103,9 +103,9 @@
     <update id="modify">
         UPDATE board 
         SET text=#{text}, updated_at=CURRENT_TIMESTAMP 
-        WHERE no=#{no}
+        WHERE no=#{no} AND writer=#{writer}
     </update>
 	<delete id="delete">
-		delete from board where no=#{no}
+		delete from board where no=#{no} AND writer=#{writer}
 	</delete>
 </mapper>

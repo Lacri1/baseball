@@ -36,13 +36,19 @@ public class BoardServiceImpl implements BoardService {
 	}
 
 	@Override
-	public void modify(int no, String text) {
-		mapper.modify(no, text);
+	public void modify(int no, String text, String writer) {
+		int updated = mapper.modify(no, text, writer);
+		if (updated == 0) {
+			throw new RuntimeException("FORBIDDEN: writer mismatch or post not found");
+		}
 	}
 
 	@Override
-	public void delete(int no) {
-		mapper.delete(no);
+	public void delete(int no, String writer) {
+		int deleted = mapper.delete(no, writer);
+		if (deleted == 0) {
+			throw new RuntimeException("FORBIDDEN: writer mismatch or post not found");
+		}
 	}
 
 	@Override

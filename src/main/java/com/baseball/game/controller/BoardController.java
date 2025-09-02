@@ -33,7 +33,13 @@ public class BoardController {
 			@RequestParam(defaultValue = "10") int size,
 			@RequestParam(required = false) String category,
 			@RequestParam(required = false) String keyword) {
-		String normalizedCategory = (category != null && category.trim().isEmpty()) ? null : category;
+		String normalizedCategory = null;
+		if (category != null) {
+			String c = category.trim();
+			if (!c.isEmpty() && !c.equalsIgnoreCase("all")) {
+				normalizedCategory = c;
+			}
+		}
 		String normalizedKeyword = (keyword != null && keyword.trim().isEmpty()) ? null : keyword;
 		BoardPageResponse response;
 		if (normalizedKeyword != null) {
@@ -66,14 +72,14 @@ public class BoardController {
 	// 게시글 수정
 	@PutMapping("/{no}")
 	public ResponseEntity<Void> updateBoard(@PathVariable("no") int no, @RequestBody BoardRequestDto requestDto) {
-		boardService.modify(no, requestDto.getText());
+		boardService.modify(no, requestDto.getText(), requestDto.getWriter());
 		return ResponseEntity.ok().build();
 	}
 
 	// 게시글 삭제
 	@DeleteMapping("/{no}")
-	public ResponseEntity<Void> deleteBoard(@PathVariable("no") int no) {
-		boardService.delete(no);
+	public ResponseEntity<Void> deleteBoard(@PathVariable("no") int no, @RequestParam String writer) {
+		boardService.delete(no, writer);
 		return ResponseEntity.ok().build();
 	}
 }
