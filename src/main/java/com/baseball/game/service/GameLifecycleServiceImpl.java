@@ -48,10 +48,14 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
             throw new ValidationException("최대 이닝 수는 1 이상이어야 합니다.");
         }
 
+        // 별칭/축약/영문 등을 표준 표기(ComputerLineupProvider 키)로 정규화
+        final String normalizedHome = normalizeToDisplayName(homeTeam);
+        final String normalizedAway = normalizeToDisplayName(awayTeam);
+
         GameDto newGame = new GameDto();
         newGame.setGameId(UUID.randomUUID().toString());
-        newGame.setHomeTeam(homeTeam);
-        newGame.setAwayTeam(awayTeam);
+        newGame.setHomeTeam(normalizedHome);
+        newGame.setAwayTeam(normalizedAway);
         newGame.setMaxInning(maxInning);
         newGame.setUserOffense(isUserOffense);
         // userId는 컨트롤러 요청에서 내려온 정보를 서비스 계층에서 세팅하도록 확장 (별도 오버로드 고려)
@@ -65,9 +69,12 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
         GameLogicUtil.resetBases(newGame);
         newGame.setGameOver(false);
         newGame.setWinner(null);
+        // 초기 공격/수비 팀 설정 (1회 초: 원정 공격, 홈 수비)
+        newGame.setOffenseTeam(newGame.isTop() ? normalizedAway : normalizedHome);
+        newGame.setDefenseTeam(newGame.isTop() ? normalizedHome : normalizedAway);
 
-        // 인메모리 기본 라인업 사용
-        applyInMemoryDefaultLineups(newGame, homeTeam, awayTeam);
+        // 인메모리 기본 라인업 사용 (정규화된 팀명으로 조회)
+        applyInMemoryDefaultLineups(newGame, normalizedHome, normalizedAway);
 
         games.put(newGame.getGameId(), newGame);
         log.info("Created game with ID: {}", newGame.getGameId());
@@ -214,5 +221,64 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
             game.setAwayBattingOrder(new ArrayList<>());
             game.setCurrentBatterIndex(0);
         }
+    }
+
+    // ---------------- 팀명 정규화 (별칭/축약/영문 → 표준 표기) ----------------
+    private static final java.util.Map<String, String> DISPLAY_NAME_ALIASES = new java.util.HashMap<>();
+    static {
+        // 두산
+        DISPLAY_NAME_ALIASES.put("두산", "두산 베어스");
+        DISPLAY_NAME_ALIASES.put("bears", "두산 베어스");
+        DISPLAY_NAME_ALIASES.put("두산 베어스", "두산 베어스");
+        // LG
+        DISPLAY_NAME_ALIASES.put("lg", "LG 트윈스");
+        DISPLAY_NAME_ALIASES.put("twins", "LG 트윈스");
+        DISPLAY_NAME_ALIASES.put("lg 트윈스", "LG 트윈스");
+
+        // SSG
+        DISPLAY_NAME_ALIASES.put("ssg", "SSG 랜더스");
+        DISPLAY_NAME_ALIASES.put("landers", "SSG 랜더스");
+        DISPLAY_NAME_ALIASES.put("ssg 랜더스", "SSG 랜더스");
+        // 키움
+        DISPLAY_NAME_ALIASES.put("키움", "키움 히어로즈");
+        DISPLAY_NAME_ALIASES.put("heros", "키움 히어로즈");
+        DISPLAY_NAME_ALIASES.put("키움 히어로즈", "키움 히어로즈");
+        // 한화
+        DISPLAY_NAME_ALIASES.put("한화", "한화 이글스");
+        DISPLAY_NAME_ALIASES.put("eagles", "한화 이글스");
+        DISPLAY_NAME_ALIASES.put("한화 이글스", "한화 이글스");
+        // 롯데
+        DISPLAY_NAME_ALIASES.put("롯데", "롯데 자이언츠");
+        DISPLAY_NAME_ALIASES.put("giants", "롯데 자이언츠");
+        DISPLAY_NAME_ALIASES.put("롯데 자이언츠", "롯데 자이언츠");
+        // 삼성
+        DISPLAY_NAME_ALIASES.put("삼성", "삼성 라이온즈");
+        DISPLAY_NAME_ALIASES.put("lions", "삼성 라이온즈");
+        DISPLAY_NAME_ALIASES.put("삼성 라이온즈", "삼성 라이온즈");
+        // KT
+        DISPLAY_NAME_ALIASES.put("kt", "kt 위즈");
+        DISPLAY_NAME_ALIASES.put("kt 위즈", "kt 위즈");
+        DISPLAY_NAME_ALIASES.put("wiz", "kt 위즈");
+        // KIA
+        DISPLAY_NAME_ALIASES.put("kia", "KIA 타이거즈");
+        DISPLAY_NAME_ALIASES.put("타이거즈", "KIA 타이거즈");
+        // NC
+        DISPLAY_NAME_ALIASES.put("nc", "NC 다이노스");
+        DISPLAY_NAME_ALIASES.put("dinos", "NC 다이노스");
+        DISPLAY_NAME_ALIASES.put("NC 다이노스", "NC 다이노스");
+    }
+
+    private String normalizeToDisplayName(String teamName) {
+        if (teamName == null)
+            return null;
+        String key = teamName.trim();
+        String lower = key.toLowerCase();
+        String mapped = DISPLAY_NAME_ALIASES.get(lower);
+        if (mapped != null)
+            return mapped;
+        // 이미 정확 표기면 그대로 사용
+        if (DISPLAY_NAME_ALIASES.containsValue(key))
+            return key;
+        return key; // 그대로 사용 (추가 매핑 누락 케이스 대비)
     }
 }
