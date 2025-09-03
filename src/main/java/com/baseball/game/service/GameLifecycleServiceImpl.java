@@ -70,8 +70,8 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
         newGame.setGameOver(false);
         newGame.setWinner(null);
         // 초기 공격/수비 팀 설정 (1회 초: 원정 공격, 홈 수비)
-        newGame.setOffenseTeam(newGame.isTop() ? normalizedAway : normalizedHome);
-        newGame.setDefenseTeam(newGame.isTop() ? normalizedHome : normalizedAway);
+        newGame.setAwayTeam(newGame.isTop() ? normalizedAway : normalizedHome);
+        newGame.setHomeTeam(newGame.isTop() ? normalizedHome : normalizedAway);
 
         // 인메모리 기본 라인업 사용 (정규화된 팀명으로 조회)
         applyInMemoryDefaultLineups(newGame, normalizedHome, normalizedAway);
