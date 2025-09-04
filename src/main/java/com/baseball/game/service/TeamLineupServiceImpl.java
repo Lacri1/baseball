@@ -39,7 +39,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
     private final Map<String, Map<String, List<Batter>>> userCustomBattingOrders = new java.util.HashMap<>();
     private final Map<String, Map<String, Pitcher>> userCustomStartingPitchers = new java.util.HashMap<>();
-    
+
     // 팀명 별칭 매핑 (한국어 → 내부 코드)
     private static final Map<String, String> TEAM_ALIASES = new java.util.HashMap<>();
     // DB 팀명 매핑 (내부/별칭 → DB 저장값)
@@ -51,7 +51,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
     public TeamLineupServiceImpl() {
         // 팀명 별칭 초기화
-    	TEAM_ALIASES.put("KIA 타이거즈", "Tigers");
+        TEAM_ALIASES.put("KIA 타이거즈", "Tigers");
         TEAM_ALIASES.put("삼성 라이온즈", "Lions");
         TEAM_ALIASES.put("LG 트윈스", "Twins");
         TEAM_ALIASES.put("두산 베어스", "Bears");
@@ -66,6 +66,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         TEAM_ALIASES.put("SSG", "Landers");
         TEAM_ALIASES.put("삼성", "Lions");
         TEAM_ALIASES.put("LG", "Twins");
+        TEAM_ALIASES.put("엘지", "Twins");
         TEAM_ALIASES.put("두산", "Bears");
         TEAM_ALIASES.put("KT", "Wiz");
         TEAM_ALIASES.put("kt", "Wiz");
@@ -74,6 +75,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         TEAM_ALIASES.put("NC", "Dinos");
         TEAM_ALIASES.put("키움", "Heros");
         TEAM_ALIASES.put("KIA", "Tigers");
+        TEAM_ALIASES.put("기아", "Tigers");
 
         // 영어 약어/별칭도 인식
         TEAM_ALIASES.put("SSG", "Landers");
@@ -113,6 +115,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         DB_TEAM_NAMES.put("Twins", "LG");
         DB_TEAM_NAMES.put("LG 트윈스", "LG");
         DB_TEAM_NAMES.put("LG", "LG");
+        DB_TEAM_NAMES.put("엘지", "LG");
 
         DB_TEAM_NAMES.put("Wiz", "KT");
         DB_TEAM_NAMES.put("kt 위즈", "KT");
@@ -130,7 +133,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         DB_TEAM_NAMES.put("Dinos", "NC");
         DB_TEAM_NAMES.put("NC 다이노스", "NC");
         DB_TEAM_NAMES.put("NC", "NC");
-
+        DB_TEAM_NAMES.put("엔씨", "NC");
         DB_TEAM_NAMES.put("Heros", "키움");
         DB_TEAM_NAMES.put("키움 히어로즈", "키움");
         DB_TEAM_NAMES.put("키움", "키움");
@@ -138,6 +141,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         DB_TEAM_NAMES.put("Tigers", "KIA");
         DB_TEAM_NAMES.put("KIA 타이거즈", "KIA");
         DB_TEAM_NAMES.put("KIA", "KIA");
+        DB_TEAM_NAMES.put("기아", "KIA");
 
         // 내부 코드/별칭 → 한글 풀네임 (ComputerLineupProvider 키)
         DISPLAY_TEAM_NAMES.put("Landers", "SSG 랜더스");
@@ -155,11 +159,13 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         DISPLAY_TEAM_NAMES.put("Twins", "LG 트윈스");
         DISPLAY_TEAM_NAMES.put("LG", "LG 트윈스");
         DISPLAY_TEAM_NAMES.put("LG 트윈스", "LG 트윈스");
+        DISPLAY_TEAM_NAMES.put("엘지", "LG 트윈스");
 
         DISPLAY_TEAM_NAMES.put("Wiz", "kt 위즈");
         DISPLAY_TEAM_NAMES.put("KT", "kt 위즈");
         DISPLAY_TEAM_NAMES.put("kt", "kt 위즈");
         DISPLAY_TEAM_NAMES.put("kt 위즈", "kt 위즈");
+        DISPLAY_TEAM_NAMES.put("케이티", "kt 위즈");
 
         DISPLAY_TEAM_NAMES.put("Giants", "롯데 자이언츠");
         DISPLAY_TEAM_NAMES.put("롯데", "롯데 자이언츠");
@@ -172,6 +178,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         DISPLAY_TEAM_NAMES.put("Dinos", "NC 다이노스");
         DISPLAY_TEAM_NAMES.put("NC", "NC 다이노스");
         DISPLAY_TEAM_NAMES.put("NC 다이노스", "NC 다이노스");
+        DISPLAY_TEAM_NAMES.put("엔씨", "NC 다이노스");
 
         DISPLAY_TEAM_NAMES.put("Heros", "키움 히어로즈");
         DISPLAY_TEAM_NAMES.put("키움", "키움 히어로즈");
@@ -180,7 +187,8 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         DISPLAY_TEAM_NAMES.put("Tigers", "KIA 타이거즈");
         DISPLAY_TEAM_NAMES.put("KIA", "KIA 타이거즈");
         DISPLAY_TEAM_NAMES.put("KIA 타이거즈", "KIA 타이거즈");
-        
+        DISPLAY_TEAM_NAMES.put("기아", "KIA 타이거즈");
+
         // 영어 응답 표기 매핑 (내부 코드 → 영어 풀네임)
         ENGLISH_DISPLAY_NAMES.put("Landers", "SSG Landers");
         ENGLISH_DISPLAY_NAMES.put("Bears", "Doosan Bears");
@@ -232,8 +240,8 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
         // 사용자 정의 타자 라인업 조회 (메모리)
         List<Batter> customBattingOrder = userCustomBattingOrders
-            .getOrDefault(userId, new java.util.HashMap<>())
-            .get(teamName);
+                .getOrDefault(userId, new java.util.HashMap<>())
+                .get(teamName);
 
         if (customBattingOrder != null) {
             for (int i = 0; i < customBattingOrder.size(); i++) {
@@ -250,8 +258,8 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
         // 사용자 정의 선발 투수 조회 (메모리)
         Pitcher customStartingPitcher = userCustomStartingPitchers
-            .getOrDefault(userId, new java.util.HashMap<>())
-            .get(teamName);
+                .getOrDefault(userId, new java.util.HashMap<>())
+                .get(teamName);
 
         if (customStartingPitcher != null) {
             TeamLineup tlPitcher = new TeamLineup();
@@ -265,7 +273,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         if (lineup.isEmpty()) {
             logger.warn("사용자 {}의 팀 {}에 대한 커스텀 라인업을 메모리에서 찾을 수 없습니다.", userId, teamName);
         } else {
-             logger.info("사용자 {}의 팀 {}에 대한 커스텀 라인업(메모리에서 조회)이 로드되었습니다.", userId, teamName);
+            logger.info("사용자 {}의 팀 {}에 대한 커스텀 라인업(메모리에서 조회)이 로드되었습니다.", userId, teamName);
         }
         return lineup;
     }
@@ -273,30 +281,34 @@ public class TeamLineupServiceImpl implements TeamLineupService {
     @Override
     @Transactional
     public void saveCustomLineup(CustomLineupRequest request) {
-        userCustomBattingOrders.computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>()).remove(request.getTeamName());
-        userCustomStartingPitchers.computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>()).remove(request.getTeamName());
+        userCustomBattingOrders.computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>())
+                .remove(request.getTeamName());
+        userCustomStartingPitchers.computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>())
+                .remove(request.getTeamName());
 
         // 임시 리스트에 타순과 함께 타자를 저장하여 나중에 정렬
         List<Map.Entry<Integer, Batter>> orderedBattersTemp = new ArrayList<>();
         Pitcher newStartingPitcher = null;
 
-		for (CustomLineupRequest.LineupPosition requestPosition : request.getLineup()) {
+        for (CustomLineupRequest.LineupPosition requestPosition : request.getLineup()) {
             String playerName = requestPosition.getPlayerName();
             Integer lineupOrder = requestPosition.getPosition(); // getPosition()이 Integer를 반환한다고 가정
 
-			Batter batter = null;
-			Pitcher pitcher = null;
-			if (batterMapper != null) {
-				try {
-					batter = batterMapper.findByName(playerName);
-				} catch (Exception ignored) {}
-			}
-			if (pitcherMapper != null) {
-				try {
-					pitcher = pitcherMapper.findByName(playerName);
-				} catch (Exception ignored) {}
-			}
-			
+            Batter batter = null;
+            Pitcher pitcher = null;
+            if (batterMapper != null) {
+                try {
+                    batter = batterMapper.findByName(playerName);
+                } catch (Exception ignored) {
+                }
+            }
+            if (pitcherMapper != null) {
+                try {
+                    pitcher = pitcherMapper.findByName(playerName);
+                } catch (Exception ignored) {
+                }
+            }
+
             if (batter != null && batter.getAtBats() > 0 && batter.getBattingAverage() == 0.0) {
                 // DB에 타율 컬럼이 없을 경우 계산값 세팅
                 batter.setBattingAverage(batter.calculateBattingAverage());
@@ -306,7 +318,8 @@ public class TeamLineupServiceImpl implements TeamLineupService {
             if (batter != null && normalizeTeamName(batter.getTeam()).equalsIgnoreCase(normalizedTeam)) {
                 // 타자인 경우
                 if (lineupOrder == null || lineupOrder < 1 || lineupOrder > 9) {
-                    throw new ValidationException("타자 '" + playerName + "'의 라인업 순서가 유효하지 않습니다: " + lineupOrder + " (1-9 사이여야 합니다).");
+                    throw new ValidationException(
+                            "타자 '" + playerName + "'의 라인업 순서가 유효하지 않습니다: " + lineupOrder + " (1-9 사이여야 합니다).");
                 }
                 orderedBattersTemp.add(Map.entry(lineupOrder, batter));
             } else if (pitcher != null && normalizeTeamName(pitcher.getTeam()).equalsIgnoreCase(normalizedTeam)) {
@@ -316,7 +329,8 @@ public class TeamLineupServiceImpl implements TeamLineupService {
                 }
                 newStartingPitcher = pitcher;
             } else {
-                throw new ValidationException("라인업에 포함된 선수 '" + playerName + "'를 팀 '" + request.getTeamName() + "'에서 찾을 수 없거나 소속 팀이 다릅니다.");
+                throw new ValidationException(
+                        "라인업에 포함된 선수 '" + playerName + "'를 팀 '" + request.getTeamName() + "'에서 찾을 수 없거나 소속 팀이 다릅니다.");
             }
         }
 
@@ -343,12 +357,12 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
         // 새로운 커스텀 라인업을 메모리에 저장
         userCustomBattingOrders
-            .computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>())
-            .put(request.getTeamName(), newBattingOrder);
+                .computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>())
+                .put(request.getTeamName(), newBattingOrder);
 
         userCustomStartingPitchers
-            .computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>())
-            .put(request.getTeamName(), newStartingPitcher);
+                .computeIfAbsent(request.getUserId(), k -> new java.util.HashMap<>())
+                .put(request.getTeamName(), newStartingPitcher);
 
         logger.info("사용자 {}의 팀 {}에 대한 커스텀 라인업이 메모리에 저장되었습니다.", request.getUserId(), request.getTeamName());
     }
@@ -498,7 +512,8 @@ public class TeamLineupServiceImpl implements TeamLineupService {
     }
 
     private String normalizeTeamName(String teamName) {
-        if (teamName == null) return null;
+        if (teamName == null)
+            return null;
         String key = teamName.trim();
         String mapped = getOrDefaultIgnoreCase(TEAM_ALIASES, key, null);
         return mapped != null ? mapped : key;
@@ -506,10 +521,12 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
     // DB 조회용 팀명 변환
     private String resolveDbTeamName(String teamName) {
-        if (teamName == null) return null;
+        if (teamName == null)
+            return null;
         String normalized = normalizeTeamName(teamName);
         String db = getOrDefaultIgnoreCase(DB_TEAM_NAMES, normalized, null);
-        if (db != null) return db;
+        if (db != null)
+            return db;
         String key = teamName.trim();
         db = getOrDefaultIgnoreCase(DB_TEAM_NAMES, key, null);
         return db != null ? db : key;
@@ -517,24 +534,28 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
     // ComputerLineupProvider가 기대하는 한글 풀네임으로 변환
     private String resolveDisplayTeamName(String teamName) {
-        if (teamName == null) return null;
+        if (teamName == null)
+            return null;
         String normalized = normalizeTeamName(teamName);
         String display = getOrDefaultIgnoreCase(DISPLAY_TEAM_NAMES, normalized, null);
-        if (display != null) return display;
+        if (display != null)
+            return display;
         String key = teamName.trim();
         display = getOrDefaultIgnoreCase(DISPLAY_TEAM_NAMES, key, null);
         return display != null ? display : normalized;
     }
 
     private String resolveEnglishTeamName(String teamName) {
-        if (teamName == null) return null;
+        if (teamName == null)
+            return null;
         String normalized = normalizeTeamName(teamName);
         String eng = ENGLISH_DISPLAY_NAMES.get(normalized);
         return eng != null ? eng : normalized;
     }
 
     private String getOrDefaultIgnoreCase(Map<String, String> map, String key, String defaultValue) {
-        if (key == null) return defaultValue;
+        if (key == null)
+            return defaultValue;
         for (Map.Entry<String, String> e : map.entrySet()) {
             if (e.getKey() != null && e.getKey().equalsIgnoreCase(key)) {
                 return e.getValue();
@@ -543,27 +564,30 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         return defaultValue;
     }
 
-	public Batter getBatterByName(String playerName) {
-		Batter batter = null;
-		try {
-			if (batterMapper != null) {
-				batter = batterMapper.findByName(playerName);
-			}
-		} catch (Exception ignored) {}
-		
-		if (batter != null && batter.getAtBats() > 0 && batter.getBattingAverage() == 0.0) {
-			batter.setBattingAverage(batter.calculateBattingAverage());
-		}
-		return batter;
-	}
+    public Batter getBatterByName(String playerName) {
+        Batter batter = null;
+        try {
+            if (batterMapper != null) {
+                batter = batterMapper.findByName(playerName);
+            }
+        } catch (Exception ignored) {
+        }
 
-	public Pitcher getPitcherByName(String pitcherName) {
-		try {
-			if (pitcherMapper != null) {
-				Pitcher p = pitcherMapper.findByName(pitcherName);
-				if (p != null) return p;
-			}
-		} catch (Exception ignored) {}
-		return null;
-	}
+        if (batter != null && batter.getAtBats() > 0 && batter.getBattingAverage() == 0.0) {
+            batter.setBattingAverage(batter.calculateBattingAverage());
+        }
+        return batter;
+    }
+
+    public Pitcher getPitcherByName(String pitcherName) {
+        try {
+            if (pitcherMapper != null) {
+                Pitcher p = pitcherMapper.findByName(pitcherName);
+                if (p != null)
+                    return p;
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
 }

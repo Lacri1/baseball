@@ -188,4 +188,22 @@ public class GameDto {
 		}
 		return list;
 	}
+
+	// 내부 로직용 원본 4칸 배열 반환: JSON 직렬화에서는 제외
+	@JsonIgnore
+	public Batter[] getBases() {
+		return this.bases;
+	}
+
+	// JSON 응답용: 1루, 2루, 3루만 3칸 배열로 제공
+	@JsonProperty("bases")
+	public Batter[] getBasesForResponse() {
+		if (this.bases == null)
+			return null;
+		Batter[] three = new Batter[3];
+		three[0] = this.bases.length > 1 ? this.bases[1] : null; // 1루
+		three[1] = this.bases.length > 2 ? this.bases[2] : null; // 2루
+		three[2] = this.bases.length > 3 ? this.bases[3] : null; // 3루
+		return three;
+	}
 }
