@@ -254,7 +254,9 @@ public class GameStateServiceImpl implements GameStateService {
             } catch (Exception ignored) {
             }
 
-            advanceBattingOrder(gameId);
+            if (game.getOut() < 3) {
+                advanceBattingOrder(gameId);
+            }
             log.debug("Strikeout. Outs: {}", game.getOut());
         }
 
