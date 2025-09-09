@@ -283,6 +283,8 @@ public class GameController {
 				.offenseTeam(game.getOffenseTeam())
 				.defenseTeam(game.getDefenseTeam())
 				.offenseSide(game.getOffenseSide())
+				.gameOver(game.isGameOver())
+				.winner(game.getWinner())
 				.out(game.getOut())
 				.strike(game.getStrike())
 				.ball(game.getBall())

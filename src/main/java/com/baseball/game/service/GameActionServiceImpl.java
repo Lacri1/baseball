@@ -126,6 +126,8 @@ public class GameActionServiceImpl implements GameActionService {
                 if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
                     stateService.nextInning(gameId);
                 }
+                // 게임 종료 조건 확인 (끝내기 등)
+                stateService.checkGameOver(gameId);
                 return pitchResult;
             }
         } else {
@@ -145,6 +147,8 @@ public class GameActionServiceImpl implements GameActionService {
             if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
                 stateService.nextInning(gameId);
             }
+            // 게임 종료 조건 확인 (끝내기 등)
+            stateService.checkGameOver(gameId);
             return pitchResult;
         }
     }

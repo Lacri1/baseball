@@ -22,13 +22,13 @@ public class GameServiceImpl implements GameService {
 
     @Autowired
     private GameLifecycleService lifecycleService;
-    
+
     @Autowired
     private GameStateService stateService;
-    
+
     @Autowired
     private GameActionService actionService;
-    
+
     @Autowired
     private GameValidationService validationService;
 
@@ -87,7 +87,8 @@ public class GameServiceImpl implements GameService {
     }
 
     private static String getOrDefaultIgnoreCase(java.util.Map<String, String> map, String key, String defaultValue) {
-        if (key == null) return defaultValue;
+        if (key == null)
+            return defaultValue;
         for (java.util.Map.Entry<String, String> e : map.entrySet()) {
             if (e.getKey() != null && e.getKey().equalsIgnoreCase(key)) {
                 return e.getValue();
@@ -115,14 +116,14 @@ public class GameServiceImpl implements GameService {
         return actionService.batterSwing(gameId, swing, timing);
     }
 
- // GameServiceImpl.java 파일의 pitcherThrow 메서드를 아래와 같이 수정합니다.
+    // GameServiceImpl.java 파일의 pitcherThrow 메서드를 아래와 같이 수정합니다.
 
     @Override
     @Transactional
     public String pitcherThrow(String gameId, String pitchType) {
         return actionService.pitcherThrow(gameId, pitchType);
     }
- // GameServiceImpl에 추가할 AI 제어 메서드 (예시)
+    // GameServiceImpl에 추가할 AI 제어 메서드 (예시)
 
     @Override
     public String playComputerTurn(String gameId) {
@@ -130,7 +131,8 @@ public class GameServiceImpl implements GameService {
     }
 
     // 이 메서드 외에 다음 메서드는 GameLogicUtil.java에 이미 존재합니다.
-    // private static int calculateContactFromBattingAverage(double battingAverage) { ... }
+    // private static int calculateContactFromBattingAverage(double battingAverage)
+    // { ... }
 
     @Override
     @Transactional
@@ -205,38 +207,49 @@ public class GameServiceImpl implements GameService {
             String bTeam = b.getTeam() == null ? null : b.getTeam().trim();
             String reqTeam = dbTeamOfRequest == null ? null : dbTeamOfRequest.trim();
             if (bTeam == null || reqTeam == null || !bTeam.equalsIgnoreCase(reqTeam)) {
-                throw new com.baseball.game.exception.ValidationException("요청 팀과 다른 팀 소속의 타자입니다: " + n + " (소속: " + b.getTeam() + ")");
+                throw new com.baseball.game.exception.ValidationException(
+                        "요청 팀과 다른 팀 소속의 타자입니다: " + n + " (소속: " + b.getTeam() + ")");
             }
             ordered.add(b);
         }
 
         com.baseball.game.dto.Pitcher sp = pitcherMapper.findByName(request.getStartingPitcher());
         if (sp == null) {
-            throw new com.baseball.game.exception.ValidationException("선발 투수를 찾을 수 없습니다: " + request.getStartingPitcher());
+            throw new com.baseball.game.exception.ValidationException(
+                    "선발 투수를 찾을 수 없습니다: " + request.getStartingPitcher());
         }
         String spTeam = sp.getTeam() == null ? null : sp.getTeam().trim();
         String reqTeam2 = dbTeamOfRequest == null ? null : dbTeamOfRequest.trim();
         if (spTeam == null || reqTeam2 == null || !spTeam.equalsIgnoreCase(reqTeam2)) {
-            throw new com.baseball.game.exception.ValidationException("요청 팀과 다른 팀 소속의 선발 투수입니다: " + sp.getName() + " (소속: " + sp.getTeam() + ")");
+            throw new com.baseball.game.exception.ValidationException(
+                    "요청 팀과 다른 팀 소속의 선발 투수입니다: " + sp.getName() + " (소속: " + sp.getTeam() + ")");
         }
 
         if (isHome) {
             game.setHomeBattingOrder(ordered);
             game.setHomeStartingPitcher(sp);
             if (!game.isTop()) {
-                // 말(홈 공격)에서만 현재 타자/투수 영향
+                // 말(홈 공격)일 때: 홈 타자 시작, 수비 투수는 원정 선발
                 game.setCurrentBatterIndex(0);
-                if (!ordered.isEmpty()) game.setCurrentBatter(ordered.get(0));
+                if (!ordered.isEmpty())
+                    game.setCurrentBatter(ordered.get(0));
                 game.setCurrentPitcher(game.getAwayStartingPitcher());
+            } else {
+                // 초(원정 공격)일 때: 수비는 홈팀이므로 현재 투수를 홈 선발로 반영
+                game.setCurrentPitcher(game.getHomeStartingPitcher());
             }
         } else {
             game.setAwayBattingOrder(ordered);
             game.setAwayStartingPitcher(sp);
             if (game.isTop()) {
-                // 초(원정 공격)에서만 현재 타자/투수 영향
+                // 초(원정 공격)일 때: 원정 타자 시작, 수비 투수는 홈 선발
                 game.setCurrentBatterIndex(0);
-                if (!ordered.isEmpty()) game.setCurrentBatter(ordered.get(0));
+                if (!ordered.isEmpty())
+                    game.setCurrentBatter(ordered.get(0));
                 game.setCurrentPitcher(game.getHomeStartingPitcher());
+            } else {
+                // 말(홈 공격)일 때: 수비는 원정이므로 현재 투수를 원정 선발로 반영
+                game.setCurrentPitcher(game.getAwayStartingPitcher());
             }
         }
 
