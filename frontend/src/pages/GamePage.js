@@ -14,13 +14,8 @@ const GamePage = () => {
   const navigate = useNavigate();
 
   const savedGameInfo = JSON.parse(localStorage.getItem("gameInfo") || "{}");
-  const {
-    gameId,
-    userTeam,
-    homeTeam,
-    awayTeam,
-    inningCount,
-  } = state || savedGameInfo || {};
+  const { gameId, userTeam, homeTeam, awayTeam, inningCount } =
+    state || savedGameInfo || {};
 
   useEffect(() => {
     if (state) localStorage.setItem("gameInfo", JSON.stringify(state));
@@ -49,7 +44,6 @@ const GamePage = () => {
     offenseTeam: null,
     defenseTeam: null,
     offenseSide: "TOP",
-    // 스코어보드(서버 배열/합계 저장)
     homeByInning: Array(inningCount || 9).fill(0),
     awayByInning: Array(inningCount || 9).fill(0),
     homeScoreTotal: 0,
@@ -83,9 +77,10 @@ const GamePage = () => {
       const data = viewRes.data.data;
       const sb = sbRes?.data?.data;
 
-      const nextIsTop = typeof data.isTop === "boolean"
-        ? data.isTop
-        : (String(data.offenseSide || "TOP").toUpperCase() === "TOP");
+      const nextIsTop =
+        typeof data.isTop === "boolean"
+          ? data.isTop
+          : String(data.offenseSide || "TOP").toUpperCase() === "TOP";
 
       setGameState((prev) => ({
         ...prev,
@@ -95,13 +90,16 @@ const GamePage = () => {
         strikes: data.strike,
         outs: data.out,
         bases: data.bases || [false, false, false],
-
-        // 스코어보드 응답 저장
         homeByInning: sb?.homeByInning ?? prev.homeByInning,
         awayByInning: sb?.awayByInning ?? prev.awayByInning,
-        homeScoreTotal: typeof sb?.homeScore === "number" ? sb.homeScore : prev.homeScoreTotal,
-        awayScoreTotal: typeof sb?.awayScore === "number" ? sb.awayScore : prev.awayScoreTotal,
-
+        homeScoreTotal:
+          typeof sb?.homeScore === "number"
+            ? sb.homeScore
+            : prev.homeScoreTotal,
+        awayScoreTotal:
+          typeof sb?.awayScore === "number"
+            ? sb.awayScore
+            : prev.awayScoreTotal,
         currentBatter: data.currentBatter || prev.currentBatter,
         currentPitcher: data.currentPitcher || prev.currentPitcher,
         eventLog: Array.isArray(data.eventLog) ? data.eventLog : prev.eventLog,
@@ -113,7 +111,7 @@ const GamePage = () => {
         awayWalks: data.awayWalks ?? prev.awayWalks,
         offenseTeam: data.offenseTeam ?? prev.offenseTeam,
         defenseTeam: data.defenseTeam ?? prev.defenseTeam,
-        offenseSide: (data.offenseSide || prev.offenseSide || "TOP"),
+        offenseSide: data.offenseSide || prev.offenseSide || "TOP",
         homeTeam: homeTeam ?? prev.homeTeam,
         awayTeam: awayTeam ?? prev.awayTeam,
       }));
@@ -129,11 +127,11 @@ const GamePage = () => {
     return () => clearInterval(interval);
   }, [gameId]);
 
-  // ----- 메시지 파서 (스윙 안 함이면 좌측 투구 판정만) -----
+  // ----- 메시지 파서 -----
   const parseServerMessage = (rawMsg = "") => {
     let msg = rawMsg || "";
     msg = msg.replace("스윙/노스윙 처리 완료:", "").trim();
-    const [leftRaw, rightRaw] = msg.split("|").map(s => (s || "").trim());
+    const [leftRaw, rightRaw] = msg.split("|").map((s) => (s || "").trim());
     const leftPitch = (leftRaw || "").replace("투구 처리 완료:", "").trim();
     const rightAction = rightRaw || "";
     const isNoSwing = /스윙\s*안\s*함/u.test(msg);
@@ -145,12 +143,10 @@ const GamePage = () => {
       return onlyHit || "타석 결과";
     }
     if (leftPitch) return leftPitch;
-    msg = msg.replace("투구 처리 완료:", "").trim();
     return msg || "타석 결과";
   };
-  // ---------------------------------------------------------
 
-  // ✅ 볼넷/삼진 추론용 스냅샷
+  // ----- 볼넷/삼진 판정 -----
   const countsBeforeActionRef = useRef({
     balls: 0,
     strikes: 0,
@@ -167,47 +163,57 @@ const GamePage = () => {
     };
   };
 
-  // ✅ 최종 메시지 확정 (볼넷/삼진 자동 승격)
   const inferAndSetMessage = (rawMsg = "", resData = null) => {
     const prev = countsBeforeActionRef.current;
     const parsed = parseServerMessage(rawMsg);
 
-    // 서버 메시지에 직접 포함
-    if (/볼넷|4구/u.test(rawMsg)) {
-      setMessage("볼넷");
-      return;
-    }
-
-    // 직전 3B 이후 "볼" → 볼넷
-    if (parsed === "볼" && prev.balls >= 3) {
-      setMessage("볼넷");
-      return;
-    }
-
-    // 서버 데이터 walk 증가 → 볼넷
-    if (resData) {
-      const walked =
-        (typeof resData.homeWalks === "number" && resData.homeWalks > prev.homeWalks) ||
-        (typeof resData.awayWalks === "number" && resData.awayWalks > prev.awayWalks);
-      if (walked) {
-        setMessage("볼넷");
-        return;
-      }
-    }
-
-    // 직전 2S 이후 "스트라이크" → 삼진
-    if (parsed === "스트라이크" && prev.strikes >= 2) {
-      setMessage("삼진 아웃");
-      return;
-    }
+    if (/볼넷|4구/u.test(rawMsg)) return setMessage("볼넷");
+    if (parsed === "볼" && prev.balls >= 3) return setMessage("볼넷");
+    if (
+      resData &&
+      ((typeof resData.homeWalks === "number" &&
+        resData.homeWalks > prev.homeWalks) ||
+        (typeof resData.awayWalks === "number" &&
+          resData.awayWalks > prev.awayWalks))
+    )
+      return setMessage("볼넷");
+    if (parsed === "스트라이크" && prev.strikes >= 2)
+      return setMessage("삼진 아웃");
 
     setMessage(parsed || "타석 결과");
   };
 
-  // 공수 전환 시 버튼/메시지 초기화
+  // ===== 메시지 지연 표시(이닝 전환 안내가 결과를 덮어쓰지 않도록) =====
+  const messageTimerRef = useRef(null);
+
+  const isResultMessage = (msg = "") =>
+    /(안타|홈런|2루타|3루타|희생플라이|땅볼 아웃|뜬공 아웃|직선타|병살|삼진|볼넷|사구|득점|실책|주자 아웃)/u.test(
+      String(msg)
+    );
+
+  const setMessageLater = (text, delayMs = 1200) => {
+    if (messageTimerRef.current) {
+      clearTimeout(messageTimerRef.current);
+      messageTimerRef.current = null;
+    }
+    messageTimerRef.current = setTimeout(() => {
+      setMessage(text);
+      messageTimerRef.current = null;
+    }, delayMs);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (messageTimerRef.current) clearTimeout(messageTimerRef.current);
+    };
+  }, []);
+  // ===================================================================
+
+  // ----- 공수 전환 -----
   const prevTurnRef = useRef(null);
-  const userIsHome = (homeTeam === userTeam);
-  const offenseIsTop = String(gameState.offenseSide || "TOP").toUpperCase() === "TOP";
+  const userIsHome = homeTeam === userTeam;
+  const offenseIsTop =
+    String(gameState.offenseSide || "TOP").toUpperCase() === "TOP";
   const isUserOffenseNow = offenseIsTop ? !userIsHome : userIsHome;
 
   useEffect(() => {
@@ -219,15 +225,21 @@ const GamePage = () => {
       setCurrentType(null);
       setSwingGauge(0);
       setPitchGauge(0);
-      setMessage(
-        isUserOffenseNow
-          ? "공격 턴입니다. ‘타격 준비’ 후 스윙하세요."
-          : "수비 턴입니다. ‘투구’ 후 존을 클릭하세요."
-      );
-    }
-  }, [gameState.inning, gameState.offenseSide, isUserOffenseNow]);
 
-  // ✅ 게임 종료 감지 → 결과 페이지 이동
+      const nextTurnMsg = isUserOffenseNow
+        ? "공격 턴입니다. ‘타격 준비’ 후 스윙하세요."
+        : "수비 턴입니다. ‘투구’ 후 존을 클릭하세요.";
+
+      // 직전 메시지가 결과성이라면 1.2초 유지 후 교체, 아니면 0.5초 지연 후 교체
+      if (isResultMessage(message)) {
+        setMessageLater(nextTurnMsg, 1200);
+      } else {
+        setMessageLater(nextTurnMsg, 500);
+      }
+    }
+  }, [gameState.inning, gameState.offenseSide, isUserOffenseNow, message]);
+
+  // ----- 게임 종료 이동 -----
   useEffect(() => {
     if (gameState.gameOver) {
       navigate("/game/result", {
@@ -236,12 +248,13 @@ const GamePage = () => {
           homeTeam,
           awayTeam,
           winner: gameState.winner,
+          userTeam,
         },
       });
     }
-  }, [gameState.gameOver, gameState, homeTeam, awayTeam, navigate]);
+  }, [gameState.gameOver, gameState, homeTeam, awayTeam, navigate, userTeam]);
 
-  // 스윙 게이지 시작
+  // 게이지/액션
   const startSwingGauge = () => {
     if (animating) return;
     setCurrentType("swing");
@@ -255,56 +268,46 @@ const GamePage = () => {
     }, 20);
   };
 
-  // 스윙
   const handleSwing = async () => {
     if (!animating || currentType !== "swing") return;
     clearGaugeInterval();
     setAnimating(false);
-
-    snapshotCounts(); // 스냅샷
-
+    snapshotCounts();
     try {
       const res = await gameAPI.swing(gameId, { swing: true, timing: true });
       inferAndSetMessage(res?.data?.message || "", res?.data?.data || null);
       setTimeout(fetchGameState, 100);
-      // navigate는 useEffect(gameOver)에서 일괄 처리
-    } catch (err) {
-      console.error("스윙 실패:", err);
+    } catch {
       setMessage("스윙 실패");
     }
-
     setSwingGauge(0);
     setCurrentType(null);
   };
 
-  // 노스윙
   const handleNoSwing = async () => {
     clearGaugeInterval();
     setAnimating(false);
     setCurrentType(null);
     setSwingGauge(0);
-
-    snapshotCounts(); // 스냅샷
-
+    snapshotCounts();
     try {
       const res = await gameAPI.swing(gameId, { swing: false, timing: false });
       inferAndSetMessage(res?.data?.message || "", res?.data?.data || null);
       setTimeout(fetchGameState, 100);
-    } catch (err) {
-      console.error("노스윙 실패:", err);
+    } catch {
       setMessage("노스윙 실패");
     }
   };
 
-  // 투구 시작
   const handlePitch = () => {
     if (animating) return;
     setAnimating(true);
     setCurrentType("pitch");
-    snapshotCounts(); // 스냅샷
+    snapshotCounts();
     setMessage("투구 위치를 선택하세요");
   };
 
+  // ----- 렌더 -----
   if (!gameId) {
     return (
       <div style={{ padding: 20, textAlign: "center" }}>
@@ -317,7 +320,6 @@ const GamePage = () => {
   return (
     <div style={{ padding: 20 }}>
       <MessageBox message={message} />
-
       <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
         <Scoreboard
           gameState={gameState}
@@ -326,7 +328,7 @@ const GamePage = () => {
           inningCount={inningCount || 9}
         />
 
-        <div style={{ margin: 180, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ margin: 180, display: "flex", flexDirection: "column" }}>
           <div style={{ transform: "scale(1.8)" }}>
             <Bases bases={gameState.bases} />
           </div>
@@ -336,20 +338,28 @@ const GamePage = () => {
           <PitchGauge value={pitchGauge} />
           <SwingGauge value={swingGauge} />
 
-          <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+          <div style={{ marginTop: 10, display: "flex", gap: 10 }}>
             {/* 공격 */}
-            <button onClick={startSwingGauge} disabled={!isUserOffenseNow || animating}>⚾ 타격 준비</button>
-            <button onClick={handleSwing} disabled={!isUserOffenseNow || !animating || currentType !== "swing"}>🏏 스윙</button>
-            <button onClick={handleNoSwing} disabled={!isUserOffenseNow}>❌ 노스윙</button>
+            <button onClick={startSwingGauge} disabled={!isUserOffenseNow || animating}>
+              ⚾ 타격 준비
+            </button>
+            <button onClick={handleSwing} disabled={!isUserOffenseNow || !animating || currentType !== "swing"}>
+              🏏 스윙
+            </button>
+            <button onClick={handleNoSwing} disabled={!isUserOffenseNow}>
+              ❌ 노스윙
+            </button>
 
             {/* 수비 */}
-            <button onClick={handlePitch} disabled={isUserOffenseNow || animating}>🥎 투구</button>
+            <button onClick={handlePitch} disabled={isUserOffenseNow || animating}>
+              🥎 투구
+            </button>
           </div>
 
           <StrikeZoneContainer
             gameId={gameId}
             currentType={currentType}
-            onPitchMessage={(rawMsg) => inferAndSetMessage(rawMsg, null)} // 메시지 확정
+            onPitchMessage={(rawMsg) => inferAndSetMessage(rawMsg, null)}
             onServerUpdate={fetchGameState}
             onActionComplete={() => {
               clearGaugeInterval();
