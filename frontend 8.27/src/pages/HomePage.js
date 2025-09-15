@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // Axios 임포트
+import api from '../api'; // Axios 대신 중앙 API 인스턴스 임포트
 import '../styles/HomePage.css';
 import Slider from "react-slick";
 import { parseTeamHtmlToArray, parseHitterHtmlToArray, parsePitcherHtmlToArray, normalizeList } from '../utils/htmlTableParser';
@@ -48,20 +48,20 @@ const HomePage = () => {
             try {
                 // 타자 기록 (홈런 순)
                 // JSP 파일의 `<c:forEach>`에서 사용된 속성 이름과 일치하도록 `hitter.homeRun` 등을 사용
-                const hitterRes = await axios.get('/kbo/hitter-stats', {
+                const hitterRes = await api.get('/api/kbo/hitter-stats', {
                     params: { sortBy: 'run' }
                 });
                 setHitterStats(Array.isArray(hitterRes.data) ? hitterRes.data : (typeof hitterRes.data === 'string' ? parseHitterHtmlToArray(hitterRes.data) : normalizeList(hitterRes.data)));
 
                 // 투수 기록 (승리 순)
                 // JSP 파일의 `<c:forEach>`에서 사용될 속성 이름과 일치하도록 `pitcher.win` 등을 사용
-                const pitcherRes = await axios.get('/kbo/pitcher-stats', {
+                const pitcherRes = await api.get('/api/kbo/pitcher-stats', {
                     params: { sortBy: 'era' }
                 });
                 setPitcherStats(Array.isArray(pitcherRes.data) ? pitcherRes.data : (typeof pitcherRes.data === 'string' ? parsePitcherHtmlToArray(pitcherRes.data) : normalizeList(pitcherRes.data)));
 
                 // 팀 기록
-                const teamRes = await axios.get('/kbo/team-stats');
+                const teamRes = await api.get('/api/kbo/team-stats');
                 const rawTeam = teamRes.data;
                 const normalizedTeam = Array.isArray(rawTeam)
                     ? rawTeam
@@ -106,54 +106,52 @@ const HomePage = () => {
                         <h1>KBO 타자 TOP5 랭킹</h1>
 
                         <div className="image-container">
-                            <h2>타율
-                              {/* hitterStats가 배열인지 확인 후 map 함수 사용 */}
-                              {Array.isArray(hitterStats) && hitterStats.slice(0, 5).map((player, index) => ( 
-                                  // mapper.xml 파일에서 resultMap 안에 있는 property 값을 사용해야 합니다.
-                                  <h4 key={index}>{index + 1}. {player.playerName} ({player.battingAverage}) ({player.playerTeam})</h4>
-                              ))}
-                            </h2>
-
-                            <h2>타점
-                                {/* hitterStats가 배열인지 확인 후 map 함수 사용 */}
+                            <div className="ranking-category">
+                                <h2>타율</h2>
                                 {Array.isArray(hitterStats) && hitterStats.slice(0, 5).map((player, index) => (
-                                    <h4 key={index}>{index + 1}. {player.playerName} ({player.runsBattedIn}) ({player.playerTeam})</h4>
+                                    <p key={index}>{index + 1}. {player.name} ({player.battingAverage}) ({player.team})</p>
                                 ))}
-                            </h2>
+                            </div>
 
-                            <h2>홈런
-                                {/* hitterStats가 배열인지 확인 후 map 함수 사용 */}
+                            <div className="ranking-category">
+                                <h2>타점</h2>
                                 {Array.isArray(hitterStats) && hitterStats.slice(0, 5).map((player, index) => (
-                                    <h4 key={index}>{index + 1}. {player.playerName} ({player.homeRun}) ({player.playerTeam})</h4>
+                                    <p key={index}>{index + 1}. {player.name} ({player.runsBattedIn}) ({player.team})</p>
                                 ))}
-                            </h2>
+                            </div>
+
+                            <div className="ranking-category">
+                                <h2>홈런</h2>
+                                {Array.isArray(hitterStats) && hitterStats.slice(0, 5).map((player, index) => (
+                                    <p key={index}>{index + 1}. {player.name} ({player.homeRuns}) ({player.team})</p>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
                     <div>
                         <h1>KBO 투수 TOP5 랭킹</h1>
                           <div className="image-container">
-                            <h2>ERA
-                                {/* pitcherStats가 배열인지 확인 후 map 함수 사용 */}
+                            <div className="ranking-category">
+                                <h2>ERA</h2>
                                 {Array.isArray(pitcherStats) && pitcherStats.slice(0, 5).map((player, index) => (
-                                    <h4 key={index}>{index + 1}. {player.playerName} ({player.earnedRunAverage}) ({player.playerTeam})</h4>
+                                    <p key={index}>{index + 1}. {player.name} ({player.era}) ({player.team})</p>
                                 ))}
-                            </h2>
+                            </div>
 
-                            <h2>승리
-                                {/* pitcherStats가 배열인지 확인 후 map 함수 사용 */}
+                            <div className="ranking-category">
+                                <h2>승리</h2>
                                 {Array.isArray(pitcherStats) && pitcherStats.slice(0, 5).map((player, index) => (
-                                    <h4 key={index}>{index + 1}. {player.playerName} ({player.win}) ({player.playerTeam})</h4>
+                                    <p key={index}>{index + 1}. {player.name} ({player.win}) ({player.team})</p>
                                 ))}
-                            </h2>
+                            </div>
 
-                            <h2>탈삼진
-                                {/* pitcherStats가 배열인지 확인 후 map 함수 사용 */}
+                            <div className="ranking-category">
+                                <h2>탈삼진</h2>
                                 {Array.isArray(pitcherStats) && pitcherStats.slice(0, 5).map((player, index) => (
-                                    <h4 key={index}>{index + 1}. {player.playerName} ({player.strikeOut}) ({player.playerTeam})</h4>
+                                    <p key={index}>{index + 1}. {player.name} ({player.strikeOut}) ({player.team})</p>
                                 ))}
-                            </h2>
-
+                            </div>
                         </div>
                     </div>
 

@@ -21,7 +21,7 @@ CREATE TABLE kbo_hitter_stats_2025 (
     UNIQUE (Player_Name, Player_Team)       -- 선수명과 팀명 조합은 고유해야 함
 );
 
-LOAD DATA LOCAL INFILE 'D:/soldesk/workspace/baseball_project/baseball/db/2025_useBoard_hitter.csv'
+LOAD DATA LOCAL INFILE 'C:/Users/user/IdeaProjects/baseball/db/2025_useBoard_hitter.csv'
 INTO TABLE kbo_hitter_stats_2025
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY ','
@@ -67,7 +67,7 @@ CREATE TABLE kbo_pitcher_stats_2025 (
     UNIQUE (Player_Name, Player_Team)       -- 선수명과 팀명 조합은 고유해야 함
 );
 
-LOAD DATA LOCAL INFILE 'D:/soldesk/workspace/baseball_project/baseball/db/2025_useBoard_pitcher.csv'
+LOAD DATA LOCAL INFILE 'C:/Users/user/IdeaProjects/baseball/db/2025_useBoard_pitcher.csv'
 INTO TABLE kbo_pitcher_stats_2025
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY ','
@@ -103,7 +103,7 @@ CREATE TABLE kbo_team_stats_2025 (
     Games_Behind DECIMAL(5, 2)           -- 게임차 (예: 4.5, 전체 5자리 중 소수점 이하 2자리)
 );
 
-LOAD DATA LOCAL INFILE 'D:/soldesk/workspace/baseball_project/baseball/db/2025_useBoard_team.csv'
+LOAD DATA LOCAL INFILE 'C:/Users/user/IdeaProjects/baseball/db/2025_useBoard_team.csv'
 INTO TABLE kbo_team_stats_2025
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY ','

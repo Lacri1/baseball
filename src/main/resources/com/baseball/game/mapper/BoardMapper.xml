@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baseball.game.mapper.BoardMapper">
+	<select id="getList" resultType="com.baseball.game.dto.BoardDto">
+		select * from board
+	</select>
+	<select id="getListCategory" resultType="com.baseball.game.dto.BoardDto">
+		select * from board where category=#{category}
+	</select>
+	<select id="getBoard" resultType="com.baseball.game.dto.BoardDto">
+		select * from board where no = #{no}
+	</select>
+	<select id="getPagedList" resultType="com.baseball.game.dto.BoardDto">
+		SELECT * FROM board
+		ORDER BY no DESC
+		LIMIT #{size} OFFSET #{offset}
+	</select>
+	<select id="getPagedListCate" resultType="com.baseball.game.dto.BoardDto">
+		SELECT * FROM board
+		<where>
+			<if test="category != null and category != ''">
+				AND category = #{category}
+			</if>
+		</where>
+		ORDER BY no DESC
+		LIMIT #{size} OFFSET #{offset}
+	</select>
+	<select id="getTotalCount" resultType="int">
+		SELECT COUNT(*) FROM board
+	</select>
+	<select id="getTotalCountCate" resultType="int">
+		SELECT COUNT(*) FROM board
+		<where>
+			<if test="category != null and category != ''">
+				AND category = #{category}
+			</if>
+		</where>
+	</select>
+	<select id="getPagedListSearch" resultType="com.baseball.game.dto.BoardDto">
+		SELECT * FROM board
+		<where>
+			<if test="keyword != null and keyword != ''">
+				AND (
+					title LIKE CONCAT('%', #{keyword}, '%')
+					OR text LIKE CONCAT('%', #{keyword}, '%')
+					OR writer LIKE CONCAT('%', #{keyword}, '%')
+				)
+			</if>
+		</where>
+		ORDER BY no DESC
+		LIMIT #{size} OFFSET #{offset}
+	</select>
+	<select id="getPagedListCateSearch" resultType="com.baseball.game.dto.BoardDto">
+		SELECT * FROM board
+		<where>
+			<if test="category != null and category != ''">
+				AND category = #{category}
+			</if>
+			<if test="keyword != null and keyword != ''">
+				AND (
+					title LIKE CONCAT('%', #{keyword}, '%')
+					OR text LIKE CONCAT('%', #{keyword}, '%')
+					OR writer LIKE CONCAT('%', #{keyword}, '%')
+				)
+			</if>
+		</where>
+		ORDER BY no DESC
+		LIMIT #{size} OFFSET #{offset}
+	</select>
+	<select id="getTotalCountSearch" resultType="int">
+		SELECT COUNT(*) FROM board
+		<where>
+			<if test="keyword != null and keyword != ''">
+				AND (
+					title LIKE CONCAT('%', #{keyword}, '%')
+					OR text LIKE CONCAT('%', #{keyword}, '%')
+					OR writer LIKE CONCAT('%', #{keyword}, '%')
+				)
+			</if>
+		</where>
+	</select>
+	<select id="getTotalCountCateSearch" resultType="int">
+		SELECT COUNT(*) FROM board
+		<where>
+			<if test="category != null and category != ''">
+				AND category = #{category}
+			</if>
+			<if test="keyword != null and keyword != ''">
+				AND (
+					title LIKE CONCAT('%', #{keyword}, '%')
+					OR text LIKE CONCAT('%', #{keyword}, '%')
+					OR writer LIKE CONCAT('%', #{keyword}, '%')
+				)
+			</if>
+		</where>
+	</select>
+    <insert id="write">
+        INSERT INTO board(title,writer,text,category) 
+        VALUES(#{title},#{writer},#{text},#{category})
+    </insert>
+    <update id="modify">
+        UPDATE board 
+        SET text=#{text}, updated_at=CURRENT_TIMESTAMP 
+        WHERE no=#{no} AND writer=#{writer}
+    </update>
+	<delete id="delete">
+		delete from board where no=#{no} AND writer=#{writer}
+	</delete>
+</mapper>

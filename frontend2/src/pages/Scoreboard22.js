@@ -9,9 +9,7 @@ const Scoreboard = ({ strike, ball, out, innings, bases }) => {
     ));
   };
 
-  // innings 객체 구조에 맞게 배열 분리
-  const home = innings?.my || [];
-  const away = innings?.opponent || [];
+  
 
   return (
     <div className="scoreboard">

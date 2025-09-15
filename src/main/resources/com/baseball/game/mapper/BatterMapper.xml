@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baseball.game.mapper.BatterMapper">
+	<select id="findByTeam" resultType="com.baseball.game.dto.Batter">
+		SELECT
+			Player_Name AS name,
+			Player_Team AS team,
+			Plate_Appearance AS plateAppearances,
+			Strike_Out As strikeOut,
+			Four_Ball As fourBall,
+			0 AS hitByPitch,
+			0 AS atBats,
+			Hit AS hits,
+			two_Base AS twoBases,
+			three_Base AS threeBases,
+			Home_Run AS homeRuns,
+			Batting_average AS battingAverage
+		FROM kbo_hitter_stats_2025
+		WHERE Player_Team = #{team}
+		ORDER BY Player_Name
+	</select>
+
+	<select id="findByNames" resultType="com.baseball.game.dto.Batter">
+		SELECT
+			Player_Name AS name,
+			Player_Team AS team,
+			Plate_Appearance AS plateAppearances,
+			Strike_Out As strikeOut,
+			Four_Ball As fourBall,
+			0 AS hitByPitch,
+			0 AS atBats,
+			Hit AS hits,
+			two_Base AS twoBases,
+			three_Base AS threeBases,
+			Home_Run AS homeRuns,
+			Batting_average AS battingAverage
+		FROM kbo_hitter_stats_2025
+		WHERE Player_Name IN
+		<foreach collection="names" item="n" open="(" separator="," close=")">
+			#{n}
+		</foreach>
+		ORDER BY Player_Name
+	</select>
+
+	<select id="findByName" resultType="com.baseball.game.dto.Batter">
+		SELECT
+			Player_Name AS name,
+			Player_Team AS team,
+			Plate_Appearance AS plateAppearances,
+			Strike_Out As strikeOut,
+			Four_Ball As fourBall,
+			0 AS hitByPitch,
+			0 AS atBats,
+			Hit AS hits,
+			two_Base AS twoBases,
+			three_Base AS threeBases,
+			Home_Run AS homeRuns,
+			Batting_average AS battingAverage
+		FROM kbo_hitter_stats_2025
+		WHERE Player_Name = #{name}
+	</select>
+</mapper>

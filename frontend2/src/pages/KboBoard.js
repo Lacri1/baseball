@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import "../styles/NoticeboardPage.css";
 
 const KboBoardList = () => {
@@ -17,7 +17,7 @@ const KboBoardList = () => {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8080/api/board", {
+      const res = await api.get("/kbo/board", {
         params: { category, keyword, page, size },
       });
       setPosts(res.data.content);

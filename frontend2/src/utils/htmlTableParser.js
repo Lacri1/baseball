@@ -77,9 +77,9 @@ export const parseTeamHtmlToArray = (htmlString) => {
 export const parseHitterHtmlToArray = (htmlString) => {
 	const headerToKeyMap = {
 		[normalizeLabel('순위')]: 'rank',
-		[normalizeLabel('선수명')]: 'playerName',
-		[normalizeLabel('팀명')]: 'playerTeam',
-		[normalizeLabel('팀')]: 'playerTeam',
+		[normalizeLabel('선수명')]: 'name',
+		[normalizeLabel('팀명')]: 'team',
+		[normalizeLabel('팀')]: 'team',
 		[normalizeLabel('타율')]: 'battingAverage',
 		[normalizeLabel('경기')]: 'gameNum',
 		[normalizeLabel('경기 수')]: 'gameNum',
@@ -104,11 +104,11 @@ export const parseHitterHtmlToArray = (htmlString) => {
 export const parsePitcherHtmlToArray = (htmlString) => {
 	const headerToKeyMap = {
 		[normalizeLabel('순위')]: 'rank',
-		[normalizeLabel('선수명')]: 'playerName',
-		[normalizeLabel('팀명')]: 'playerTeam',
-		[normalizeLabel('팀')]: 'playerTeam',
-		[normalizeLabel('평균 자책점')]: 'earnedRunAverage',
-		[normalizeLabel('ERA')]: 'earnedRunAverage',
+		[normalizeLabel('선수명')]: 'name',
+		[normalizeLabel('팀명')]: 'team',
+		[normalizeLabel('팀')]: 'team',
+		[normalizeLabel('평균 자책점')]: 'era',
+		[normalizeLabel('ERA')]: 'era',
 		[normalizeLabel('경기')]: 'gameNum',
 		[normalizeLabel('경기 수')]: 'gameNum',
 		[normalizeLabel('승')]: 'win',

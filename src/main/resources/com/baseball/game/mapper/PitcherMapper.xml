@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baseball.game.mapper.PitcherMapper">
+	<select id="findByTeam" resultType="com.baseball.game.dto.Pitcher">
+		SELECT
+			Player_Name AS name,
+			Player_Team AS team,
+			Innings_Pitched AS inningsPitched,
+			Strike_Out AS strikeOut,
+			Base_On_Balls AS baseOnBalls,
+			0 AS hitByPitch,
+			Hits AS hits,
+			Earned_Run AS earnedRuns,
+			Earned_Run_Average AS earnedRunAverage,
+			WHIP AS whip,
+			0 AS totalBattersFaced
+		FROM kbo_pitcher_stats_2025
+		WHERE Player_Team = #{team}
+		ORDER BY Player_Name
+	</select>
+
+	<select id="findNamesByTeam" resultType="String">
+		SELECT Player_Name
+		FROM kbo_pitcher_stats_2025
+		WHERE Player_Team = #{team} and Innings_Pitched > 110
+		ORDER BY Player_Name
+	</select>
+
+	<select id="findByNames" resultType="com.baseball.game.dto.Pitcher">
+		SELECT
+			Player_Name AS name,
+			Player_Team AS team,
+			Innings_Pitched AS inningsPitched,
+			Strike_Out AS strikeOut,
+			Base_On_Balls AS baseOnBalls,
+			0 AS hitByPitch,
+			Earned_Run_Average AS earnedRunAverage,
+			Hits AS hits,
+			Earned_Run AS earnedRuns,
+			WHIP AS whip,
+			0 AS totalBattersFaced
+		FROM kbo_pitcher_stats_2025
+		WHERE Player_Name IN
+		<foreach collection="names" item="n" open="(" separator="," close=")">
+			#{n}
+		</foreach>
+		ORDER BY Player_Name
+	</select>
+
+	<select id="findByName" resultType="com.baseball.game.dto.Pitcher">
+		SELECT
+			Player_Name AS name,
+			Player_Team AS team,
+			Innings_Pitched AS inningsPitched,
+			Strike_Out AS strikeOut,
+			Base_On_Balls AS baseOnBalls,
+			Hits AS hits,
+			Earned_Run AS earnedRuns,
+			Earned_Run_Average AS earnedRunAverage,
+			WHIP AS whip,
+			0 AS totalBattersFaced,
+			0 AS hitByPitch
+		FROM kbo_pitcher_stats_2025
+		WHERE Player_Name = #{name}
+	</select>
+</mapper>

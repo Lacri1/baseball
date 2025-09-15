@@ -44,7 +44,7 @@ CREATE TABLE kbo_hitter_stats_2024 (
     UNIQUE (Player_Name, Player_Team)       -- 선수명과 팀명 조합은 고유해야 함
 );
 
-LOAD DATA LOCAL INFILE 'D:/soldesk/workspace/baseball_project/baseball/db/2024_useGame_hitter.csv'
+LOAD DATA LOCAL INFILE 'C:/Users/user/IdeaProjects/baseball/db/2024_useGame_hitter.csv'
 INTO TABLE kbo_hitter_stats_2024
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY ','
@@ -106,7 +106,7 @@ CREATE TABLE kbo_pitcher_stats_2024 (
     UNIQUE (Player_Name, Player_Team)       -- 선수명과 팀명 조합은 고유해야 함
 );
 
-LOAD DATA LOCAL INFILE 'D:/soldesk/workspace/baseball_project/baseball/db/2024_useGame_pitcher.csv'
+LOAD DATA LOCAL INFILE 'C:/Users/user/IdeaProjects/baseball/db/2024_useGame_pitcher.csv'
 INTO TABLE kbo_pitcher_stats_2024
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY ','

@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import api from '../api'; // 실제 API 경로로 수정
 
 const Scoreboard = ({ gameState }) => {
-  const { score, inning, isTop } = gameState;
-
   const [homePitcher, setHomePitcher] = useState("");
   const [homeBatter, setHomeBatter] = useState("");
   const [awayPitcher, setAwayPitcher] = useState("");
@@ -23,6 +21,12 @@ const Scoreboard = ({ gameState }) => {
     }
     fetchNames();
   }, []);
+
+  if (!gameState || !gameState.score) {
+    return <div>Loading...</div>;
+  }
+  const { score, inning, isTop } = gameState;
+  
 
   return (
     <div>
