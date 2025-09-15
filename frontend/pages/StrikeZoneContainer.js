@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import StrikeZone from "./StrikeZone";
-import api from "../api/api";
+import api from "../api";
 
 const CM_IN_PX = 38;
 const STRIKE_ZONE_SIZE = 220;
