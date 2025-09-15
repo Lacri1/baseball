@@ -9,7 +9,6 @@ import com.baseball.game.exception.ValidationException;
 import com.baseball.game.service.GameService;
 import com.baseball.game.util.ValidationUtil;
 import com.baseball.game.dto.TeamLineupSetRequest;
-import com.baseball.game.dto.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
@@ -17,10 +16,15 @@ import org.slf4j.LoggerFactory;
 import lombok.Setter;
 import com.baseball.game.dto.BatterGameStats;
 import com.baseball.game.dto.PitcherGameStats;
+
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Comparator;
+
+// 추가: CPU 기본 라인업 생성을 위해 필요
+import com.baseball.game.service.TeamLineupService;
+import com.baseball.game.dto.TeamLineup;
 
 @RestController
 @RequestMapping(value = "/api/baseball", produces = "application/json; charset=UTF-8")
@@ -31,6 +35,10 @@ public class GameController {
 
 	@Setter(onMethod_ = @Autowired)
 	private GameService service;
+
+	// 추가: 기본 라인업 생성을 위해 TeamLineupService 주입
+	@Setter(onMethod_ = @Autowired)
+	private TeamLineupService teamLineupService;
 
 	/**
 	 * 스코어보드: 이닝별 득점 + 합계 정보를 제공
@@ -59,27 +67,50 @@ public class GameController {
 
 	/**
 	 * 게임 생성 (이닝 수, 사용자 공격 여부 포함)
-	 * 요청 본문으로 홈팀, 원정팀, 최대 이닝, 사용자 공격 여부를 받아 게임을 생성합니다.
-	 * 
-	 * @param request 게임 생성 요청 DTO (홈팀, 원정팀, 최대 이닝, 사용자 공격 여부 포함)
-	 * @return 성공 시 생성된 GameDto를 포함하는 ApiResponse
+	 * CPU 팀의 기본 라인업을 자동 적용합니다.
 	 */
 	@PostMapping(value = "/game")
 	public ApiResponse<GameDto> createGame(@RequestBody GameCreateRequest request) {
 		// 유효성 검사
 		ValidationUtil.validateGameCreateRequest(request);
-		GameDto game = service.createGame(request.getHomeTeam(), request.getAwayTeam(), request.getMaxInning(),
+
+		// 게임 생성
+		GameDto game = service.createGame(
+				request.getHomeTeam(),
+				request.getAwayTeam(),
+				request.getMaxInning(),
 				request.isIsUserOffense());
-		// 사용자 ID를 GameDto에 저장 (MemberDto의 Id와 매핑)
+		// 사용자 ID 저장
 		game.setUserId(request.getUserId());
+
+		// === CPU 팀 판별 및 기본 라인업 자동 적용 ===
+		// isUserOffense == true  -> 사용자는 원정(away), CPU는 홈(home)
+		// isUserOffense == false -> 사용자는 홈(home),   CPU는 원정(away)
+		final String cpuTeam = request.isIsUserOffense() ? request.getHomeTeam() : request.getAwayTeam();
+		try {
+			// 1) 기본 라인업 생성 (서비스가 팀명 정규화/매핑 모두 수행)
+			List<TeamLineup> defaultCpu = teamLineupService.getDefaultLineup(cpuTeam);
+
+			// 2) 컨트롤러 라인업 적용 DTO로 변환
+			TeamLineupSetRequest cpuReq = buildSetRequestFromDefault(cpuTeam, defaultCpu);
+
+			// 3) 실제 게임에 적용
+			service.applyTeamLineup(game.getGameId(), cpuReq);
+
+			// 4) 최신 상태로 갱신(선택)
+			game = service.getGame(game.getGameId());
+
+			log.info("게임 {}: CPU 팀 '{}' 기본 라인업 자동 적용 완료", game.getGameId(), cpuTeam);
+		} catch (Exception e) {
+			// CPU 라인업 적용 실패해도 게임 생성 자체는 성공
+			log.warn("게임 {}: CPU 기본 라인업 자동 적용 실패 - {}", game.getGameId(), e.getMessage());
+		}
+
 		return ApiResponse.success(game, "게임이 생성되었습니다. ID: " + game.getGameId());
 	}
 
 	/**
 	 * 게임 정보 조회
-	 * 
-	 * @param gameId 게임 ID
-	 * @return 성공 시 게임 정보를 포함하는 ApiResponse
 	 */
 	@GetMapping(value = "/game/{gameId}")
 	public ApiResponse<GameDto> getGame(@PathVariable String gameId) {
@@ -101,10 +132,6 @@ public class GameController {
 
 	/**
 	 * 투구 (사용자 투수 턴)
-	 * 
-	 * @param gameId  게임 ID
-	 * @param request 투구 요청 DTO (투구 유형 포함)
-	 * @return 성공 시 결과 메시지와 업데이트된 게임 DTO를 포함하는 ApiResponse
 	 */
 	@PostMapping(value = "/game/{gameId}/pitch")
 	public ApiResponse<GamePlayView> pitcherThrow(@PathVariable String gameId, @RequestBody GameActionRequest request) {
@@ -122,10 +149,6 @@ public class GameController {
 
 	/**
 	 * 타격 (사용자 타자 턴)
-	 * 
-	 * @param gameId  게임 ID
-	 * @param request 타격 요청 DTO (스윙 여부, 타이밍 포함)
-	 * @return 성공 시 결과 메시지와 업데이트된 게임 DTO를 포함하는 ApiResponse
 	 */
 	@PostMapping(value = "/game/{gameId}/swing")
 	public ApiResponse<GamePlayView> batterSwing(@PathVariable String gameId, @RequestBody GameActionRequest request) {
@@ -320,12 +343,6 @@ public class GameController {
 				int inningIdx = Math.max(1, ev.getInning()) - 1; // 0-based
 				if (inningIdx >= max)
 					continue;
-				int hs = Math.max(0, ev.getHomeScore());
-				int as = Math.max(0, ev.getAwayScore());
-				// 해당 이벤트 시점의 총점으로부터 해당 이닝 점수를 추론하기는 어렵기 때문에,
-				// 간단히 이전 이벤트 대비 증가분을 계산. 단, 이닝 경계 변경 시에도 누적 증가만 반영됨
-				// 안정적으로 계산하려면 runsBefore/After를 이벤트에 담아야 하지만, 현재는 스냅샷만 있음.
-				// 따라서 스냅샷 기반 차분: 직전 같은 팀 점수 대비 증가를 이 이닝에 더함.
 			}
 		}
 
@@ -477,5 +494,59 @@ public class GameController {
 			}
 		}
 		return false;
+	}
+
+	// ======== 추가: TeamLineup(List) -> TeamLineupSetRequest 변환 헬퍼 ========
+	private TeamLineupSetRequest buildSetRequestFromDefault(String teamName, List<TeamLineup> defaultList) {
+		java.util.List<String> battingOrder = new java.util.ArrayList<>(9);
+		String startingPitcher = null;
+
+		// 1) 정렬까지는 stream 사용 (투수는 뒤로, 타자는 타순 숫자 오름차순)
+		java.util.List<TeamLineup> sorted = defaultList.stream()
+				.filter(tl -> tl != null && tl.getPosition() != null && tl.getPlayerName() != null)
+				.sorted((a, b) -> {
+					String pa = a.getPosition();
+					String pb = b.getPosition();
+					if ("Starting_Pitcher".equals(pa)) return 1;   // 선발 투수는 뒤로
+					if ("Starting_Pitcher".equals(pb)) return -1;
+					int ia = parseOrder(pa); // "1th_Batter" → 1
+					int ib = parseOrder(pb);
+					return Integer.compare(ia, ib);
+				})
+				.collect(java.util.stream.Collectors.toList());
+
+		// 2) 값 채우기는 일반 루프에서 (람다 캡처 문제 회피)
+		for (TeamLineup tl : sorted) {
+			if ("Starting_Pitcher".equals(tl.getPosition())) {
+				startingPitcher = tl.getPlayerName();
+			} else {
+				if (battingOrder.size() < 9) {
+					battingOrder.add(tl.getPlayerName());
+				}
+			}
+		}
+
+		// 최소 유효성 체크
+		if (startingPitcher == null || startingPitcher.isEmpty()) {
+			throw new com.baseball.game.exception.ValidationException("선발 투수를 찾을 수 없습니다.");
+		}
+		if (battingOrder.size() != 9) {
+			throw new com.baseball.game.exception.ValidationException("기본 타순이 9명이 아닙니다. (" + battingOrder.size() + "명)");
+		}
+
+		TeamLineupSetRequest req = new TeamLineupSetRequest();
+		req.setTeamName(teamName);               // 서비스 계층에서 팀명 정규화 처리
+		req.setBattingOrder(battingOrder);       // 9명
+		req.setStartingPitcher(startingPitcher); // 1명
+		return req;
+	}
+
+	// "1th_Batter" 같은 포맷에서 앞의 숫자만 안전하게 추출
+	private int parseOrder(String pos) {
+		try {
+			java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(\\d+)").matcher(pos);
+			if (m.find()) return Integer.parseInt(m.group(1));
+		} catch (Exception ignored) { }
+		return 99; // 알 수 없는 포맷은 뒤로 밀기
 	}
 }

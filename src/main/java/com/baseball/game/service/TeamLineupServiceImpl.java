@@ -58,7 +58,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         TEAM_ALIASES.put("kt 위즈", "Wiz");
         TEAM_ALIASES.put("SSG 랜더스", "Landers");
         TEAM_ALIASES.put("롯데 자이언츠", "Giants");
-        TEAM_ALIASES.put("한화 이글스", "Eagels");
+        TEAM_ALIASES.put("한화 이글스", "Eagles");
         TEAM_ALIASES.put("NC 다이노스", "Dinos");
         TEAM_ALIASES.put("키움 히어로즈", "Heros");
 
@@ -71,7 +71,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         TEAM_ALIASES.put("KT", "Wiz");
         TEAM_ALIASES.put("kt", "Wiz");
         TEAM_ALIASES.put("롯데", "Giants");
-        TEAM_ALIASES.put("한화", "Eagels");
+        TEAM_ALIASES.put("한화", "Eagles");
         TEAM_ALIASES.put("NC", "Dinos");
         TEAM_ALIASES.put("키움", "Heros");
         TEAM_ALIASES.put("KIA", "Tigers");
@@ -90,8 +90,8 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         TEAM_ALIASES.put("Wiz", "Wiz");
         TEAM_ALIASES.put("Lotte", "Giants");
         TEAM_ALIASES.put("Giants", "Giants");
-        TEAM_ALIASES.put("Hanwha", "Eagels"); // 내부 코드는 기존 철자 유지
-        TEAM_ALIASES.put("Eagles", "Eagels");
+        TEAM_ALIASES.put("Hanwha", "Eagles"); // 내부 코드는 기존 철자 유지
+        TEAM_ALIASES.put("Eagles", "Eagles");
         TEAM_ALIASES.put("NC", "Dinos");
         TEAM_ALIASES.put("Dinos", "Dinos");
         TEAM_ALIASES.put("Kiwoom", "Heros");
@@ -126,7 +126,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         DB_TEAM_NAMES.put("롯데 자이언츠", "롯데");
         DB_TEAM_NAMES.put("롯데", "롯데");
 
-        DB_TEAM_NAMES.put("Eagels", "한화");
+        DB_TEAM_NAMES.put("Eagles", "한화");
         DB_TEAM_NAMES.put("한화 이글스", "한화");
         DB_TEAM_NAMES.put("한화", "한화");
 
@@ -134,6 +134,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         DB_TEAM_NAMES.put("NC 다이노스", "NC");
         DB_TEAM_NAMES.put("NC", "NC");
         DB_TEAM_NAMES.put("엔씨", "NC");
+        
         DB_TEAM_NAMES.put("Heros", "키움");
         DB_TEAM_NAMES.put("키움 히어로즈", "키움");
         DB_TEAM_NAMES.put("키움", "키움");
@@ -171,7 +172,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         DISPLAY_TEAM_NAMES.put("롯데", "롯데 자이언츠");
         DISPLAY_TEAM_NAMES.put("롯데 자이언츠", "롯데 자이언츠");
 
-        DISPLAY_TEAM_NAMES.put("Eagels", "한화 이글스");
+        DISPLAY_TEAM_NAMES.put("Eagles", "한화 이글스");
         DISPLAY_TEAM_NAMES.put("한화", "한화 이글스");
         DISPLAY_TEAM_NAMES.put("한화 이글스", "한화 이글스");
 
@@ -196,7 +197,7 @@ public class TeamLineupServiceImpl implements TeamLineupService {
         ENGLISH_DISPLAY_NAMES.put("Twins", "LG Twins");
         ENGLISH_DISPLAY_NAMES.put("Wiz", "KT Wiz");
         ENGLISH_DISPLAY_NAMES.put("Giants", "Lotte Giants");
-        ENGLISH_DISPLAY_NAMES.put("Eagels", "Hanwha Eagles"); // 표기는 올바른 Eagles 사용
+        ENGLISH_DISPLAY_NAMES.put("Eagles", "Hanwha Eagles"); // 표기는 올바른 Eagles 사용
         ENGLISH_DISPLAY_NAMES.put("Dinos", "NC Dinos");
         ENGLISH_DISPLAY_NAMES.put("Heros", "Kiwoom Heroes"); // 표기는 Heroes 사용
         ENGLISH_DISPLAY_NAMES.put("Tigers", "KIA Tigers");
