@@ -26,8 +26,8 @@ public final class ComputerLineupProvider {
 		pitchers.put("KIA 타이거즈", "네일");
         // 삼성 라이온즈
         batting.put("삼성 라이온즈", Arrays.asList(
-			"김지찬", "김헌곤", "디아즈", "강민호",
-			"김영웅", "박병호", "류지혁", "이재현", "김현준"
+			"김지찬", "이재현", "구자욱", "맥키넌", "강민호",
+			"김영웅", "박병호", "류지혁", "김현준"
 		));
 		pitchers.put("삼성 라이온즈", "코너");
 
@@ -39,14 +39,14 @@ public final class ComputerLineupProvider {
 		pitchers.put("LG 트윈스", "손주영");
         // 두산 베어스
 		batting.put("두산 베어스", Arrays.asList(
-			"정수빈", "김재호", "제러드", "김재환",
+			"정수빈", "박준영", "라모스", "김재환",
 			"양석환", "양의지", "강승호", "허경민", "조수행"
 		));
 		pitchers.put("두산 베어스", "곽빈");
         // kt 위즈
         batting.put("kt 위즈", Arrays.asList(
 			"김민혁", "로하스", "장성우", "강백호",
-			"문상철", "오윤석", "황재균", "배정대", "심우준"
+			"문상철", "오윤석", "황재균", "배정대", "신본기"
 		));
 		pitchers.put("kt 위즈", "쿠에바스");
 
@@ -74,13 +74,13 @@ public final class ComputerLineupProvider {
         // NC 다이노스
 		batting.put("NC 다이노스", Arrays.asList(
 			"박민우", "서호철", "데이비슨", "권희동",
-			"김휘집", "천재환", "김주원", "김형준", "한석현"
+			"김휘집", "박건우", "천재환", "김주원", "김형준"
 		));
 		pitchers.put("NC 다이노스", "하트");
         //키움 히어로즈
 		batting.put("키움 히어로즈", Arrays.asList(
-			"김태진", "이주형", "송성문", "김혜성",
-			"최주환", "김건희", "장재영", "김웅빈", "박수종"
+			"김태진", "이주형", "송성문", "도슨",
+			"최주환", "김건희", "고영우", "김혜성", "박수종"
 		));
 		pitchers.put("키움 히어로즈", "후라도");
 
