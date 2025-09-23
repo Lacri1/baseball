@@ -15,6 +15,8 @@ import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
@@ -53,7 +55,7 @@ class BoardServiceImplTest {
     void getPagedListCategory() {
         ArrayList<BoardDto> list = new ArrayList<>();
         when(boardMapper.getPagedListCate(10, 10, "notice")).thenReturn(list);
-        when(boardMapper.getTotalCount()).thenReturn(5);
+        when(boardMapper.getTotalCountCate("notice")).thenReturn(5);
 
         BoardPageResponse resp = boardService.getPagedListCategory(2, 10, "notice");
         assertThat(resp.getTotalCount()).isEqualTo(5);
@@ -76,13 +78,15 @@ class BoardServiceImplTest {
     @Test
     @DisplayName("modify - 매퍼 호출")
     void modify() {
+        when(boardMapper.modify(anyInt(), anyString(), anyString())).thenReturn(1);
         boardService.modify(3, "updated","w");
-        verify(boardMapper, times(1)).modify(eq(3), eq("updated"),"w");
+        verify(boardMapper, times(1)).modify(eq(3), eq("updated"),eq("w"));
     }
 
     @Test
     @DisplayName("delete - 매퍼 호출")
     void delete() {
+        when(boardMapper.delete(anyInt(), anyString())).thenReturn(1);
         boardService.delete(7,"w");
         verify(boardMapper, times(1)).delete(7,"w");
     }

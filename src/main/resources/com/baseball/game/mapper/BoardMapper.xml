@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baseball.game.mapper.BoardMapper">
+
+    <resultMap id="boardResultMap" type="com.baseball.game.dto.BoardDto">
+        <id property="no" column="no"/>
+        <result property="category" column="category"/>
+        <result property="title" column="title"/>
+        <result property="text" column="text"/>
+        <result property="writer" column="writer"/>
+        <result property="view" column="view"/>
+        <result property="createdAt" column="CREATEDAT"/>
+        <result property="updatedAt" column="UPDATEDAT"/>
+        <result property="keyword" column="keyword"/>
+    </resultMap>
+
+    <select id="getBoard" resultMap="boardResultMap">
+        SELECT * FROM board WHERE no = #{no}
+    </select>
+
+    <select id="getList" resultMap="boardResultMap">
+        SELECT * FROM board ORDER BY CREATEDAT DESC
+    </select>
+
+    <select id="getListCategory" resultMap="boardResultMap">
+        SELECT * FROM board WHERE category = #{category} ORDER BY CREATEDAT DESC
+    </select>
+
+    <insert id="write" parameterType="com.baseball.game.dto.BoardRequestDto">
+        INSERT INTO board (category, title, text, writer, view, CREATEDAT, UPDATEDAT)
+        VALUES (#{category}, #{title}, #{text}, #{writer}, 0, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())
+    </insert>
+
+    <update id="modify">
+        UPDATE board SET text = #{text}, UPDATEDAT = CURRENT_TIMESTAMP() WHERE no = #{no} AND writer = #{writer}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM board WHERE no = #{no} AND writer = #{writer}
+    </delete>
+
+    <select id="getPagedList" resultMap="boardResultMap">
+        SELECT * FROM board ORDER BY CREATEDAT DESC LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="getPagedListCate" resultMap="boardResultMap">
+        SELECT * FROM board WHERE category = #{category} ORDER BY CREATEDAT DESC LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="getTotalCount" resultType="int">
+        SELECT COUNT(*) FROM board
+    </select>
+
+    <select id="getTotalCountCate" resultType="int">
+        SELECT COUNT(*) FROM board WHERE category = #{category}
+    </select>
+
+    <select id="getPagedListSearch" resultMap="boardResultMap">
+        SELECT * FROM board WHERE title LIKE CONCAT('%', #{keyword}, '%') OR text LIKE CONCAT('%', #{keyword}, '%') ORDER BY CREATEDAT DESC LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="getPagedListCateSearch" resultMap="boardResultMap">
+        SELECT * FROM board WHERE category = #{category} AND (title LIKE CONCAT('%', #{keyword}, '%') OR text LIKE CONCAT('%', #{keyword}, '%')) ORDER BY CREATEDAT DESC LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="getTotalCountSearch" resultType="int">
+        SELECT COUNT(*) FROM board WHERE title LIKE CONCAT('%', #{keyword}, '%') OR text LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+
+    <select id="getTotalCountCateSearch" resultType="int">
+        SELECT COUNT(*) FROM board WHERE category = #{category} AND (title LIKE CONCAT('%', #{keyword}, '%') OR text LIKE CONCAT('%', #{keyword}, '%'))
+    </select>
+
+</mapper>

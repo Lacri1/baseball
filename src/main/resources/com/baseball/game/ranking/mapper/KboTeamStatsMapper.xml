@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="com.baseball.game.ranking.mapper.KboTeamStatsMapper">
+	<resultMap id="teamStatsResultMap" type="com.baseball.game.ranking.dto.KboTeamStatsDto">
+        <id property="no" column="No"/>
+        <result property="teamName" column="Team_Name"/>
+        <result property="gameNum" column="Game_Num"/>
+        <result property="win" column="Win"/>
+        <result property="lose" column="Lose"/>
+        <result property="draw" column="Draw"/>
+        <result property="winPercentage" column="Win_Percentage"/>
+        <result property="gamesBehind" column="Games_Behind"/>
+    </resultMap>
+
+    <select id="findTeamStatsOrderByWinPercentageDesc" resultMap="teamStatsResultMap">
+        SELECT * FROM kbo_team_stats_2025 ORDER BY Win_Percentage DESC;
+    </select>
+    
+    <select id="findTeamStatsOrderByWinPercentageDescLimitFive" resultMap="teamStatsResultMap">
+        SELECT * FROM kbo_team_stats_2025 ORDER BY Win_Percentage DESC limit 5;
+    </select>
+	
+</mapper>

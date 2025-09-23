@@ -5,10 +5,11 @@ import com.baseball.game.dto.TeamLineup;
 import com.baseball.game.dto.CustomLineupRequest;
 import com.baseball.game.dto.Batter;
 import com.baseball.game.dto.Pitcher;
+import com.baseball.game.dto.TeamStats;
 
 public interface TeamLineupService {
 
-    // 기본 라인업 조회 (컴퓨터용) - 인메모리 제공
+    // 기본 라인업 조회 (컴퓨터용)
     List<TeamLineup> getDefaultLineup(String teamName);
 
     // 유저 커스텀 라인업 조회
@@ -23,12 +24,11 @@ public interface TeamLineupService {
     // 팀별 사용 가능한 선수 목록 조회
     List<String> getAvailablePlayers(String teamName);
 
-    // 팀별 사용 가능한 투수 목록 조회 (이름만)
     List<String> getAvailablePitchers(String teamName);
 
-    // 성적 포함: 팀별 사용 가능한 타자 목록 조회
-    List<Batter> getAvailableBattersWithStats(String teamName);
+    List<Batter> getAllBattersWithStats(String sortBy);
 
-    // 성적 포함: 팀별 사용 가능한 투수 목록 조회
-    List<Pitcher> getAvailablePitchersWithStats(String teamName);
+    List<Pitcher> getAllPitchersWithStats(String sortBy);
+
+    List<TeamStats> getAllTeamStats();
 }

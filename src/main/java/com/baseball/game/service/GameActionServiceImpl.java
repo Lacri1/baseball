@@ -26,7 +26,7 @@ public class GameActionServiceImpl implements GameActionService {
 
     @Override
     @Transactional
-    public String batterSwing(String gameId, Boolean swing, Boolean timing) {
+    public String batterSwing(String gameId, Boolean swing, double timing) {
         // 역할: 한 번의 스윙 액션을 처리하여 카운트/루상/점수 등의 게임 상태를 갱신
         // 전제 조건: 유효한 게임, 현재 타자/투수가 세팅되어 있어야 함
         GameDto game = lifecycleService.getGame(gameId);
@@ -45,7 +45,10 @@ public class GameActionServiceImpl implements GameActionService {
         if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
             throw new InvalidGameStateException("현재 공격 이닝이 종료되었습니다. 다음 이닝으로 진행해주세요.");
         }
-        return doSwingHuman(gameId, swing, timing);
+        
+        // double 타입을 Boolean으로 변환하여 기존 로직과 호환성 유지
+        Boolean timingBonus = timing >= 0.5;
+        return doSwingHuman(gameId, swing, timingBonus);
     }
 
     @Override
@@ -126,8 +129,6 @@ public class GameActionServiceImpl implements GameActionService {
                 if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
                     stateService.nextInning(gameId);
                 }
-                // 게임 종료 조건 확인 (끝내기 등)
-                stateService.checkGameOver(gameId);
                 return pitchResult;
             }
         } else {
@@ -147,8 +148,6 @@ public class GameActionServiceImpl implements GameActionService {
             if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
                 stateService.nextInning(gameId);
             }
-            // 게임 종료 조건 확인 (끝내기 등)
-            stateService.checkGameOver(gameId);
             return pitchResult;
         }
     }
@@ -170,10 +169,10 @@ public class GameActionServiceImpl implements GameActionService {
         Batter computerBatter = game.getCurrentBatter();
         Pitcher currentPitcher = game.getCurrentPitcher();
 
-        double batterStrikeoutRate = computerBatter.getStrike_Out()
+        double batterStrikeoutRate = computerBatter.getStrikeOut()
                 / (double) (computerBatter.getPlateAppearances() > 0 ? computerBatter.getPlateAppearances() : 1);
-        double pitcherStrikeoutRate = currentPitcher.getStrikeouts()
-                / (double) (currentPitcher.getPitchersBattersFaced() > 0 ? currentPitcher.getPitchersBattersFaced()
+        double pitcherStrikeoutRate = currentPitcher.getStrikeOut()
+                / (double) (currentPitcher.getTotalBattersFaced() > 0 ? currentPitcher.getTotalBattersFaced()
                         : 1);
 
         double swingProbability = 0.5 + (batterStrikeoutRate - pitcherStrikeoutRate);
@@ -562,11 +561,12 @@ public class GameActionServiceImpl implements GameActionService {
         String zoneK = GameLogicUtil.determinePitchResultByStats(game.getCurrentPitcher(), game.getCurrentBatter());
         pitchZone = "스트라이크".equals(zoneK) ? "strike" : "ball";
 
+        double timingValue = (timingBonus != null && timingBonus) ? 0.5 : 0.3;
         String hitResult = GameLogicUtil.determineHitResultWithTiming(
                 swing,
                 game.getCurrentPitcher(),
                 pitchZone,
-                timingBonus != null && timingBonus,
+                timingValue,
                 game.getCurrentBatter());
 
         log.info("게임 {}: 타자 {} (타이밍보너스: {}) 스윙: {}, 투수 {} 투구 결과: {}, 타격 결과: {}",

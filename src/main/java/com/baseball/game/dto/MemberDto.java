@@ -4,11 +4,12 @@ import lombok.Data;
 
 @Data
 public class MemberDto {
-	private String Id;
-	private String Pw;
-	private String Email;
-	private int Game;
-	private int Win;
-	private int Lose;
-	private int Draw;
+	private String id;
+	private String pw;
+	private String email;
+	private String nickname;
+	private int game;
+	private int win;
+	private int lose;
+	private int draw;
 }

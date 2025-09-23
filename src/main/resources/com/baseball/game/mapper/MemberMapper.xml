@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baseball.game.mapper.MemberMapper">
+
+    <resultMap id="memberResultMap" type="com.baseball.game.dto.MemberDto">
+        <id property="id" column="id"/>
+        <result property="pw" column="pw"/>
+        <result property="email" column="email"/>
+        <result property="nickname" column="nickname"/>
+        <result property="game" column="game"/>
+        <result property="win" column="win"/>
+        <result property="lose" column="lose"/>
+        <result property="draw" column="draw"/>
+    </resultMap>
+
+    <select id="member" resultMap="memberResultMap">
+        SELECT * FROM member WHERE id = #{id}
+    </select>
+
+    <update id="incrementGame">
+        UPDATE member SET game = game + 1 WHERE id = #{id}
+    </update>
+
+    <update id="incrementWin">
+        UPDATE member SET win = win + 1 WHERE id = #{id}
+    </update>
+
+    <update id="incrementLose">
+        UPDATE member SET lose = lose + 1 WHERE id = #{id}
+    </update>
+
+    <update id="incrementDraw">
+        UPDATE member SET draw = draw + 1 WHERE id = #{id}
+    </update>
+
+
+    <select id="checkId" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM member WHERE id = #{id}
+    </select>
+
+    <select id="checkNickname" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM member WHERE nickname = #{nickname}
+    </select>
+
+    <select id="checkNicknameForUpdate" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM member WHERE nickname = #{param1} AND id != #{param2}
+    </select>
+
+    <insert id="register">
+        INSERT INTO member (id, pw, email, nickname, game, win, lose, draw)
+        VALUES (#{param1}, #{param2}, #{param3}, #{param4}, 0, 0, 0, 0)
+    </insert>
+
+    <update id="updateMember" parameterType="com.baseball.game.dto.MemberDto">
+        UPDATE member
+        <set>
+            <if test="nickname != null and nickname != ''">nickname = #{nickname},</if>
+            <if test="email != null and email != ''">email = #{email},</if>
+            <if test="pw != null and pw != ''">pw = #{pw},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteMember" parameterType="String">
+        DELETE FROM member WHERE id = #{id}
+    </delete>
+
+
+</mapper>

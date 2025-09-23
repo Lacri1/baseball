@@ -1,19 +1,25 @@
 package com.baseball.game.service;
 
-import com.baseball.game.dto.Batter;
 import com.baseball.game.dto.CustomLineupRequest;
-import com.baseball.game.dto.Pitcher;
 import com.baseball.game.dto.TeamLineup;
 import com.baseball.game.exception.ValidationException;
 import com.baseball.game.mapper.TeamLineupMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import java.util.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 class TeamLineupServiceImplTest {
 
@@ -29,92 +35,106 @@ class TeamLineupServiceImplTest {
     }
 
     @Test
-    @DisplayName("getDefaultLineup: 인메모리 기본 라인업 제공(9타자+선발투수)")
-    void getDefaultLineup_inMemory() {
-        List<TeamLineup> result = service.getDefaultLineup("SSG 랜더스");
-        assertThat(result).hasSize(10);
-        assertThat(result.stream().filter(t -> t.getPosition().endsWith("_Batter")).count()).isEqualTo(9);
-        assertThat(result.stream().anyMatch(t -> "Starting_Pitcher".equals(t.getPosition()))).isTrue();
+    @DisplayName("getDefaultLineup: DB에서 기본 라인업을 올바르게 조회한다")
+    void getDefaultLineup_shouldFetchFromDb() {
+        // Given
+        String teamName = "SSG 랜더스";
+        List<TeamLineup> mockLineup = new ArrayList<>();
+        mockLineup.add(new TeamLineup()); // Dummy data
+        given(teamLineupMapper.findDefaultLineupByTeam(teamName)).willReturn(mockLineup);
+
+        // When
+        List<TeamLineup> result = service.getDefaultLineup(teamName);
+
+        // Then
+        assertThat(result).isSameAs(mockLineup);
+        verify(teamLineupMapper).findDefaultLineupByTeam(teamName);
     }
 
     @Test
-    @DisplayName("saveCustomLineup: 정상 저장 및 getCustomLineup 조회")
-    void saveCustomLineup_and_getCustomLineup() {
+    @DisplayName("saveCustomLineup: 정상적인 요청 시 라인업을 저장한다")
+    void saveCustomLineup_shouldSaveValidLineup() {
+        // Given
         String userId = "user1";
         String teamName = "Giants";
-        List<CustomLineupRequest.LineupPosition> lineup = new ArrayList<>();
-        // 9명의 타자
-        String[] batters = {"황성빈", "윤동희", "레이예스", "전준우", "나승엽", "손호영", "손성빈", "고승민", "박승욱"};
-        for (int i = 0; i < 9; i++) {
+        List<CustomLineupRequest.LineupPosition> lineupPositions = new ArrayList<>();
+        for (int i = 0; i < 10; i++) { // 9 batters, 1 pitcher
             CustomLineupRequest.LineupPosition pos = new CustomLineupRequest.LineupPosition();
-            pos.setPlayerName(batters[i]);
-            pos.setPosition(i + 1);
-            lineup.add(pos);
+            pos.setPlayerName("Player " + i);
+            pos.setPlayerId(i);
+            pos.setPosition(i < 9 ? i + 1 : null);
+            lineupPositions.add(pos);
         }
-        // 선발 투수
-        CustomLineupRequest.LineupPosition pitcherPos = new CustomLineupRequest.LineupPosition();
-        pitcherPos.setPlayerName("박세웅");
-        pitcherPos.setPosition(null); // 투수는 position 필요 없음
-        lineup.add(pitcherPos);
-
         CustomLineupRequest req = new CustomLineupRequest();
         req.setUserId(userId);
         req.setTeamName(teamName);
-        req.setLineup(lineup);
+        req.setLineup(lineupPositions);
 
+        // Mock mapper methods
+        doNothing().when(teamLineupMapper).deleteCustomLineupByUserAndTeam(userId, teamName);
+        doNothing().when(teamLineupMapper).insertCustomLineup(any(TeamLineup.class));
+
+        // When
         service.saveCustomLineup(req);
 
-        List<TeamLineup> result = service.getCustomLineup(userId, teamName);
-        assertThat(result).hasSize(10); // 9타자+1투수
-        assertThat(result.stream().anyMatch(tl -> "Starting_Pitcher".equals(tl.getPosition()))).isTrue();
+        // Then
+        verify(teamLineupMapper).deleteCustomLineupByUserAndTeam(userId, teamName);
+        verify(teamLineupMapper, times(10)).insertCustomLineup(any(TeamLineup.class));
     }
 
     @Test
-    @DisplayName("saveCustomLineup: 타자 9명 미만이면 예외")
-    void saveCustomLineup_lessThan9Batters() {
+    @DisplayName("getCustomLineup: 저장된 커스텀 라인업을 조회한다")
+    void getCustomLineup_shouldReturnSavedLineup() {
+        // Given
+        String userId = "user1";
+        String teamName = "Giants";
+        List<TeamLineup> mockCustomLineup = new ArrayList<>();
+        mockCustomLineup.add(new TeamLineup());
+        given(teamLineupMapper.findCustomLineupByUserAndTeam(userId, teamName)).willReturn(mockCustomLineup);
+
+        // When
+        List<TeamLineup> result = service.getCustomLineup(userId, teamName);
+
+        // Then
+        assertThat(result).isSameAs(mockCustomLineup);
+    }
+
+
+    @Test
+    @DisplayName("saveCustomLineup: 라인업이 10명이 아닐 경우 ValidationException 발생")
+    void saveCustomLineup_shouldThrowException_whenLineupSizeIsNot10() {
+        // Given
         String userId = "user2";
         String teamName = "Giants";
         List<CustomLineupRequest.LineupPosition> lineup = new ArrayList<>();
-        // 8명만 추가
-        for (int i = 0; i < 8; i++) {
-            CustomLineupRequest.LineupPosition pos = new CustomLineupRequest.LineupPosition();
-            pos.setPlayerName("황성빈");
-            pos.setPosition(i + 1);
-            lineup.add(pos);
+        // 9명만 추가
+        for (int i = 0; i < 9; i++) {
+            lineup.add(new CustomLineupRequest.LineupPosition());
         }
-        // 투수
-        CustomLineupRequest.LineupPosition pitcherPos = new CustomLineupRequest.LineupPosition();
-        pitcherPos.setPlayerName("박세웅");
-        lineup.add(pitcherPos);
-
         CustomLineupRequest req = new CustomLineupRequest();
         req.setUserId(userId);
         req.setTeamName(teamName);
         req.setLineup(lineup);
 
+        // When & Then
         assertThatThrownBy(() -> service.saveCustomLineup(req))
                 .isInstanceOf(ValidationException.class)
-                .hasMessageContaining("9명의 타자");
+                .hasMessageContaining("라인업은 정확히 10명");
     }
 
     @Test
-    @DisplayName("getAvailablePlayers: 팀별 타자 이름 반환")
-    void getAvailablePlayers() {
-        List<String> giants = service.getAvailablePlayers("롯데 자이언츠");
-        assertThat(giants).contains("황성빈", "윤동희");
-        List<String> dinos = service.getAvailablePlayers("NC 다이노스");
-        assertThat(dinos).contains("박민우", "서호철");
-    }
+    @DisplayName("getAvailablePlayers: 팀별 사용 가능한 선수 목록을 반환한다")
+    void getAvailablePlayers_shouldReturnPlayerList() {
+        // Given
+        String teamName = "롯데 자이언츠";
+        List<String> mockPlayers = Arrays.asList("황성빈", "윤동희");
+        given(teamLineupMapper.findAvailablePlayersByTeam(teamName)).willReturn(mockPlayers);
 
-    @Test
-    @DisplayName("getBatterByName/getPitcherByName: 선수 객체 반환")
-    void getBatterAndPitcherByName() {
-        Batter batter = service.getBatterByName("황성빈");
-        assertThat(batter).isNotNull();
-        assertThat(batter.getTeam()).isEqualTo("Giants");
+        // When
+        List<String> result = service.getAvailablePlayers(teamName);
 
-        Pitcher pitcher = service.getPitcherByName("박세웅");
-        assertThat(pitcher).isNotNull();
-        assertThat(pitcher.getTeam()).isEqualTo("Giants");
+        // Then
+        assertThat(result).isEqualTo(mockPlayers);
+        verify(teamLineupMapper).findAvailablePlayersByTeam(teamName);
     }
 }

@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baseball.game.mapper.TeamLineupMapper">
+
+    <resultMap id="batterResultMap" type="com.baseball.game.dto.Batter">
+        <id property="no" column="No"/>
+        <result property="name" column="Player_Name"/>
+        <result property="team" column="Player_Team"/>
+        <result property="battingAverage" column="Batting_average"/>
+        <result property="gameNum" column="Game_Num"/>
+        <result property="plateAppearances" column="Plate_Appearance"/>
+        <result property="atBats" column="At_Bat"/>
+        <result property="run" column="Run"/>
+        <result property="hits" column="Hit"/>
+        <result property="twoBases" column="two_Base"/>
+        <result property="threeBases" column="three_Base"/>
+        <result property="homeRuns" column="Home_Run"/>
+        <result property="totalBases" column="Total_Base"/>
+        <result property="runsBattedIn" column="Runs_Batted_In"/>
+        <result property="sacrificeBunts" column="Sacrifice_Bunts"/>
+        <result property="sacrificeFly" column="Sacrifice_Fly"/>
+        <result property="fourBall" column="Four_Ball"/>
+        <result property="ibb" column="IBB"/>
+        <result property="hitByPitch" column="Hit_by_Pitch"/>
+        <result property="strikeOut" column="Strike_Out"/>
+        <result property="doubleOut" column="Double_out"/>
+        <result property="slugging" column="Slugging"/>
+        <result property="onBasePercentage" column="On_Base_Percentage"/>
+        <result property="onbasePlusSlug" column="Onbase_Plus_Slug"/>
+        <result property="multiHit" column="Multi_Hit"/>
+        <result property="scoringPositionAvg" column="Scoring_Position_AVG"/>
+        <result property="pinchHitAvg" column="Pinch_Hit_AVG"/>
+    </resultMap>
+
+    <resultMap id="pitcherResultMap" type="com.baseball.game.dto.Pitcher">
+        <id property="no" column="No"/>
+        <result property="name" column="Player_Name"/>
+        <result property="team" column="Player_Team"/>
+        <result property="earnedRunAverage" column="Earned_Run_Average"/>
+        <result property="gameNum" column="Game_Num"/>
+        <result property="win" column="Win"/>
+        <result property="lose" column="Lose"/>
+        <result property="save" column="Save"/>
+        <result property="hold" column="Hold"/>
+        <result property="winningPercentage" column="Winning_Percentage"/>
+        <result property="inningsPitched" column="Innings_Pitched"/>
+        <result property="hits" column="Hits"/>
+        <result property="homeRun" column="Home_Run"/>
+        <result property="baseOnBalls" column="Base_On_Balls"/>
+        <result property="hitByPitch" column="Hit_By_Pitch"/>
+        <result property="strikeOut" column="Strike_Out"/>
+        <result property="runs" column="Runs"/>
+        <result property="earnedRun" column="Earned_Run"/>
+        <result property="whip" column="WHIP"/>
+        <result property="completeGame" column="Complete_Game"/>
+        <result property="shutout" column="Shutout"/>
+        <result property="qualityStart" column="Quality_Start"/>
+        <result property="blownSave" column="Blown_Save"/>
+        <result property="totalBattersFaced" column="Total_Batters_Faced"/>
+        <result property="numberOfPitching" column="Number_Of_Pitching"/>
+        <result property="opponentBattingAverage" column="Opponent_Batting_Average"/>
+        <result property="twoBases" column="two_Base"/>
+        <result property="threeBases" column="three_Base"/>
+        <result property="sacrificeBunt" column="Sacrifice_Bunt"/>
+        <result property="sacrificeFly" column="Sacrifice_Fly"/>
+        <result property="ibb" column="IBB"/>
+        <result property="wildPitch" column="Wild_Pitch"/>
+        <result property="balk" column="Balk"/>
+    </resultMap>
+
+    <resultMap id="teamStatsResultMap" type="com.baseball.game.dto.TeamStats">
+        <id property="no" column="No"/>
+        <result property="teamName" column="Team_Name"/>
+        <result property="gameNum" column="Game_Num"/>
+        <result property="win" column="Win"/>
+        <result property="lose" column="Lose"/>
+        <result property="draw" column="Draw"/>
+        <result property="winPercentage" column="Win_Percentage"/>
+        <result property="gamesBehind" column="Games_Behind"/>
+    </resultMap>
+
+    <!-- 팀별 사용 가능한 선수 목록 조회 (이름만) -->
+    <select id="findAvailablePlayersByTeamBatters" resultType="String">
+        <![CDATA[
+        SELECT Player_Name FROM kbo_hitter_stats_2024
+        WHERE Player_Team = #{teamName} and Game_Num > 30
+ORDER BY Player_Name
+        ]]>
+    </select>
+
+    <select id="findAvailablePlayersByTeamPitchers" resultType="String">
+        <![CDATA[
+        SELECT Player_Name FROM kbo_pitcher_stats_2024
+        WHERE Player_Team = #{teamName} and Innings_Pitched > 20
+ORDER BY Player_Name
+        ]]>
+    </select>
+
+    <!-- 팀별 사용 가능한 타자 성적 데이터 조회 -->
+    <select id="findAvailableBattersByTeam" resultMap="batterResultMap">
+        <![CDATA[
+        SELECT
+            No,
+            Player_Name,
+            Player_Team,
+            Batting_average,
+            Game_Num,
+            Plate_Appearance,
+            At_Bat,
+            Run,
+            Hit,
+            two_Base,
+            three_Base,
+            Home_Run,
+            Total_Base,
+            Runs_Batted_In,
+            Sacrifice_Bunts,
+            Sacrifice_Fly,
+            Four_Ball,
+            IBB,
+            Hit_by_Pitch,
+            Strike_Out,
+            Double_out,
+            Slugging,
+            On_Base_Percentage,
+            Onbase_Plus_Slug,
+            Multi_Hit,
+            Scoring_Position_AVG,
+            Pinch_Hit_AVG
+        FROM kbo_hitter_stats_2024
+        WHERE Player_Team = #{teamName} and Game_Num > 30
+        ORDER BY Player_Name
+        ]]>
+    </select>
+
+    <!-- 팀별 사용 가능한 투수 성적 데이터 조회 -->
+    <select id="findAvailablePitchersByTeam" resultMap="pitcherResultMap">
+        <![CDATA[
+        SELECT
+            No,
+            Player_Name,
+            Player_Team,
+            Earned_Run_Average,
+            Game_Num,
+            Win,
+            Lose,
+            Save,
+            Hold,
+            Winning_Percentage,
+            Innings_Pitched,
+            Hits,
+            Home_Run,
+            Base_On_Balls,
+            Hit_By_Pitch,
+            Strike_Out,
+            Runs,
+            Earned_Run,
+            WHIP,
+            Complete_Game,
+            Shutout,
+            Quality_Start,
+            Blown_Save,
+            Total_Batters_Faced,
+            Number_Of_Pitching,
+            Opponent_Batting_Average,
+            two_Base,
+            three_Base,
+            Sacrifice_Bunt,
+            Sacrifice_Fly,
+            IBB,
+            Wild_Pitch,
+            Balk
+        FROM kbo_pitcher_stats_2024
+        WHERE Player_Team = #{teamName} and Innings_Pitched > 20
+        ORDER BY Player_Name
+        ]]>
+    </select>
+
+    <!-- 모든 타자 성적 데이터 조회 -->
+    <select id="findAllBatters" resultMap="batterResultMap">
+        SELECT
+            No,
+            Player_Name,
+            Player_Team,
+            Batting_average,
+            Game_Num,
+            Plate_Appearance,
+            At_Bat,
+            Run,
+            Hit,
+            two_Base,
+            three_Base,
+            Home_Run,
+            Total_Base,
+            Runs_Batted_In,
+            Sacrifice_Bunts,
+            Sacrifice_Fly,
+            Four_Ball,
+            IBB,
+            Hit_by_Pitch,
+            Strike_Out,
+            Double_out,
+            Slugging,
+            On_Base_Percentage,
+            Onbase_Plus_Slug,
+            Multi_Hit,
+            Scoring_Position_AVG,
+            Pinch_Hit_AVG
+        FROM kbo_hitter_stats_2025
+        <choose>
+            <when test="sortBy != null and sortBy == 'battingAverage'">ORDER BY Batting_average DESC</when>
+            <when test="sortBy != null and sortBy == 'gameNum'">ORDER BY Game_Num DESC</when>
+            <when test="sortBy != null and sortBy == 'plateAppearances'">ORDER BY Plate_Appearance DESC</when>
+            <when test="sortBy != null and sortBy == 'run'">ORDER BY Run DESC</when>
+            <when test="sortBy != null and sortBy == 'hits'">ORDER BY Hit DESC</when>
+            <when test="sortBy != null and sortBy == 'twoBases'">ORDER BY two_Base DESC</when>
+            <when test="sortBy != null and sortBy == 'threeBases'">ORDER BY three_Base DESC</when>
+            <when test="sortBy != null and sortBy == 'homeRuns'">ORDER BY Home_Run DESC</when>
+            <when test="sortBy != null and sortBy == 'runsBattedIn'">ORDER BY Runs_Batted_In DESC</when>
+            <when test="sortBy != null and sortBy == 'fourBall'">ORDER BY Four_Ball DESC</when>
+            <when test="sortBy != null and sortBy == 'strikeOut'">ORDER BY Strike_Out DESC</when>
+            <when test="sortBy != null and sortBy == 'onBasePercentage'">ORDER BY On_Base_Percentage DESC</when>
+            <when test="sortBy != null and sortBy == 'onbasePlusSlug'">ORDER BY Onbase_Plus_Slug DESC</when>
+            <otherwise>ORDER BY Player_Name ASC</otherwise>
+        </choose>
+    </select>
+
+    <!-- 모든 투수 성적 데이터 조회 -->
+    <select id="findAllPitchers" resultMap="pitcherResultMap">
+        SELECT
+            No,
+            Player_Name,
+            Player_Team,
+            Earned_Run_Average,
+            Game_Num,
+            Win,
+            Lose,
+            Save,
+            Hold,
+            Winning_Percentage,
+            Innings_Pitched,
+            Hits,
+            Home_Run,
+            Base_On_Balls,
+            Hit_By_Pitch,
+            Strike_Out,
+            Runs,
+            Earned_Run,
+            WHIP,
+            Complete_Game,
+            Shutout,
+            Quality_Start,
+            Blown_Save,
+            Total_Batters_Faced,
+            Number_Of_Pitching,
+            Opponent_Batting_Average,
+            two_Base,
+            three_Base,
+            Sacrifice_Bunt,
+            Sacrifice_Fly,
+            IBB,
+            Wild_Pitch,
+            Balk
+        FROM kbo_pitcher_stats_2025
+        <choose>
+            <when test="sortBy != null and sortBy == 'era'">ORDER BY Earned_Run_Average ASC</when>
+            <when test="sortBy != null and sortBy == 'gameNum'">ORDER BY Game_Num DESC</when>
+            <when test="sortBy != null and sortBy == 'win'">ORDER BY Win DESC</when>
+            <when test="sortBy != null and sortBy == 'lose'">ORDER BY Lose DESC</when>
+            <when test="sortBy != null and sortBy == 'save'">ORDER BY Save DESC</when>
+            <when test="sortBy != null and sortBy == 'hold'">ORDER BY Hold DESC</when>
+            <when test="sortBy != null and sortBy == 'inningsPitched'">ORDER BY Innings_Pitched DESC</when>
+            <when test="sortBy != null and sortBy == 'hits'">ORDER BY Hits DESC</when>
+            <when test="sortBy != null and sortBy == 'homeRun'">ORDER BY Home_Run DESC</when>
+            <when test="sortBy != null and sortBy == 'baseOnBalls'">ORDER BY Base_On_Balls DESC</when>
+            <when test="sortBy != null and sortBy == 'strikeOut'">ORDER BY Strike_Out DESC</when>
+            <when test="sortBy != null and sortBy == 'runs'">ORDER BY Runs DESC</when>
+            <when test="sortBy != null and sortBy == 'earnedRun'">ORDER BY Earned_Run DESC</when>
+            <when test="sortBy != null and sortBy == 'whip'">ORDER BY WHIP DESC</when>
+            <otherwise>ORDER BY Player_Name ASC</otherwise>
+        </choose>
+    </select>
+
+    <!-- 모든 팀 성적 데이터 조회 -->
+    <select id="findAllTeamStats" resultMap="teamStatsResultMap">
+        SELECT
+            No,
+            Team_Name,
+            Game_Num,
+            Win,
+            Lose,
+            Draw,
+            Win_Percentage,
+            Games_Behind
+        FROM kbo_team_stats_2025
+        ORDER BY Win_Percentage DESC
+    </select>
+
+    <resultMap id="teamLineupResultMap" type="com.baseball.game.dto.TeamLineup">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="teamName" column="team_name"/>
+        <result property="position" column="position"/>
+        <result property="playerName" column="player_name"/>
+        <result property="playerId" column="player_id"/>
+    </resultMap>
+
+    <!-- 기본 라인업 조회 (상위 타자 9명 + 상위 투수 1명) -->
+    <select id="findDefaultLineupByTeam" resultMap="teamLineupResultMap">
+        (SELECT
+            'default' as user_id,
+            Player_Team as team_name,
+            ROW_NUMBER() OVER (ORDER BY Batting_average DESC) as position,
+            Player_Name as player_name,
+            CAST(No AS VARCHAR) as player_id
+        FROM kbo_hitter_stats_2024
+        WHERE Player_Team = #{teamName}
+        ORDER BY Batting_average DESC
+        LIMIT 9)
+        UNION ALL
+        (SELECT
+            'default' as user_id,
+            Player_Team as team_name,
+            'P' as position,
+            Player_Name as player_name,
+            CAST(No AS VARCHAR) as player_id
+        FROM kbo_pitcher_stats_2024
+        WHERE Player_Team = #{teamName}
+        ORDER BY Earned_Run_Average ASC
+        LIMIT 1)
+    </select>
+
+    <!-- 유저의 커스텀 라인업 조회 -->
+    <select id="findCustomLineupByUserAndTeam" resultMap="teamLineupResultMap">
+        SELECT id, user_id, team_name, position, player_name, player_id
+        FROM custom_lineup
+        WHERE user_id = #{userId} AND team_name = #{teamName}
+    </select>
+
+    <!-- 유저의 모든 커스텀 라인업 조회 -->
+    <select id="findAllCustomLineupsByUser" resultMap="teamLineupResultMap">
+        SELECT id, user_id, team_name, position, player_name, player_id
+        FROM custom_lineup
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 커스텀 라인업 저장 -->
+    <insert id="insertCustomLineup" parameterType="com.baseball.game.dto.TeamLineup">
+        INSERT INTO custom_lineup (user_id, team_name, position, player_name, player_id)
+        VALUES (#{userId}, #{teamName}, #{position}, #{playerName}, #{playerId})
+    </insert>
+
+    <!-- 유저의 커스텀 라인업 삭제 -->
+    <delete id="deleteCustomLineupByUserAndTeam">
+        DELETE FROM custom_lineup
+        WHERE user_id = #{userId} AND team_name = #{teamName}
+    </delete>
+
+    <!-- 팀의 모든 선수 목록 조회 (타자+투수) -->
+    <select id="findAvailablePlayersByTeam" resultType="String">
+        (SELECT Player_Name FROM kbo_hitter_stats_2024 WHERE Player_Team = #{teamName} and Game_Num > 30)
+        UNION
+        (SELECT Player_Name FROM kbo_pitcher_stats_2024 WHERE Player_Team = #{teamName} and Innings_Pitched > 20)
+        ORDER BY Player_Name
+    </select>
+
+</mapper>

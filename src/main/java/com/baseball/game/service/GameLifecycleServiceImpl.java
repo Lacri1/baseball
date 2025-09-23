@@ -133,6 +133,25 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
         // 인메모리 구현에서는 별도 작업 불필요. 저장은 games 맵에 이미 반영됨.
     }
 
+    @Override
+    public void updateLineup(String gameId, String teamName, com.baseball.game.dto.LineupRequest lineupRequest) {
+        GameDto game = getGame(gameId);
+
+        List<Batter> battingOrder = orderBattersByNames(lineupRequest.getBattingOrder());
+        Pitcher startingPitcher = pitcherMapper.findByName(lineupRequest.getStartingPitcher());
+
+        if (game.getHomeTeam().equals(teamName)) {
+            game.setHomeBattingOrder(battingOrder);
+            game.setHomeStartingPitcher(startingPitcher);
+        } else if (game.getAwayTeam().equals(teamName)) {
+            game.setAwayBattingOrder(battingOrder);
+            game.setAwayStartingPitcher(startingPitcher);
+        } else {
+            throw new ValidationException("유효하지 않은 팀 이름입니다: " + teamName);
+        }
+        saveGame(game);
+    }
+
     private List<Batter> orderBattersByNames(List<String> names) {
         if (names == null || names.isEmpty())
             return new ArrayList<>();
@@ -142,9 +161,7 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
             for (Batter b : fetched) {
                 if (b != null && b.getName() != null) {
                     // 타율이 비어 있으면 계산값 반영
-                    if (b.getAtBats() > 0 && (b.getBattingAverage() == 0.0)) {
-                        b.setBattingAverage(b.calculateBattingAverage());
-                    }
+                    
                     byName.put(b.getName(), b);
                 }
             }
@@ -164,32 +181,12 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
             List<String> homeNames = ComputerLineupProvider.getDefaultBattingOrder(homeTeam);
             List<String> awayNames = ComputerLineupProvider.getDefaultBattingOrder(awayTeam);
 
-            // 매퍼가 있더라도 조회 실패 시 이름 기반으로 폴백
+            // 매퍼가 없으면 이름만으로 간단한 객체 생성
             List<Batter> homeBatters;
             List<Batter> awayBatters;
             if (batterMapper != null) {
-                try {
-                    homeBatters = orderBattersByNames(homeNames);
-                } catch (Throwable t) {
-                    log.warn("타자 라인업 DB 조회 실패(홈). 이름 기반 폴백을 사용합니다.", t);
-                    homeBatters = null;
-                }
-                if (homeBatters == null || homeBatters.isEmpty()) {
-                    homeBatters = new ArrayList<>();
-                    for (String n : homeNames)
-                        homeBatters.add(new com.baseball.game.dto.Batter(n, homeTeam));
-                }
-                try {
-                    awayBatters = orderBattersByNames(awayNames);
-                } catch (Throwable t) {
-                    log.warn("타자 라인업 DB 조회 실패(원정). 이름 기반 폴백을 사용합니다.", t);
-                    awayBatters = null;
-                }
-                if (awayBatters == null || awayBatters.isEmpty()) {
-                    awayBatters = new ArrayList<>();
-                    for (String n : awayNames)
-                        awayBatters.add(new com.baseball.game.dto.Batter(n, awayTeam));
-                }
+                homeBatters = orderBattersByNames(homeNames);
+                awayBatters = orderBattersByNames(awayNames);
             } else {
                 homeBatters = new ArrayList<>();
                 for (String n : homeNames)
@@ -205,23 +202,14 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
             Pitcher homeSP = null;
             Pitcher awaySP = null;
             if (pitcherMapper != null) {
-                try {
-                    homeSP = homeSPName != null ? pitcherMapper.findByName(homeSPName) : null;
-                } catch (Throwable t) {
-                    log.warn("선발투수 DB 조회 실패(홈). 이름 기반 폴백을 사용합니다.", t);
-                    homeSP = null;
-                }
-                try {
-                    awaySP = awaySPName != null ? pitcherMapper.findByName(awaySPName) : null;
-                } catch (Throwable t) {
-                    log.warn("선발투수 DB 조회 실패(원정). 이름 기반 폴백을 사용합니다.", t);
-                    awaySP = null;
-                }
+                homeSP = homeSPName != null ? pitcherMapper.findByName(homeSPName) : null;
+                awaySP = awaySPName != null ? pitcherMapper.findByName(awaySPName) : null;
+            } else {
+                if (homeSPName != null)
+                    homeSP = new com.baseball.game.dto.Pitcher(homeSPName, homeTeam);
+                if (awaySPName != null)
+                    awaySP = new com.baseball.game.dto.Pitcher(awaySPName, awayTeam);
             }
-            if (homeSP == null && homeSPName != null)
-                homeSP = new com.baseball.game.dto.Pitcher(homeSPName, homeTeam);
-            if (awaySP == null && awaySPName != null)
-                awaySP = new com.baseball.game.dto.Pitcher(awaySPName, awayTeam);
 
             game.setHomeBattingOrder(homeBatters);
             game.setAwayBattingOrder(awayBatters);

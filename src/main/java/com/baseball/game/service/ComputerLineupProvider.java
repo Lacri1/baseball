@@ -52,8 +52,8 @@ public final class ComputerLineupProvider {
 
         // SSG 랜더스
 		batting.put("SSG 랜더스", Arrays.asList(
-			"최지훈", "추신수", "최정", "에레디아",
-			"한유섬", "박성한", "고명준", "이지영", "정준재"
+			"최지훈", "박성한", "최정", "에레디아",
+			"한유섬", "이지영", "고명준", "정준재", "박지환"
 		));
 		pitchers.put("SSG 랜더스", "앤더슨");
 

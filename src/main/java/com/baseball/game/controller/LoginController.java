@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/login")
+@RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
 public class LoginController {
 

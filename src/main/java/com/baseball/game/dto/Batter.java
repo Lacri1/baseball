@@ -4,51 +4,46 @@ import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper=false)
 public class Batter extends Player {
-    // 순수 실제 성적만 유지
+    private int no;
+    private int gameNum;
+    private int plateAppearances; // 타석
     private int atBats; // 타수
+    private int run; // 득점
     private int hits; // 안타
+    private int twoBases; // 2루타
+    private int threeBases; // 3루타
     private int homeRuns; // 홈런
+    private int totalBases; // 총 루타
+    private int runsBattedIn; // 타점
+    private int sacrificeBunts; // 희생번트
+    private int sacrificeFly; // 희생플라이
+    private int fourBall; // 볼넷
+    private int ibb; // 고의사구
+    private int hitByPitch; // 사구
+    private int strikeOut; // 삼진
+    private int doubleOut; // 병살타
     private double battingAverage; // 타율
-    private int plateAppearances; // 타석 (타율/홈런율 계산에 활용)
-    private int strike_Out; // 삼진 (컨택 관련)
-    private int four_Ball; // 볼넷 (선구안 관련, 필요한 경우)
-    private int twoBases; // 2루타 (장타력 관련)
-    private int threeBases; // 3루타 (장타력 관련)
-    private int hit_By_Pitch;
+    private double slugging; // 장타율
+    private double onBasePercentage; // 출루율
+    private double onbasePlusSlug; // OPS
+    private int multiHit; // 멀티히트
+    private double scoringPositionAvg; // 득점권 타율
+    private double pinchHitAvg; // 대타 타율
+    private int power;
+    private int contact;
+    private int speed;
+    private int eye;
 
     public Batter(String name, String team) {
         this.setName(name);
         this.setTeam(team);
-    }
-
-    // 타율 계산 메서드
-    public double calculateBattingAverage() {
-        return atBats > 0 ? (double) hits / atBats : 0.0;
-    }
-
-    // 출루율 계산 메서드
-    public double calculateOnBasePercentage() {
-        if (plateAppearances == 0)
-            return 0.0;
-        return (double) (hits + four_Ball + hit_By_Pitch) / plateAppearances;
-    }
-
-    // 장타율 계산 메서드
-    public double calculateSluggingPercentage() {
-        if (atBats == 0)
-            return 0.0;
-        int totalBases = hits + (twoBases * 2) + (threeBases * 3) + (homeRuns * 4);
-        return (double) totalBases / atBats;
-    }
-
-    // OPS 계산 메서드
-    public double calculateOPS() {
-        return calculateOnBasePercentage() + calculateSluggingPercentage();
     }
 }

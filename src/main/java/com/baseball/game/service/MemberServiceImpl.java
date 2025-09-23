@@ -5,6 +5,7 @@ import com.baseball.game.mapper.MemberMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import lombok.Setter;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import com.baseball.game.exception.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +19,6 @@ public class MemberServiceImpl implements MemberService {
 
     private static final Logger logger = LoggerFactory.getLogger(MemberServiceImpl.class);
 
-    @Override
-    public boolean login(String id, String pw) {
-        return memberMapper.login(id, pw);
-    }
 
     @Override
     public boolean checkId(String id) {
@@ -30,7 +27,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void register(MemberDto memberDto) {
-        memberMapper.register(memberDto.getId(), memberDto.getPw(), memberDto.getEmail());
+        memberMapper.register(memberDto.getId(), memberDto.getPw(), memberDto.getEmail(), memberDto.getNickname());
     }
 
     @Override
@@ -52,10 +49,18 @@ public class MemberServiceImpl implements MemberService {
             throw new ValidationException("비밀번호는 필수입니다.");
         }
         try {
-            boolean success = login(memberDto.getId(), memberDto.getPw());
+            MemberDto storedMember = getMember(memberDto.getId());
+            boolean success = false;
+            if (storedMember != null) {
+                success = passwordEncoder.matches(memberDto.getPw(), storedMember.getPw());
+            }
+
             if (success) {
                 response.put("success", true);
                 response.put("message", "로그인 성공");
+                // Return user info, but without the password
+                storedMember.setPw(null);
+                response.put("userInfo", storedMember);
                 logger.info("로그인 성공: id={}", memberDto.getId());
             } else {
                 response.put("success", false);
@@ -68,6 +73,44 @@ public class MemberServiceImpl implements MemberService {
             response.put("message", "로그인 처리 중 오류가 발생했습니다.");
         }
         return response;
+    }
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Override
+    public boolean checkNickname(String nickname) {
+        return memberMapper.checkNickname(nickname);
+    }
+
+    @Override
+    public boolean checkNicknameForUpdate(String nickname, String id) {
+        return memberMapper.checkNicknameForUpdate(nickname, id);
+    }
+
+    @Override
+    public void updateMember(MemberDto memberDto) {
+        if (memberDto.getNickname() == null || memberDto.getNickname().trim().isEmpty()) {
+            throw new ValidationException("닉네임은 필수입니다.");
+        }
+        if (checkNicknameForUpdate(memberDto.getNickname(), memberDto.getId())) {
+            throw new ValidationException("이미 존재하는 닉네임입니다.");
+        }
+        if (memberDto.getEmail() == null || memberDto.getEmail().trim().isEmpty()) {
+            throw new ValidationException("이메일은 필수입니다.");
+        }
+
+        if (memberDto.getPw() != null && !memberDto.getPw().trim().isEmpty()) {
+            memberDto.setPw(passwordEncoder.encode(memberDto.getPw()));
+        } else {
+            memberDto.setPw(null);
+        }
+        memberMapper.updateMember(memberDto);
+    }
+
+    @Override
+    public void deleteMember(String id) {
+        memberMapper.deleteMember(id);
     }
 
     @Override
@@ -84,6 +127,10 @@ public class MemberServiceImpl implements MemberService {
         if (memberDto.getEmail() == null || memberDto.getEmail().trim().isEmpty()) {
             throw new ValidationException("이메일은 필수입니다.");
         }
+        if (memberDto.getNickname() == null || memberDto.getNickname().trim().isEmpty()) {
+            throw new ValidationException("닉네임은 필수입니다.");
+        }
+
         try {
             if (checkId(memberDto.getId())) {
                 response.put("success", false);
@@ -91,6 +138,15 @@ public class MemberServiceImpl implements MemberService {
                 logger.warn("회원가입 실패 - 중복 아이디: id={}", memberDto.getId());
                 return response;
             }
+            if (checkNickname(memberDto.getNickname())) {
+                response.put("success", false);
+                response.put("message", "이미 존재하는 닉네임입니다.");
+                logger.warn("회원가입 실패 - 중복 닉네임: nickname={}", memberDto.getNickname());
+                return response;
+            }
+
+            // 비밀번호 암호화
+            memberDto.setPw(passwordEncoder.encode(memberDto.getPw()));
             register(memberDto);
             response.put("success", true);
             response.put("message", "회원가입 성공");

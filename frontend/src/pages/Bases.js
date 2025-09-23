@@ -1,3 +1,4 @@
+
 // Bases.js
 import React from 'react';
 import img111 from '../styles/111.png';
@@ -6,7 +7,7 @@ const Bases = ({ bases }) => {
   const positions = [
     { left: '220px', top: '250px' }, // 1루
     { left: '130px', top: '150px' }, // 2루
-    { left: '40px', top: '250px' }  // 3루
+    { left: '40px', top: '250px' }   // 3루
   ];
 
   if (!bases) return null;
@@ -37,14 +38,7 @@ const Bases = ({ bases }) => {
           alignItems: 'center',
           cursor: 'default'
         }}>
-          <span style={{
-            transform: 'rotate(-45deg)',
-            color: b ? '#000' : '#666',
-            fontSize: '10px',
-            textAlign: 'center'
-          }}>
-            {b && b.name ? b.name : `${i + 1}루`}
-          </span>
+          <span style={{ transform: 'rotate(-45deg)', color: b ? '#000' : '#666' }}>{i+1}루</span>
         </div>
       ))}
     </div>

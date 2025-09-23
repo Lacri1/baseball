@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baseball.game.mapper.TeamMapper">
+
+    <resultMap id="playerResultMap" type="com.baseball.game.dto.Player">
+        <result property="name" column="Player_Name"/>
+        <result property="team" column="Player_Team"/>
+    </resultMap>
+
+    <resultMap id="batterResultMap" type="com.baseball.game.dto.Batter">
+        <id property="no" column="No"/>
+        <result property="name" column="Player_Name"/>
+        <result property="team" column="Player_Team"/>
+        <result property="gameNum" column="Game_Num"/>
+        <result property="plateAppearances" column="Plate_Appearance"/>
+        <result property="atBats" column="At_Bat"/>
+        <result property="run" column="Run"/>
+        <result property="hits" column="Hit"/>
+        <result property="twoBases" column="two_Base"/>
+        <result property="threeBases" column="three_Base"/>
+        <result property="homeRuns" column="Home_Run"/>
+        <result property="totalBases" column="Total_Base"/>
+        <result property="runsBattedIn" column="Runs_Batted_In"/>
+        <result property="sacrificeBunts" column="Sacrifice_Bunts"/>
+        <result property="sacrificeFly" column="Sacrifice_Fly"/>
+        <result property="fourBall" column="Four_Ball"/>
+        <result property="ibb" column="IBB"/>
+        <result property="hitByPitch" column="Hit_by_Pitch"/>
+        <result property="strikeOut" column="Strike_Out"/>
+        <result property="doubleOut" column="Double_out"/>
+        <result property="battingAverage" column="Batting_average"/>
+        <result property="slugging" column="Slugging"/>
+        <result property="onBasePercentage" column="On_Base_Percentage"/>
+        <result property="onbasePlusSlug" column="Onbase_Plus_Slug"/>
+        <result property="multiHit" column="Multi_Hit"/>
+        <result property="scoringPositionAvg" column="Scoring_Position_AVG"/>
+        <result property="pinchHitAvg" column="Pinch_Hit_AVG"/>
+    </resultMap>
+
+    <resultMap id="pitcherResultMap" type="com.baseball.game.dto.Pitcher">
+        <id property="no" column="No"/>
+        <result property="name" column="Player_Name"/>
+        <result property="team" column="Player_Team"/>
+        <result property="earnedRunAverage" column="Earned_Run_Average"/>
+        <result property="gameNum" column="Game_Num"/>
+        <result property="win" column="Win"/>
+        <result property="lose" column="Lose"/>
+        <result property="save" column="Save"/>
+        <result property="hold" column="Hold"/>
+        <result property="winningPercentage" column="Winning_Percentage"/>
+        <result property="inningsPitched" column="Innings_Pitched"/>
+        <result property="hits" column="Hits"/>
+        <result property="homeRun" column="Home_Run"/>
+        <result property="baseOnBalls" column="Base_On_Balls"/>
+        <result property="hitByPitch" column="Hit_By_Pitch"/>
+        <result property="strikeOut" column="Strike_Out"/>
+        <result property="runs" column="Runs"/>
+        <result property="earnedRun" column="Earned_Run"/>
+        <result property="whip" column="WHIP"/>
+        <result property="completeGame" column="Complete_Game"/>
+        <result property="shutout" column="Shutout"/>
+        <result property="qualityStart" column="Quality_Start"/>
+        <result property="blownSave" column="Blown_Save"/>
+        <result property="totalBattersFaced" column="Total_Batters_Faced"/>
+        <result property="numberOfPitching" column="Number_Of_Pitching"/>
+        <result property="opponentBattingAverage" column="Opponent_Batting_Average"/>
+        <result property="twoBases" column="two_Base"/>
+        <result property="threeBases" column="three_Base"/>
+        <result property="sacrificeBunt" column="Sacrifice_Bunt"/>
+        <result property="sacrificeFly" column="Sacrifice_Fly"/>
+        <result property="ibb" column="IBB"/>
+        <result property="wildPitch" column="Wild_Pitch"/>
+        <result property="balk" column="Balk"/>
+    </resultMap>
+
+    <select id="selectPlayersByTeam" resultMap="playerResultMap">
+        SELECT Player_Name, Player_Team FROM kbo_hitter_stats_2024 WHERE Player_Team = #{teamId}
+        UNION ALL
+        SELECT Player_Name, Player_Team FROM kbo_pitcher_stats_2024 WHERE Player_Team = #{teamId}
+    </select>
+
+    <select id="selectBattersByTeam" resultMap="batterResultMap">
+        SELECT * FROM kbo_hitter_stats_2024 WHERE Player_Team = #{teamId}
+    </select>
+
+    <select id="selectPitchersByTeam" resultMap="pitcherResultMap">
+        SELECT * FROM kbo_pitcher_stats_2024 WHERE Player_Team = #{teamId}
+    </select>
+
+    <insert id="registerLineup">
+        INSERT INTO game_lineup (game_id, batting_order, start_pitcher)
+        VALUES (#{gameId}, #{battingOrder}, #{startPitcher})
+    </insert>
+
+</mapper>

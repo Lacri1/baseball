@@ -6,17 +6,7 @@ import { gameAPI, playerAPI } from '../api/api';
 
 const teams = ['두산', 'LG', 'SSG', '키움', '한화', '롯데', '삼성', 'KT', 'KIA', 'NC'];
 
-// "1th_Batter" 같은 포맷에서 앞의 숫자만 추출
-const parseOrder = (pos) => {
-  try {
-    const m = /^(\d+)/.exec(pos || '');
-    return m ? parseInt(m[1], 10) : 99;
-  } catch {
-    return 99;
-  }
-};
-
-// 선수 데이터 정규화 (표시/선택용)
+// 선수 데이터 정규화
 const normalizeRoster = (data, teamName) => {
   const defaultBatters = Array.from({ length: 12 }, (_, i) => ({
     Player_ID: 1000 + i,
@@ -32,13 +22,13 @@ const normalizeRoster = (data, teamName) => {
   }
 
   const batters = data.batters.map((b, i) => ({
-    Player_ID: b.Player_ID ?? i,
+    Player_ID: b.Player_ID || i,
     Player_Name: b.Player_Name || b.name || `타자${i + 1}`,
     ...b,
   }));
 
   const pitchers = data.pitchers.map((p, i) => ({
-    Player_ID: p.Player_ID ?? i + 100,
+    Player_ID: p.Player_ID || i + 100,
     Player_Name: p.Player_Name || p.name || `투수${i + 1}`,
     ...p,
   }));
@@ -48,28 +38,19 @@ const normalizeRoster = (data, teamName) => {
 
 const TeamSetupPage = () => {
   const navigate = useNavigate();
-
   const [inningCount, setInningCount] = useState(9);
   const [userTeam, setUserTeam] = useState('');
   const [cpuTeam, setCpuTeam] = useState('');
-
   const [userBatters, setUserBatters] = useState([]);
   const [userPitchers, setUserPitchers] = useState([]);
-  const [cpuBatters, setCpuBatters] = useState([]);    // 표시용 폴백
-  const [cpuPitchers, setCpuPitchers] = useState([]);  // 표시용 폴백
-
+  const [cpuBatters, setCpuBatters] = useState([]);
+  const [cpuPitchers, setCpuPitchers] = useState([]);
   const [userBattingOrder, setUserBattingOrder] = useState([]);
   const [selectedUserPitcher, setSelectedUserPitcher] = useState(null);
   const [isUserOffense, setIsUserOffense] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  // 서버 기본 라인업(표시/초기값)
-  const [cpuDefaultBattingOrder, setCpuDefaultBattingOrder] = useState([]);
-  const [cpuDefaultPitcher, setCpuDefaultPitcher] = useState('');
-  const [userDefaultBattingOrderNames, setUserDefaultBattingOrderNames] = useState([]);
-  const [userDefaultStartingPitcherName, setUserDefaultStartingPitcherName] = useState('');
-
-  // 사용자 팀 선택 시 CPU 팀 자동 선택
+  // CPU 팀 자동 선택
   useEffect(() => {
     if (userTeam) {
       const available = teams.filter(t => t !== userTeam);
@@ -79,151 +60,37 @@ const TeamSetupPage = () => {
     }
   }, [userTeam]);
 
-  // ✅ 사용자 팀이 바뀔 때 선택 상태/기본값 초기화
+  // 선수 불러오기
   useEffect(() => {
-    setUserBattingOrder([]);
-    setSelectedUserPitcher(null);
-    setUserDefaultBattingOrderNames([]);
-    setUserDefaultStartingPitcherName('');
-  }, [userTeam]);
-
-  // 선수 불러오기 (레이스 방지)
-  useEffect(() => {
-    const fetchPlayers = async (team, setBatters, setPitchers, role) => {
+    const fetchPlayers = async (team, setBatters, setPitchers) => {
       if (!team) return;
-      const targetTeam = team;
       try {
         const res = await playerAPI.getTeamRoster(team);
         const { batters, pitchers } = normalizeRoster(res.data, team);
-        if ((role === 'user' && targetTeam === userTeam) ||
-          (role === 'cpu' && targetTeam === cpuTeam)) {
-          setBatters(batters);
-          setPitchers(pitchers);
-        }
+        setBatters(batters);
+        setPitchers(pitchers);
       } catch (err) {
         console.error('선수 정보 로딩 실패', err);
         const { batters, pitchers } = normalizeRoster(null, team);
-        if ((role === 'user' && targetTeam === userTeam) ||
-          (role === 'cpu' && targetTeam === cpuTeam)) {
-          setBatters(batters);
-          setPitchers(pitchers);
-        }
+        setBatters(batters);
+        setPitchers(pitchers);
       }
     };
 
-    fetchPlayers(userTeam, setUserBatters, setUserPitchers, 'user');
-    fetchPlayers(cpuTeam, setCpuBatters, setCpuPitchers, 'cpu');
+    fetchPlayers(userTeam, setUserBatters, setUserPitchers);
+    fetchPlayers(cpuTeam, setCpuBatters, setCpuPitchers);
   }, [userTeam, cpuTeam]);
 
-  // CPU 기본 라인업(서버) 동기화 — 레이스 방지
+  // 초기 타순 설정
   useEffect(() => {
-    const fetchCpuDefault = async () => {
-      if (!cpuTeam) {
-        setCpuDefaultBattingOrder([]);
-        setCpuDefaultPitcher('');
-        return;
-      }
-      const targetTeam = cpuTeam;
-      try {
-        const res = await fetch(`/api/lineup/default/${encodeURIComponent(targetTeam)}`);
-        if (!res.ok) throw new Error(`default lineup fetch failed: ${res.status}`);
-        const list = await res.json();
-        if (targetTeam !== cpuTeam) return;
-        if (Array.isArray(list)) {
-          const batters = list
-            .filter(item => item && item.position && item.position.endsWith('_Batter'))
-            .sort((a, b) => parseOrder(a.position) - parseOrder(b.position))
-            .map(item => item.playerName);
-          const spObj = list.find(item => item && item.position === 'Starting_Pitcher');
-          setCpuDefaultBattingOrder(batters.slice(0, 9));
-          setCpuDefaultPitcher(spObj?.playerName || '');
-        } else {
-          setCpuDefaultBattingOrder([]);
-          setCpuDefaultPitcher('');
-        }
-      } catch (e) {
-        if (targetTeam !== cpuTeam) return;
-        console.error('CPU 기본 라인업 조회 실패', e);
-        setCpuDefaultBattingOrder([]);
-        setCpuDefaultPitcher('');
-      }
-    };
-    fetchCpuDefault();
-  }, [cpuTeam]);
+    if (userBatters.length >= 9) setUserBattingOrder(userBatters.slice(0, 9));
+    else setUserBattingOrder(userBatters);
+  }, [userBatters]);
 
-  // 사용자 기본 라인업(서버) 동기화 — 레이스 방지
+  // 투수 자동 선택
   useEffect(() => {
-    const fetchUserDefault = async () => {
-      if (!userTeam) {
-        setUserDefaultBattingOrderNames([]);
-        setUserDefaultStartingPitcherName('');
-        return;
-      }
-      const targetTeam = userTeam;
-      try {
-        const res = await fetch(`/api/lineup/default/${encodeURIComponent(targetTeam)}`);
-        if (!res.ok) throw new Error(`user default lineup fetch failed: ${res.status}`);
-        const list = await res.json();
-        if (targetTeam !== userTeam) return;
-
-        if (Array.isArray(list)) {
-          const batters = list
-            .filter(it => it && it.position && it.position.endsWith('_Batter'))
-            .sort((a, b) => parseOrder(a.position) - parseOrder(b.position))
-            .map(it => it.playerName);
-          const spObj = list.find(it => it && it.position === 'Starting_Pitcher');
-          setUserDefaultBattingOrderNames(batters.slice(0, 9));
-          setUserDefaultStartingPitcherName(spObj?.playerName || '');
-        } else {
-          setUserDefaultBattingOrderNames([]);
-          setUserDefaultStartingPitcherName('');
-        }
-      } catch (e) {
-        if (targetTeam !== userTeam) return;
-        console.error('사용자 기본 라인업 조회 실패', e);
-        setUserDefaultBattingOrderNames([]);
-        setUserDefaultStartingPitcherName('');
-      }
-    };
-    fetchUserDefault();
-  }, [userTeam]);
-
-  // 🔁 프리필: userTeam / userBatters / userDefaultBattingOrderNames 중 하나라도 바뀌면 재계산
-  useEffect(() => {
-    if (!userTeam) return;
-    if (userBatters.length === 0) return;
-
-    // 1) 기본 라인업 이름 매핑
-    if (userDefaultBattingOrderNames.length > 0) {
-      const mapped = userDefaultBattingOrderNames
-        .map(name => userBatters.find(p => p.Player_Name === name))
-        .filter(Boolean);
-      if (mapped.length === 9) {
-        setUserBattingOrder(mapped);
-      } else {
-        // 2) 실패 시 폴백
-        setUserBattingOrder(userBatters.slice(0, 9));
-      }
-    } else {
-      // 기본 라인업이 없으면 로스터 상위 9
-      setUserBattingOrder(userBatters.slice(0, 9));
-    }
-  }, [userTeam, userBatters, userDefaultBattingOrderNames]);
-
-  // 사용자 선발 투수 프리필: 이름 매핑 → 실패 시 첫 번째
-  useEffect(() => {
-    if (!userTeam) return;
-    if (userPitchers.length === 0) return;
-
-    if (userDefaultStartingPitcherName) {
-      const sp = userPitchers.find(p => p.Player_Name === userDefaultStartingPitcherName);
-      if (sp) {
-        setSelectedUserPitcher(sp);
-        return;
-      }
-    }
-    setSelectedUserPitcher(userPitchers[0]);
-  }, [userTeam, userPitchers, userDefaultStartingPitcherName]);
+    if (!selectedUserPitcher && userPitchers.length > 0) setSelectedUserPitcher(userPitchers[0]);
+  }, [userPitchers, selectedUserPitcher]);
 
   // 타순 드래그
   const handleDragEnd = (result) => {
@@ -256,6 +123,7 @@ const TeamSetupPage = () => {
       const gameId = res.data?.data?.gameId;
       if (!gameId) throw new Error('게임 ID를 서버에서 가져오지 못했습니다.');
 
+      // 사용자/CPU 라인업 준비
       const userLineup = {
         teamName: userTeam,
         battingOrder: userBattingOrder.map(p => p.Player_Name),
@@ -265,7 +133,24 @@ const TeamSetupPage = () => {
         pitcherName: selectedUserPitcher.Player_Name
       };
 
-      await gameAPI.setLineup(gameId, userLineup);
+      const cpuOrder = cpuBatters.slice(0, 9);
+      const cpuPitcher = cpuPitchers[0];
+      const cpuLineup = {
+        teamName: cpuTeam,
+        battingOrder: cpuOrder.map(p => p.Player_Name),
+        startingPitcher: cpuPitcher?.Player_Name || '투수1',
+        battingOrderIds: cpuOrder.map(p => p.Player_ID),
+        pitcherId: cpuPitcher?.Player_ID,
+        pitcherName: cpuPitcher?.Player_Name || '투수1'
+      };
+
+      const homeLineup = payload.homeTeam === userTeam ? userLineup : cpuLineup;
+      const awayLineup = payload.awayTeam === userTeam ? userLineup : cpuLineup;
+
+      // 사용자 팀만 서버에 등록
+      const userIsHome = payload.homeTeam === userTeam;
+      const userTeamLineup = userIsHome ? homeLineup : awayLineup;
+      await gameAPI.setLineup(gameId, userTeamLineup);
 
       navigate('/game/play', {
         state: {
@@ -275,14 +160,7 @@ const TeamSetupPage = () => {
           inningCount,
           userTeam,
           isUserOffense,
-          lineups: {
-            home: payload.homeTeam === userTeam
-              ? userLineup
-              : { teamName: cpuTeam, battingOrder: cpuDefaultBattingOrder, startingPitcher: cpuDefaultPitcher },
-            away: payload.awayTeam === userTeam
-              ? userLineup
-              : { teamName: cpuTeam, battingOrder: cpuDefaultBattingOrder, startingPitcher: cpuDefaultPitcher }
-          }
+          lineups: { home: homeLineup, away: awayLineup }
         }
       });
 
@@ -300,7 +178,7 @@ const TeamSetupPage = () => {
 
       <div>
         <label>
-          총 이닝:&nbsp;
+          총 이닝:
           <select value={inningCount} onChange={e => setInningCount(Number(e.target.value))}>
             {Array.from({ length: 7 }, (_, i) => i + 3).map(n => (
               <option key={n} value={n}>{n} 이닝</option>
@@ -311,7 +189,7 @@ const TeamSetupPage = () => {
 
       <div style={{ marginTop: 10 }}>
         <label>
-          사용자 팀:&nbsp;
+          사용자 팀:
           <select value={userTeam} onChange={e => setUserTeam(e.target.value)}>
             <option value="">선택</option>
             {teams.map(t => <option key={t} value={t}>{t}</option>)}
@@ -328,7 +206,7 @@ const TeamSetupPage = () => {
               const isSelected = userBattingOrder.find(p => p.Player_ID === player.Player_ID);
               return (
                 <button
-                  key={`${userTeam}-${player.Player_ID}`}
+                  key={player.Player_ID}
                   onClick={() => {
                     if (isSelected) {
                       setUserBattingOrder(userBattingOrder.filter(p => p.Player_ID !== player.Player_ID));
@@ -356,43 +234,13 @@ const TeamSetupPage = () => {
 
           {userBattingOrder.length > 0 && (
             <div style={{ marginTop: 10 }}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                타순 선택 (드래그 가능, 최대 9명)
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (userDefaultBattingOrderNames.length > 0) {
-                      const mapped = userDefaultBattingOrderNames
-                        .map(name => userBatters.find(p => p.Player_Name === name))
-                        .filter(Boolean);
-                      if (mapped.length === 9) setUserBattingOrder(mapped);
-                    }
-                    if (userDefaultStartingPitcherName) {
-                      const sp = userPitchers.find(p => p.Player_Name === userDefaultStartingPitcherName);
-                      if (sp) setSelectedUserPitcher(sp);
-                    }
-                  }}
-                  style={{ marginLeft: 6, padding: '2px 8px' }}
-                >
-                  기본 라인업 불러오기
-                </button>
-              </h4>
-
-              {/* 팀이 바뀌면 DnD 전체 재마운트 */}
-              <DragDropContext key={`dnd-${userTeam}`} onDragEnd={handleDragEnd}>
-                <Droppable droppableId={`battingOrder-${userTeam}`}>
+              <h4>타순 선택 (드래그 가능, 최대 9명)</h4>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="battingOrder">
                   {(provided) => (
-                    <ul
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      style={{ padding: 0, listStyle: 'none' }}
-                    >
+                    <ul {...provided.droppableProps} ref={provided.innerRef} style={{ padding: 0, listStyle: 'none' }}>
                       {userBattingOrder.map((player, index) => (
-                        <Draggable
-                          key={`${userTeam}-${player.Player_ID}`}
-                          draggableId={`${userTeam}-${player.Player_ID}`}
-                          index={index}
-                        >
+                        <Draggable key={player.Player_ID} draggableId={String(player.Player_ID)} index={index}>
                           {(provided) => (
                             <li
                               ref={provided.innerRef}
@@ -428,7 +276,6 @@ const TeamSetupPage = () => {
         <div style={{ marginTop: 10 }}>
           <h4>투수 선택</h4>
           <select
-            key={`pitcher-select-${userTeam}`}
             value={selectedUserPitcher?.Player_Name || ""}
             onChange={e => {
               const selected = userPitchers.find(p => p.Player_Name === e.target.value);
@@ -437,49 +284,30 @@ const TeamSetupPage = () => {
           >
             <option value="">선택</option>
             {userPitchers.map(p => (
-              <option key={`${userTeam}-${p.Player_ID}`} value={p.Player_Name}>
-                {p.Player_Name || `투수${p.Player_ID}`}
-              </option>
+              <option key={p.Player_ID} value={p.Player_Name}>{p.Player_Name || `투수${p.Player_ID}`}</option>
             ))}
           </select>
         </div>
       )}
 
       {/* CPU 라인업 표시 */}
-      {cpuTeam && (
+      {cpuTeam && cpuBatters.length > 0 && cpuPitchers.length > 0 && (
         <div style={{ marginTop: 20, borderTop: '1px solid #ccc', paddingTop: 10 }}>
           <h4>CPU 팀 라인업 ({cpuTeam})</h4>
-          {cpuDefaultBattingOrder.length > 0 ? (
-            <>
-              <ul style={{ padding: 0, listStyle: 'none' }}>
-                {cpuDefaultBattingOrder.map((name, index) => (
-                  <li key={`${cpuTeam}-${name}-${index}`} style={{ padding: 4 }}>
-                    {index + 1}번: {name}
-                  </li>
-                ))}
-              </ul>
-              <p>선발 투수: {cpuDefaultPitcher || '표시 불가'}</p>
-              <small style={{ color: '#666' }}>서버 기본 라인업 기준으로 표시됩니다.</small>
-            </>
-          ) : (
-            <>
-              <ul style={{ padding: 0, listStyle: 'none' }}>
-                {cpuBatters.slice(0, 9).map((player, index) => (
-                  <li key={`${cpuTeam}-${player.Player_ID}`} style={{ padding: 4 }}>
-                    {index + 1}번: {player.Player_Name || `타자${index + 1}`}
-                  </li>
-                ))}
-              </ul>
-              <p>선발 투수: {cpuPitchers[0]?.Player_Name || '투수1'}</p>
-              <small style={{ color: '#666' }}>임시 로스터(폴백)로 표시 중입니다.</small>
-            </>
-          )}
+          <ul style={{ padding: 0, listStyle: 'none' }}>
+            {cpuBatters.slice(0, 9).map((player, index) => (
+              <li key={player.Player_ID} style={{ padding: 4 }}>
+                {index + 1}번: {player.Player_Name || `타자${index + 1}`}
+              </li>
+            ))}
+          </ul>
+          <p>선발 투수: {cpuPitchers[0]?.Player_Name || '투수1'}</p>
         </div>
       )}
 
       {/* 선공/후공 선택 */}
       <div style={{ marginTop: 10 }}>
-        <label style={{ marginRight: 10 }}>선공/후공 선택:&nbsp;</label>
+        <label style={{ marginRight: 10 }}>선공/후공 선택:</label>
         <label style={{ marginRight: 10, fontWeight: isUserOffense ? 'bold' : 'normal' }}>
           <input type="radio" name="offense" checked={isUserOffense} onChange={() => setIsUserOffense(true)} />
           {userTeam || "사용자"} 선공
