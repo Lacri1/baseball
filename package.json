@@ -1,0 +1,22 @@
+{
+  "name": "baseball",
+  "version": "1.0.0",
+  "description": "Spring Boot와 React를 활용한 야구 기록과 게임을 포함한 웹 어플리케이션",
+  "homepage": "https://github.com/Kyeong-Min-IN/baseball#readme",
+  "bugs": {
+    "url": "https://github.com/Kyeong-Min-IN/baseball/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kyeong-Min-IN/baseball.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm --prefix frontend run start",
+    "build": "npm --prefix frontend run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

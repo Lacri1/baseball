@@ -1,0 +1,149 @@
+.backend-status {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-width: 300px;
+  font-size: 14px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-indicator.success .status-dot {
+  background-color: #28a745;
+  box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
+}
+
+.status-indicator.error .status-dot {
+  background-color: #dc3545;
+  box-shadow: 0 0 4px rgba(220, 53, 69, 0.5);
+}
+
+.status-indicator.warning .status-dot {
+  background-color: #ffc107;
+  box-shadow: 0 0 4px rgba(255, 193, 7, 0.5);
+}
+
+.status-indicator.checking .status-dot {
+  background-color: #6c757d;
+  animation: pulse 1.5s infinite;
+}
+
+.status-text {
+  flex: 1;
+  font-weight: 500;
+}
+
+.status-indicator.success .status-text {
+  color: #155724;
+}
+
+.status-indicator.error .status-text {
+  color: #721c24;
+}
+
+.status-indicator.warning .status-text {
+  color: #856404;
+}
+
+.status-indicator.checking .status-text {
+  color: #6c757d;
+}
+
+.checking-spinner {
+  animation: spin 1s linear infinite;
+  font-size: 16px;
+  color: #6c757d;
+}
+
+.status-suggestion {
+  background-color: #f8f9fa;
+  border-left: 3px solid #007bff;
+  padding: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #495057;
+}
+
+.refresh-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.refresh-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .backend-status {
+    top: 5px;
+    right: 5px;
+    left: 5px;
+    max-width: none;
+    font-size: 12px;
+  }
+  
+  .status-text {
+    font-size: 12px;
+  }
+  
+  .status-suggestion {
+    font-size: 11px;
+  }
+  
+  .refresh-button {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}
+

@@ -1,0 +1,37 @@
+/* Scoreboard.css */
+
+.scoreboard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.count-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.count-label {
+  font-size:70px;
+  width: 50px;
+  font-weight: bold;
+}
+
+.count-dots {
+  display: flex;
+  gap: 3px;
+}
+
+.count-dot {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 1px solid #999;
+  background-color: #fff; /* 기본 흰색 */
+}
+
+/* S/B/O 색상 및 ON 상태 */
+.count-dot.strike.on { background-color: red; }
+.count-dot.ball.on { background-color: blue; }
+.count-dot.out.on { background-color: rgb(0, 0, 0); }

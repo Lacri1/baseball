@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { gameAPI, playerAPI } from '../api/api';
+import '../styles/TeamSetupPage.css';
 
 const teams = ['두산', 'LG', 'SSG', '키움', '한화', '롯데', '삼성', 'KT', 'KIA', 'NC'];
 
@@ -295,40 +296,46 @@ const TeamSetupPage = () => {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>팀 설정 & 이닝 선택</h2>
-
-      <div>
-        <label>
-          총 이닝:&nbsp;
-          <select value={inningCount} onChange={e => setInningCount(Number(e.target.value))}>
-            {Array.from({ length: 7 }, (_, i) => i + 3).map(n => (
-              <option key={n} value={n}>{n} 이닝</option>
-            ))}
-          </select>
-        </label>
+    <div className="team-setup-container">
+      <div className="team-setup-header">
+        <h1 className="team-setup-title">팀 설정 & 이닝 선택</h1>
+        <p className="team-setup-subtitle">게임을 시작하기 전에 팀과 선수를 선택하세요</p>
       </div>
+      
+      <div className="team-setup-content">
 
-      <div style={{ marginTop: 10 }}>
-        <label>
-          사용자 팀:&nbsp;
-          <select value={userTeam} onChange={e => setUserTeam(e.target.value)}>
-            <option value="">선택</option>
-            {teams.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </label>
-      </div>
+        <div className="setup-section">
+          <h2 className="section-title">게임 설정</h2>
+          
+          <div className="form-group">
+            <label className="form-label">총 이닝</label>
+            <select className="form-select" value={inningCount} onChange={e => setInningCount(Number(e.target.value))}>
+              {Array.from({ length: 7 }, (_, i) => i + 3).map(n => (
+                <option key={n} value={n}>{n} 이닝</option>
+              ))}
+            </select>
+          </div>
 
-      {/* 사용자 타자 선택 & 드래그 */}
-      {userTeam && userBatters.length > 0 && (
-        <div style={{ marginTop: 10 }}>
-          <h4>사용자 팀 선수 목록 ({userTeam})</h4>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+          <div className="form-group">
+            <label className="form-label">사용자 팀</label>
+            <select className="form-select" value={userTeam} onChange={e => setUserTeam(e.target.value)}>
+              <option value="">선택</option>
+              {teams.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* 사용자 타자 선택 & 드래그 */}
+        {userTeam && userBatters.length > 0 && (
+          <div className="setup-section">
+            <h2 className="section-title">사용자 팀 선수 목록 ({userTeam})</h2>
+            <div className="player-list">
             {userBatters.map(player => {
               const isSelected = userBattingOrder.find(p => p.Player_ID === player.Player_ID);
               return (
                 <button
                   key={`${userTeam}-${player.Player_ID}`}
+                  className={`player-button ${isSelected ? 'selected' : ''}`}
                   onClick={() => {
                     if (isSelected) {
                       setUserBattingOrder(userBattingOrder.filter(p => p.Player_ID !== player.Player_ID));
@@ -340,13 +347,6 @@ const TeamSetupPage = () => {
                       }
                     }
                   }}
-                  style={{
-                    padding: '4px 8px',
-                    border: isSelected ? '2px solid #007bff' : '1px solid #ccc',
-                    borderRadius: 4,
-                    backgroundColor: isSelected ? '#e0f0ff' : '#f9f9f9',
-                    cursor: 'pointer'
-                  }}
                 >
                   {player.Player_Name}
                 </button>
@@ -354,145 +354,149 @@ const TeamSetupPage = () => {
             })}
           </div>
 
-          {userBattingOrder.length > 0 && (
-            <div style={{ marginTop: 10 }}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                타순 선택 (드래그 가능, 최대 9명)
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (userDefaultBattingOrderNames.length > 0) {
-                      const mapped = userDefaultBattingOrderNames
-                        .map(name => userBatters.find(p => p.Player_Name === name))
-                        .filter(Boolean);
-                      if (mapped.length === 9) setUserBattingOrder(mapped);
-                    }
-                    if (userDefaultStartingPitcherName) {
-                      const sp = userPitchers.find(p => p.Player_Name === userDefaultStartingPitcherName);
-                      if (sp) setSelectedUserPitcher(sp);
-                    }
-                  }}
-                  style={{ marginLeft: 6, padding: '2px 8px' }}
-                >
-                  기본 라인업 불러오기
-                </button>
-              </h4>
+            {userBattingOrder.length > 0 && (
+              <div className="batting-order">
+                <h3 className="batting-order-title">
+                  타순 선택 (드래그 가능, 최대 9명)
+                  <button
+                    type="button"
+                    className="form-button"
+                    onClick={() => {
+                      if (userDefaultBattingOrderNames.length > 0) {
+                        const mapped = userDefaultBattingOrderNames
+                          .map(name => userBatters.find(p => p.Player_Name === name))
+                          .filter(Boolean);
+                        if (mapped.length === 9) setUserBattingOrder(mapped);
+                      }
+                      if (userDefaultStartingPitcherName) {
+                        const sp = userPitchers.find(p => p.Player_Name === userDefaultStartingPitcherName);
+                        if (sp) setSelectedUserPitcher(sp);
+                      }
+                    }}
+                  >
+                    기본 라인업 불러오기
+                  </button>
+                </h3>
 
-              {/* 팀이 바뀌면 DnD 전체 재마운트 */}
-              <DragDropContext key={`dnd-${userTeam}`} onDragEnd={handleDragEnd}>
-                <Droppable droppableId={`battingOrder-${userTeam}`}>
-                  {(provided) => (
-                    <ul
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      style={{ padding: 0, listStyle: 'none' }}
-                    >
-                      {userBattingOrder.map((player, index) => (
-                        <Draggable
-                          key={`${userTeam}-${player.Player_ID}`}
-                          draggableId={`${userTeam}-${player.Player_ID}`}
-                          index={index}
-                        >
-                          {(provided) => (
-                            <li
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              style={{
-                                padding: 8,
-                                margin: '0 0 8px 0',
-                                border: '1px solid #ccc',
-                                borderRadius: 4,
-                                backgroundColor: '#f9f9f9',
-                                cursor: 'grab',
-                                ...provided.draggableProps.style
-                              }}
-                            >
-                              {index + 1}번: {player.Player_Name}
-                            </li>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </ul>
-                  )}
-                </Droppable>
-              </DragDropContext>
+                {/* 팀이 바뀌면 DnD 전체 재마운트 */}
+                <DragDropContext key={`dnd-${userTeam}`} onDragEnd={handleDragEnd}>
+                  <Droppable droppableId={`battingOrder-${userTeam}`}>
+                    {(provided) => (
+                      <ul
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className="batting-order-list"
+                      >
+                        {userBattingOrder.map((player, index) => (
+                          <Draggable
+                            key={`${userTeam}-${player.Player_ID}`}
+                            draggableId={`${userTeam}-${player.Player_ID}`}
+                            index={index}
+                          >
+                            {(provided) => (
+                              <li
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className="batting-order-item"
+                                style={provided.draggableProps.style}
+                              >
+                                <span className="batting-order-number">{index + 1}번:</span>
+                                {player.Player_Name}
+                              </li>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </ul>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 사용자 투수 선택 */}
+        {userPitchers.length > 0 && (
+          <div className="setup-section">
+            <h2 className="section-title">투수 선택</h2>
+            <div className="pitcher-selection">
+              <select
+                key={`pitcher-select-${userTeam}`}
+                className="pitcher-select"
+                value={selectedUserPitcher?.Player_Name || ""}
+                onChange={e => {
+                  const selected = userPitchers.find(p => p.Player_Name === e.target.value);
+                  setSelectedUserPitcher(selected);
+                }}
+              >
+                <option value="">선택</option>
+                {userPitchers.map(p => (
+                  <option key={`${userTeam}-${p.Player_ID}`} value={p.Player_Name}>
+                    {p.Player_Name || `투수${p.Player_ID}`}
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* 사용자 투수 선택 */}
-      {userPitchers.length > 0 && (
-        <div style={{ marginTop: 10 }}>
-          <h4>투수 선택</h4>
-          <select
-            key={`pitcher-select-${userTeam}`}
-            value={selectedUserPitcher?.Player_Name || ""}
-            onChange={e => {
-              const selected = userPitchers.find(p => p.Player_Name === e.target.value);
-              setSelectedUserPitcher(selected);
-            }}
-          >
-            <option value="">선택</option>
-            {userPitchers.map(p => (
-              <option key={`${userTeam}-${p.Player_ID}`} value={p.Player_Name}>
-                {p.Player_Name || `투수${p.Player_ID}`}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+        {/* CPU 라인업 표시 */}
+        {cpuTeam && (
+          <div className="setup-section">
+            <h2 className="section-title">CPU 팀 라인업 ({cpuTeam})</h2>
+            <div className="cpu-team-info">
+              {cpuDefaultBattingOrder.length > 0 ? (
+                <>
+                  <ul className="cpu-lineup-list">
+                    {cpuDefaultBattingOrder.map((name, index) => (
+                      <li key={`${cpuTeam}-${name}-${index}`} className="cpu-lineup-item">
+                        {index + 1}번: {name}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="cpu-pitcher">선발 투수: {cpuDefaultPitcher || '표시 불가'}</p>
+                  <small style={{ color: '#666' }}>서버 기본 라인업 기준으로 표시됩니다.</small>
+                </>
+              ) : (
+                <>
+                  <ul className="cpu-lineup-list">
+                    {cpuBatters.slice(0, 9).map((player, index) => (
+                      <li key={`${cpuTeam}-${player.Player_ID}`} className="cpu-lineup-item">
+                        {index + 1}번: {player.Player_Name || `타자${index + 1}`}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="cpu-pitcher">선발 투수: {cpuPitchers[0]?.Player_Name || '투수1'}</p>
+                  <small style={{ color: '#666' }}>임시 로스터(폴백)로 표시 중입니다.</small>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
-      {/* CPU 라인업 표시 */}
-      {cpuTeam && (
-        <div style={{ marginTop: 20, borderTop: '1px solid #ccc', paddingTop: 10 }}>
-          <h4>CPU 팀 라인업 ({cpuTeam})</h4>
-          {cpuDefaultBattingOrder.length > 0 ? (
-            <>
-              <ul style={{ padding: 0, listStyle: 'none' }}>
-                {cpuDefaultBattingOrder.map((name, index) => (
-                  <li key={`${cpuTeam}-${name}-${index}`} style={{ padding: 4 }}>
-                    {index + 1}번: {name}
-                  </li>
-                ))}
-              </ul>
-              <p>선발 투수: {cpuDefaultPitcher || '표시 불가'}</p>
-              <small style={{ color: '#666' }}>서버 기본 라인업 기준으로 표시됩니다.</small>
-            </>
-          ) : (
-            <>
-              <ul style={{ padding: 0, listStyle: 'none' }}>
-                {cpuBatters.slice(0, 9).map((player, index) => (
-                  <li key={`${cpuTeam}-${player.Player_ID}`} style={{ padding: 4 }}>
-                    {index + 1}번: {player.Player_Name || `타자${index + 1}`}
-                  </li>
-                ))}
-              </ul>
-              <p>선발 투수: {cpuPitchers[0]?.Player_Name || '투수1'}</p>
-              <small style={{ color: '#666' }}>임시 로스터(폴백)로 표시 중입니다.</small>
-            </>
-          )}
+        {/* 선공/후공 선택 */}
+        <div className="setup-section">
+          <h2 className="section-title">선공/후공 선택</h2>
+          <div className="offense-selection">
+            <div className="offense-options">
+              <div className={`offense-option ${isUserOffense ? 'selected' : ''}`}>
+                <input type="radio" name="offense" checked={isUserOffense} onChange={() => setIsUserOffense(true)} />
+                <label>{userTeam || "사용자"} 선공</label>
+              </div>
+              <div className={`offense-option ${!isUserOffense ? 'selected' : ''}`}>
+                <input type="radio" name="offense" checked={!isUserOffense} onChange={() => setIsUserOffense(false)} />
+                <label>{userTeam || "사용자"} 후공</label>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* 선공/후공 선택 */}
-      <div style={{ marginTop: 10 }}>
-        <label style={{ marginRight: 10 }}>선공/후공 선택:&nbsp;</label>
-        <label style={{ marginRight: 10, fontWeight: isUserOffense ? 'bold' : 'normal' }}>
-          <input type="radio" name="offense" checked={isUserOffense} onChange={() => setIsUserOffense(true)} />
-          {userTeam || "사용자"} 선공
-        </label>
-        <label style={{ fontWeight: !isUserOffense ? 'bold' : 'normal' }}>
-          <input type="radio" name="offense" checked={!isUserOffense} onChange={() => setIsUserOffense(false)} />
-          {userTeam || "사용자"} 후공
-        </label>
+        <button className="start-button" onClick={handleStart} disabled={loading}>
+          {loading ? '게임 생성 중...' : '게임 시작'}
+        </button>
       </div>
-
-      <button onClick={handleStart} style={{ marginTop: 20 }} disabled={loading}>
-        {loading ? '게임 생성 중...' : '게임 시작'}
-      </button>
     </div>
   );
 };

@@ -85,7 +85,6 @@ export const gameAPI = {
   createGame: (payload) => api.post('/baseball/game', payload),
   getGame: (gameId) => api.get(`/baseball/game/${gameId}`),
   getGameView: (gameId) => api.get(`/baseball/game/${gameId}/view`),
-  getScoreboard: (gameId) => api.get(`/baseball/game/${gameId}/scoreboard`),
   pitch: (gameId, data) => api.post(`/baseball/game/${gameId}/pitch`, data),
   swing: (gameId, data) => api.post(`/baseball/game/${gameId}/swing`, data),
   setLineup: (gameId, payload) => api.post(`/baseball/game/${gameId}/lineup`, payload),

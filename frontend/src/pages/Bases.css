@@ -1,0 +1,201 @@
+.bases-field {
+  position: relative;
+  width: 600px;
+  height: 800px;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  margin: 20px auto;
+  background-image: url('../styles/111.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.base {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  background: white;
+  border: 3px solid #333;
+  transform: rotate(45deg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: default;
+  flex-direction: column;
+  border-radius: 8px;
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.base.occupied {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  border-color: #ff6b35;
+  box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+  animation: pulse 2s infinite;
+}
+
+.base.empty {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-color: #6c757d;
+}
+
+.base:hover {
+  transform: rotate(45deg) scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 1루 위치 */
+.base-1 {
+  left: 350px;
+  top: 400px;
+}
+
+/* 2루 위치 */
+.base-2 {
+  left: 210px;
+  top: 250px;
+}
+
+/* 3루 위치 */
+.base-3 {
+  left: 80px;
+  top: 400px;
+}
+
+.base-number {
+  transform: rotate(-45deg);
+  font-weight: bold;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.base-player {
+  transform: rotate(-45deg);
+  font-size: 15px;
+  color: #000;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 60px;
+  word-break: break-all;
+}
+
+.base.occupied .base-number {
+  color: #d63031;
+  font-weight: 900;
+}
+
+.base.occupied .base-player {
+  color: #2d3436;
+  font-weight: 600;
+}
+
+/* 펄스 애니메이션 */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 16px rgba(255, 107, 53, 0.5);
+  }
+  100% {
+    box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+  }
+}
+
+/* 홈플레이트 표시 */
+.bases-field::before {
+  content: '';
+  position: absolute;
+  bottom: 150px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 30px solid var(--color-primary);
+  z-index: 1;
+}
+
+/* 투수 마운드 표시 */
+
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .bases-field {
+    width: 400px;
+    height: 400px;
+  }
+  
+  .base {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .base-1 {
+    left: 280px;
+    top: 220px;
+  }
+  
+  .base-2 {
+    left: 170px;
+    top: 130px;
+  }
+  
+  .base-3 {
+    left: 60px;
+    top: 220px;
+  }
+  
+  .base-number {
+    font-size: 12px;
+  }
+  
+  .base-player {
+    font-size: 8px;
+    max-width: 45px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bases-field {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .base {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .base-1 {
+    left: 210px;
+    top: 160px;
+  }
+  
+  .base-2 {
+    left: 127px;
+    top: 100px;
+  }
+  
+  .base-3 {
+    left: 45px;
+    top: 160px;
+  }
+  
+  .base-number {
+    font-size: 10px;
+  }
+  
+  .base-player {
+    font-size: 7px;
+    max-width: 35px;
+  }
+}
+
+
