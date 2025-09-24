@@ -41,6 +41,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException ex) {
         logger.error("런타임 예외 발생: {}", ex.getMessage(), ex);
 
+        String message = ex.getMessage();
+        if (message != null && message.startsWith("FORBIDDEN")) {
+            ApiResponse<Void> response = ApiResponse.error("권한이 없습니다.", "FORBIDDEN");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+
         ApiResponse<Void> response = ApiResponse.error("서버 내부 오류가 발생했습니다.", "INTERNAL_ERROR");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }

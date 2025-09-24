@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/board")
+@CrossOrigin(origins = { "http://localhost:3000" })
 public class BoardController {
 
 	private final BoardService boardService;
@@ -31,10 +32,26 @@ public class BoardController {
 	public ResponseEntity<BoardPageResponse> getBoards(
 			@RequestParam(defaultValue = "1") int page,
 			@RequestParam(defaultValue = "10") int size,
-			@RequestParam(required = false) String category) {
-		BoardPageResponse response = (category == null)
-				? boardService.getPagedList(page, size)
-				: boardService.getPagedListCategory(page, size, category);
+			@RequestParam(required = false) String category,
+			@RequestParam(required = false) String keyword) {
+		String normalizedCategory = null;
+		if (category != null) {
+			String c = category.trim();
+			if (!c.isEmpty() && !c.equalsIgnoreCase("all")) {
+				normalizedCategory = c;
+			}
+		}
+		String normalizedKeyword = (keyword != null && keyword.trim().isEmpty()) ? null : keyword;
+		BoardPageResponse response;
+		if (normalizedKeyword != null) {
+			response = (normalizedCategory == null)
+					? boardService.getPagedListSearch(page, size, normalizedKeyword)
+					: boardService.getPagedListCategorySearch(page, size, normalizedCategory, normalizedKeyword);
+		} else {
+			response = (normalizedCategory == null)
+					? boardService.getPagedList(page, size)
+					: boardService.getPagedListCategory(page, size, normalizedCategory);
+		}
 		return ResponseEntity.ok(response);
 	}
 
@@ -56,14 +73,14 @@ public class BoardController {
 	// 게시글 수정
 	@PutMapping("/{no}")
 	public ResponseEntity<Void> updateBoard(@PathVariable("no") int no, @RequestBody BoardRequestDto requestDto) {
-		boardService.modify(no, requestDto.getText());
+		boardService.modify(no, requestDto.getText(), requestDto.getWriter());
 		return ResponseEntity.ok().build();
 	}
 
 	// 게시글 삭제
 	@DeleteMapping("/{no}")
-	public ResponseEntity<Void> deleteBoard(@PathVariable("no") int no) {
-		boardService.delete(no);
+	public ResponseEntity<Void> deleteBoard(@PathVariable("no") int no, @RequestParam String writer) {
+		boardService.delete(no, writer);
 		return ResponseEntity.ok().build();
 	}
 }

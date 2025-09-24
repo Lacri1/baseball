@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/api/team")
@@ -19,6 +20,33 @@ public class TeamController {
         this.service = service;
     }
 
+    private static boolean containsHangul(String s) {
+        if (s == null)
+            return false;
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if ((ch >= 0xAC00 && ch <= 0xD7A3) || (ch >= 0x1100 && ch <= 0x11FF)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String normalizeKoreanPathVariable(String input) {
+        if (input == null)
+            return null;
+        if (containsHangul(input)) {
+            return input;
+        }
+        String recovered = new String(input.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
+        return containsHangul(recovered) ? recovered : input;
+    }
+
+    @GetMapping("/list")
+    public List<String> getTeamList() {
+        return service.getTeamList();
+    }
+
     /**
      * 팀별 선수(라인업 후보) 목록 조회
      * 
@@ -27,7 +55,8 @@ public class TeamController {
      */
     @GetMapping("/{teamId}/players")
     public List<Player> getPlayersByTeam(@PathVariable String teamId) {
-        return service.getPlayersByTeam(teamId);
+        String normalizedTeamId = normalizeKoreanPathVariable(teamId);
+        return service.getPlayersByTeam(normalizedTeamId);
     }
 
     /**
@@ -35,7 +64,8 @@ public class TeamController {
      */
     @GetMapping("/{teamId}/roster")
     public TeamRoster getRosterByTeam(@PathVariable String teamId) {
-        return service.getRosterByTeam(teamId);
+        String normalizedTeamId = normalizeKoreanPathVariable(teamId);
+        return service.getRosterByTeam(normalizedTeamId);
     }
 
     // 기존 registerLineup 메서드는 GameController의 setTeamLineupAndPitcher와 중복되므로 제거합니다.

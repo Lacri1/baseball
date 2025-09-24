@@ -1,13 +1,15 @@
-// src/pages/MainPage.js
-import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-function MainPage() {
+const MainPage = () => {
+  const navigate = useNavigate();
+
   return (
-    <div>
-      <h1>Main Page</h1>
-      {/* Main page content, e.g., game list, start button */}
+    <div style={{ padding: 20 }}>
+      <h1>⚾ 야구 게임</h1>
+      <button onClick={() => navigate('/game/setup')}>게임 시작</button>
+      <button onClick={() => navigate('/help')} style={{ marginLeft: 10 }}>도움말</button>
     </div>
   );
-}
+};
 
 export default MainPage;

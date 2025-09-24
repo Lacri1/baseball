@@ -76,15 +76,15 @@ class BoardServiceImplTest {
     @Test
     @DisplayName("modify - 매퍼 호출")
     void modify() {
-        boardService.modify(3, "updated");
-        verify(boardMapper, times(1)).modify(eq(3), eq("updated"));
+        boardService.modify(3, "updated","w");
+        verify(boardMapper, times(1)).modify(eq(3), eq("updated"),"w");
     }
 
     @Test
     @DisplayName("delete - 매퍼 호출")
     void delete() {
-        boardService.delete(7);
-        verify(boardMapper, times(1)).delete(7);
+        boardService.delete(7,"w");
+        verify(boardMapper, times(1)).delete(7,"w");
     }
 
     @Test

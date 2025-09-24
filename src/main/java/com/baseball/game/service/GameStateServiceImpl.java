@@ -69,6 +69,7 @@ public class GameStateServiceImpl implements GameStateService {
         } else {
             // 말에서 다음 이닝 초로: 연장 없음 → 규정 이닝이면 즉시 종료
             if (game.getInning() >= game.getMaxInning()) {
+                log.info("규정 이닝 도달로 게임 종료: {}회 말", game.getInning());
                 endGame(gameId);
                 return game;
             }
@@ -104,6 +105,9 @@ public class GameStateServiceImpl implements GameStateService {
 
         log.info("Inning changed to: {} {}", game.getInning(), game.isTop() ? "초" : "말");
 
+        // 이닝 전환 후 게임 종료 조건 확인
+        checkGameOver(gameId);
+
         return game;
     }
 
@@ -111,6 +115,9 @@ public class GameStateServiceImpl implements GameStateService {
     @Transactional
     public GameDto endGame(String gameId) {
         GameDto game = lifecycleService.getGame(gameId);
+
+        log.info("endGame 호출됨 - 게임 ID: {}, 현재 상태: {}회 {}, Home: {} - Away: {}",
+                gameId, game.getInning(), game.isTop() ? "초" : "말", game.getHomeScore(), game.getAwayScore());
 
         game.setGameOver(true);
 
@@ -122,7 +129,8 @@ public class GameStateServiceImpl implements GameStateService {
             game.setWinner("무승부");
         }
 
-        log.info("Game ended. Winner: {}", game.getWinner());
+        log.info("Game ended. Winner: {}, Home: {} - Away: {}", game.getWinner(), game.getHomeScore(),
+                game.getAwayScore());
 
         // 경기 종료 이벤트 기록
         try {
@@ -195,8 +203,9 @@ public class GameStateServiceImpl implements GameStateService {
             // 삼진 전 스냅샷 (현재 타자/투수 이름)
             String batterName = game.getCurrentBatter() != null ? game.getCurrentBatter().getName() : null;
             String pitcherName = game.getCurrentPitcher() != null ? game.getCurrentPitcher().getName() : null;
-
-            game.setOut(game.getOut() + 1);
+            // 로그에는 타석 결과 적용 전 아웃카운트를 기록
+            int outsBefore = game.getOut();
+            game.setOut(outsBefore + 1);
             // 이벤트에 최종 볼카운트를 남기기 위해 리셋 전 값을 보존
             int strikeAtEnd = game.getStrike();
             int ballAtEnd = game.getBall();
@@ -240,7 +249,7 @@ public class GameStateServiceImpl implements GameStateService {
                         .pitcher(pitcherName)
                         .result("삼진 아웃")
                         .description("삼진 아웃")
-                        .out(game.getOut())
+                        .out(outsBefore)
                         .strike(strikeAtEnd)
                         .ball(ballAtEnd)
                         .homeScore(game.getHomeScore())
@@ -253,7 +262,9 @@ public class GameStateServiceImpl implements GameStateService {
             } catch (Exception ignored) {
             }
 
-            advanceBattingOrder(gameId);
+            if (game.getOut() < 3) {
+                advanceBattingOrder(gameId);
+            }
             log.debug("Strikeout. Outs: {}", game.getOut());
         }
 
@@ -379,15 +390,28 @@ public class GameStateServiceImpl implements GameStateService {
         // 역할: 규정 이닝 도달/초말 상태에 따른 경기 종료 조건 확인
         GameDto game = lifecycleService.getGame(gameId);
 
+        log.debug("게임 종료 조건 확인: {}회 {}, Home: {} - Away: {}",
+                game.getInning(), game.isTop() ? "초" : "말", game.getHomeScore(), game.getAwayScore());
+
         // 끝내기: 마지막 이닝(이상) 말이고 홈이 앞서는 순간 즉시 종료
         if (game.getInning() >= game.getMaxInning() && !game.isTop()) {
             if (game.getHomeScore() > game.getAwayScore()) {
+                log.info("끝내기 조건 만족으로 게임 종료: {}회 말, Home: {} - Away: {}",
+                        game.getInning(), game.getHomeScore(), game.getAwayScore());
                 endGame(gameId);
                 return;
             }
         }
 
-        // 연장은 제외하므로, 위의 walk-off 조건 외 추가 처리는 불필요
+        // 규정 이닝 종료: 9회 말이 끝나면 게임 종료 (3아웃으로 이닝이 끝난 경우)
+        if (game.getInning() > game.getMaxInning()) {
+            log.info("규정 이닝 초과로 게임 종료: {}회, Home: {} - Away: {}",
+                    game.getInning(), game.getHomeScore(), game.getAwayScore());
+            endGame(gameId);
+            return;
+        }
+
+        // 연장은 제외하므로, 위의 조건 외 추가 처리는 불필요
     }
 
     @Override

@@ -139,7 +139,7 @@ class BoardControllerTest {
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk());
 
-        verify(boardService, times(1)).modify(eq(3), eq("updated"));
+        verify(boardService, times(1)).modify(eq(3), eq("updated"),eq("w"));
     }
 
     @Test
@@ -148,6 +148,6 @@ class BoardControllerTest {
         mockMvc.perform(delete("/api/board/4"))
                 .andExpect(status().isOk());
 
-        verify(boardService, times(1)).delete(4);
+        verify(boardService, times(1)).delete(eq(4),eq("w"));
     }
 }

@@ -126,6 +126,8 @@ public class GameActionServiceImpl implements GameActionService {
                 if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
                     stateService.nextInning(gameId);
                 }
+                // 게임 종료 조건 확인 (끝내기 등)
+                stateService.checkGameOver(gameId);
                 return pitchResult;
             }
         } else {
@@ -145,6 +147,8 @@ public class GameActionServiceImpl implements GameActionService {
             if (game.getOut() >= 3 && game.getStrike() == 0 && game.getBall() == 0) {
                 stateService.nextInning(gameId);
             }
+            // 게임 종료 조건 확인 (끝내기 등)
+            stateService.checkGameOver(gameId);
             return pitchResult;
         }
     }
@@ -332,7 +336,7 @@ public class GameActionServiceImpl implements GameActionService {
                 int runsScored = Math.max(0, runsAfter - runsBefore);
                 // outsGained는 이닝 전환 전에 계산해야 리셋 영향이 없음
                 int outsGained = game.getOut() - beforeOuts;
-                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "아웃: " + hitResult);
+                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "아웃: " + hitResult, beforeOuts);
                 game.setStrike(0);
                 game.setBall(0);
                 if (game.getOut() >= 3)
@@ -361,7 +365,7 @@ public class GameActionServiceImpl implements GameActionService {
                 int beforeOuts = game.getOut();
                 game.setOut(beforeOuts + 1);
                 int outsGained = game.getOut() - beforeOuts; // 전환 전 계산
-                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "타석 종료: " + hitResult);
+                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "타석 종료: " + hitResult, beforeOuts);
                 game.setStrike(0);
                 game.setBall(0);
                 if (game.getOut() >= 3)
@@ -507,7 +511,7 @@ public class GameActionServiceImpl implements GameActionService {
                 int outsGained = game.getOut() - beforeOuts;
                 game.setStrike(0);
                 game.setBall(0);
-                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "아웃: " + hitResult);
+                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "아웃: " + hitResult, beforeOuts);
                 if (game.getOut() >= 3)
                     stateService.nextInning(gameId);
                 else
@@ -532,7 +536,7 @@ public class GameActionServiceImpl implements GameActionService {
                 int beforeOuts = game.getOut();
                 game.setOut(beforeOuts + 1);
                 int outsGained = game.getOut() - beforeOuts;
-                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "타석 종료: " + hitResult);
+                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "타석 종료: " + hitResult, beforeOuts);
                 game.setStrike(0);
                 game.setBall(0);
                 if (game.getOut() >= 3)
@@ -695,7 +699,7 @@ public class GameActionServiceImpl implements GameActionService {
                 int outsGained = game.getOut() - beforeOuts; // 전환 전 계산
                 game.setStrike(0);
                 game.setBall(0);
-                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "아웃: " + hitResult);
+                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "아웃: " + hitResult, beforeOuts);
                 if (game.getOut() >= 3)
                     stateService.nextInning(gameId);
                 else
@@ -722,7 +726,7 @@ public class GameActionServiceImpl implements GameActionService {
                 int beforeOuts = game.getOut();
                 game.setOut(beforeOuts + 1);
                 int outsGained = game.getOut() - beforeOuts; // 전환 전 계산
-                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "타석 종료: " + hitResult);
+                addPlayEvent(game, "PA_END", hitResult, batterName, pitcherName, "타석 종료: " + hitResult, beforeOuts);
                 game.setStrike(0);
                 game.setBall(0);
                 if (game.getOut() >= 3)
@@ -753,6 +757,37 @@ public class GameActionServiceImpl implements GameActionService {
                     .result(result)
                     .description(description)
                     .out(game.getOut())
+                    .strike(game.getStrike())
+                    .ball(game.getBall())
+                    .homeScore(game.getHomeScore())
+                    .awayScore(game.getAwayScore())
+                    .homeHit(game.getHomeHit())
+                    .awayHit(game.getAwayHit())
+                    .homeWalks(game.getHomeWalks())
+                    .awayWalks(game.getAwayWalks())
+                    .build();
+            if (game.getEventLog() == null) {
+                game.setEventLog(new java.util.ArrayList<>());
+            }
+            game.getEventLog().add(event);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void addPlayEvent(GameDto game, String type, String result, String batterName, String pitcherName,
+            String description, Integer outsSnapshot) {
+        try {
+            int outsValue = (outsSnapshot != null) ? outsSnapshot.intValue() : game.getOut();
+            com.baseball.game.dto.PlayEvent event = com.baseball.game.dto.PlayEvent.builder()
+                    .type(type)
+                    .inning(game.getInning())
+                    .isTop(game.isTop())
+                    .offenseTeam(game.getOffenseTeam())
+                    .batter(batterName)
+                    .pitcher(pitcherName)
+                    .result(result)
+                    .description(description)
+                    .out(outsValue)
                     .strike(game.getStrike())
                     .ball(game.getBall())
                     .homeScore(game.getHomeScore())
