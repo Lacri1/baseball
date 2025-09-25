@@ -41,7 +41,7 @@ const KboBoardList = () => {
 
   // 게시글 삭제
   const handleDelete = async (no, writerId) => {
-    if (!user || user.id !== writerId?.toString()) {
+    if (!user || user.id !== writerId?.toString()) { // Changed user.Id to user.id
       alert("본인 글만 삭제 가능합니다.");
       return;
     }
@@ -49,7 +49,7 @@ const KboBoardList = () => {
 
     try {
       await axios.delete(`http://localhost:8080/api/board/${no}`, {
-        params: { writer: user.id }
+        params: { writer: user.Id } // Changed user.id to user.Id
       });
       alert("삭제 완료");
       fetchPosts();

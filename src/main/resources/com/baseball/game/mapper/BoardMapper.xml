@@ -32,7 +32,7 @@
     </insert>
 
     <update id="modify">
-        UPDATE board SET text = #{text}, UPDATEDAT = CURRENT_TIMESTAMP() WHERE no = #{no} AND writer = #{writer}
+        UPDATE board SET title = #{title}, text = #{text}, category = #{category}, UPDATEDAT = CURRENT_TIMESTAMP() WHERE no = #{no} AND writer = #{writer}
     </update>
 
     <delete id="delete">

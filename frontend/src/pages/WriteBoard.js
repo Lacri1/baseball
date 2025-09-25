@@ -16,7 +16,7 @@ const WriteBoard = () => {
     const newPost = {
       id: Date.now(),
       title,
-      writer: user.nickname || user.Id,
+      writer: user.Id,
       content,
       comments: [],
     };
@@ -37,7 +37,7 @@ const WriteBoard = () => {
         </div>
         <div>
           <label>작성자</label>
-          <input value={user ? (user.nickname || user.Id) : ""} readOnly />
+          <input value={user ? user.Id : ""} readOnly />
         </div>
         <div>
           <label>내용</label>

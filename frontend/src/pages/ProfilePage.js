@@ -1,13 +1,10 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
-import { authAPI } from '../api/api'; // Import authAPI
 import '../styles/LoginPage.css';
 
-const RegisterPage = () => {
-  const { setUserId } = useContext(AuthContext);
-  const [formData, setFormData] = useState({ id: '', username: '', pw: '', pwConfirm: '', email: '' });
+const RegisterPage = ({ setUserId }) => {
+  const [formData, setFormData] = useState({ id: '', nickname: '', pw: '', pwConfirm: '', email: '' });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -23,7 +20,7 @@ const RegisterPage = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!formData.id) newErrors.id = '아이디를 입력해주세요';
-    if (!formData.username) newErrors.username = '닉네임을 입력해주세요';
+    if (!formData.nickname) newErrors.nickname = '닉네임을 입력해주세요';
     if (!formData.pw) newErrors.pw = '비밀번호를 입력해주세요';
     else if (formData.pw.length < 6) newErrors.pw = '비밀번호는 6자리 이상이어야 합니다';
     if (formData.pw !== formData.pwConfirm) newErrors.pwConfirm = '비밀번호가 일치하지 않습니다';
@@ -41,10 +38,10 @@ const RegisterPage = () => {
 
     try {
       // 회원가입
-      const registerRes = await authAPI.register({
+      const registerRes = await axios.post('http://localhost:8080/api/login/register', {
         id: formData.id,
         pw: formData.pw,
-        nickname: formData.username,
+        nickname: formData.nickname,
         email: formData.email
       });
 
@@ -57,19 +54,15 @@ const RegisterPage = () => {
       alert('회원가입 완료.');
 
       // 폼 초기화
-      setFormData({ id: '', username: '', pw: '', pwConfirm: '', email: '' });
+      setFormData({ id: '', nickname: '', pw: '', pwConfirm: '', email: '' });
       setErrors({});
 
-      // 자동 로그인 대신 메인 화면으로 이동
-      navigate('/');
+      // Redirect to login page
+      navigate('/login'); // Redirect to login page
 
     } catch (error) {
       console.error(error);
-      if (error.response && error.response.data && error.response.data.message) {
-        alert('회원가입 실패: ' + error.response.data.message);
-      } else {
-        alert('회원가입 중 오류가 발생했습니다.');
-      }
+      alert('회원가입 중 오류가 발생했습니다.'); // More appropriate error message
     } finally {
       setIsLoading(false);
     }
@@ -78,68 +71,96 @@ const RegisterPage = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1>회원가입</h1>
+        <div className="login-header">
+          <h1>회원가입</h1>
+          <p>새로운 계정을 만들어보세요</p>
+        </div>
+        
         <form onSubmit={handleRegister} className="login-form">
-          <input
-            name="id"
-            placeholder="아이디"
-            value={formData.id}
-            onChange={handleChange}
-            disabled={isLoading}
-            className={errors.id ? 'error' : ''}
-          />
-          {errors.id && <div className="error-text">{errors.id}</div>}
+          <div className="login-form-group">
+            <input
+              name="id"
+              placeholder="아이디"
+              value={formData.id}
+              onChange={handleChange}
+              disabled={isLoading}
+              className={`login-form-input ${errors.id ? 'error' : ''}`}
+            />
+            {errors.id && <div className="error-text">{errors.id}</div>}
+          </div>
 
-          <input
-            name="username"
-            placeholder="닉네임"
-            value={formData.username}
-            onChange={handleChange}
-            disabled={isLoading}
-            className={errors.username ? 'error' : ''}
-          />
-          {errors.username && <div className="error-text">{errors.username}</div>}
+          <div className="login-form-group">
+            <input
+              name="nickname"
+              placeholder="닉네임"
+              value={formData.nickname}
+              onChange={handleChange}
+              disabled={isLoading}
+              className={`login-form-input ${errors.nickname ? 'error' : ''}`}
+            />
+            {errors.nickname && <div className="error-text">{errors.nickname}</div>}
+          </div>
 
-          <input
-            name="pw"
-            type="password"
-            placeholder="비밀번호"
-            value={formData.pw}
-            onChange={handleChange}
-            disabled={isLoading}
-            className={errors.pw ? 'error' : ''}
-          />
-          {errors.pw && <div className="error-text">{errors.pw}</div>}
+          <div className="login-form-group">
+            <input
+              name="pw"
+              type="password"
+              placeholder="비밀번호"
+              value={formData.pw}
+              onChange={handleChange}
+              disabled={isLoading}
+              className={`login-form-input ${errors.pw ? 'error' : ''}`}
+            />
+            {errors.pw && <div className="error-text">{errors.pw}</div>}
+          </div>
 
-          <input
-            name="pwConfirm"
-            type="password"
-            placeholder="비밀번호 확인"
-            value={formData.pwConfirm}
-            onChange={handleChange}
-            disabled={isLoading}
-            className={errors.pwConfirm ? 'error' : ''}
-          />
-          {errors.pwConfirm && <div className="error-text">{errors.pwConfirm}</div>}
+          <div className="login-form-group">
+            <input
+              name="pwConfirm"
+              type="password"
+              placeholder="비밀번호 확인"
+              value={formData.pwConfirm}
+              onChange={handleChange}
+              disabled={isLoading}
+              className={`login-form-input ${errors.pwConfirm ? 'error' : ''}`}
+            />
+            {errors.pwConfirm && <div className="error-text">{errors.pwConfirm}</div>}
+          </div>
 
-          <input
-            name="email"
-            placeholder="이메일"
-            value={formData.email}
-            onChange={handleChange}
-            disabled={isLoading}
-            className={errors.email ? 'error' : ''}
-          />
-          {errors.email && <div className="error-text">{errors.email}</div>}
+          <div className="login-form-group">
+            <input
+              name="email"
+              placeholder="이메일"
+              value={formData.email}
+              onChange={handleChange}
+              disabled={isLoading}
+              className={`login-form-input ${errors.email ? 'error' : ''}`}
+            />
+            {errors.email && <div className="error-text">{errors.email}</div>}
+          </div>
 
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? '회원가입 중...' : '회원가입'}
+          <button type="submit" disabled={isLoading} className="login-form-button login-form-button-primary">
+            {isLoading ? (
+              <>
+                <span className="login-loading-spinner"></span>
+                회원가입 중...
+              </>
+            ) : (
+              '회원가입'
+            )}
           </button>
         </form>
 
-        <button onClick={() => navigate('/login')} disabled={isLoading}>
-          로그인으로 돌아가기
-        </button>
+        <div className="login-form-footer">
+          <p className="login-form-footer-text">이미 계정이 있으신가요?</p>
+          <button 
+            onClick={() => navigate('/login')} 
+            disabled={isLoading}
+            className="login-form-button login-form-button-secondary"
+          >
+            로그인으로 돌아가기
+          </button>
+        </div>
       </div>
     </div>
   );

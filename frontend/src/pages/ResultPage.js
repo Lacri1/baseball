@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import "../styles/ResultPage.css";
 
 const ResultPage = () => {
   const { state } = useLocation();
@@ -65,33 +66,61 @@ const awayTeam =
   if (!gameState) return null;
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>🏆 경기 결과</h2>
-      <p>{winner}</p>
-      <table border="1" cellPadding="5" style={{ width: "100%", marginBottom: 20 }}>
-        <thead>
-          <tr>
-            <th>팀</th>
-            {homeScores.map((_, i) => <th key={i}>{i + 1}이닝</th>)}
-            <th>합계</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{homeTeam}</td>
-            {homeScores.map((s, i) => <td key={i}>{s}</td>)}
-            <td>{totalRuns(homeScores)}</td>
-          </tr>
-          <tr>
-            <td>{awayTeam}</td>
-            {awayScores.map((s, i) => <td key={i}>{s}</td>)}
-            <td>{totalRuns(awayScores)}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div style={{ display: "flex", gap: 10 }}>
-        <button onClick={() => navigate("/")}>메인 화면</button>
-        <button onClick={() => navigate("/game/setup")}>다시하기</button>
+    <div className="result-container">
+      <div className="result-header">
+        <h1 className="result-title">🏆 경기 결과</h1>
+        <p className="result-subtitle">경기 결과를 확인하세요</p>
+      </div>
+      
+      <div className="result-content">
+        <div className="winner-announcement">
+          <p className="winner-text">{winner}</p>
+        </div>
+        
+        <div className="final-score">
+          <h3>최종 점수</h3>
+          <div className="score-display">
+            <div className="team-score">
+              <div className="team-name">{homeTeam}</div>
+              <div className="team-score-value">{totalRuns(homeScores)}</div>
+            </div>
+            <div className="vs-text">vs</div>
+            <div className="team-score">
+              <div className="team-name">{awayTeam}</div>
+              <div className="team-score-value">{totalRuns(awayScores)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="team-stats">
+          <h3>이닝별 점수</h3>
+          <table className="stats-table">
+            <thead>
+              <tr>
+                <th>팀</th>
+                {homeScores.map((_, i) => <th key={i}>{i + 1}이닝</th>)}
+                <th>합계</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="team-name-cell">{homeTeam}</td>
+                {homeScores.map((s, i) => <td key={i} className="stats-value">{s}</td>)}
+                <td className="stats-value">{totalRuns(homeScores)}</td>
+              </tr>
+              <tr>
+                <td className="team-name-cell">{awayTeam}</td>
+                {awayScores.map((s, i) => <td key={i} className="stats-value">{s}</td>)}
+                <td className="stats-value">{totalRuns(awayScores)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="action-buttons">
+          <button className="action-button primary" onClick={() => navigate("/")}>메인 화면</button>
+          <button className="action-button secondary" onClick={() => navigate("/game/setup")}>다시하기</button>
+        </div>
       </div>
     </div>
   );

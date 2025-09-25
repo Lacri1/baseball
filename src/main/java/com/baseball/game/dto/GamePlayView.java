@@ -20,6 +20,8 @@ public class GamePlayView {
     private String offenseTeam;
     private String defenseTeam;
     private String offenseSide;
+    private boolean gameOver;
+    private String winner;
     private int out;
     private int strike;
     private int ball;

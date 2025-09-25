@@ -6,14 +6,11 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface MemberMapper {
+	public boolean login(String Id, String Pw);
 
 	public boolean checkId(String Id);
 
-	public boolean checkNickname(String nickname);
-
-	public boolean checkNicknameForUpdate(String nickname, String id);
-
-	public void register(String Id, String Pw, String email, String nickname);
+	public void register(@Param("Id") String Id, @Param("Pw") String Pw, @Param("email") String email, @Param("nickname") String nickname);
 
 	public MemberDto member(String Id);
 
@@ -29,4 +26,8 @@ public interface MemberMapper {
 	void updateMember(MemberDto memberDto);
 
 	void deleteMember(String id);
+
+	boolean checkNickname(String nickname);
+
+	boolean checkNicknameForUpdate(@Param("nickname") String nickname, @Param("id") String id);
 }

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/api';
-import { parseTeamHtmlToArray, parseHitterHtmlToArray, parsePitcherHtmlToArray, normalizeList } from '../utils/htmlTableParser';
 import '../styles/kboPage.css';
 
 const KboPage = () => {
@@ -24,19 +23,9 @@ const KboPage = () => {
       setLoading(true);
       try {
         const teamResponse = await api.get('/kbo/team-stats');
-        const parsedTeamStats = Array.isArray(teamResponse.data) ? teamResponse.data : parseTeamHtmlToArray(teamResponse.data);
         if (isMounted) {
-          setTeamStats(parsedTeamStats);
+          setTeamStats(teamResponse.data);
         }
-
-        const normalizeAny = (data, type) => {
-          if (Array.isArray(data)) return data;
-          if (typeof data === 'string') {
-            if (type === 'hitter') return parseHitterHtmlToArray(data);
-            if (type === 'pitcher') return parsePitcherHtmlToArray(data);
-          }
-          return normalizeList(data);
-        };
 
         if (selectedTab === 'hitter' && selectedHitter === '타자') {
           const response = await api.get('/kbo/hitter-stats', {
@@ -47,7 +36,7 @@ const KboPage = () => {
           const response = await api.get('/kbo/pitcher-stats', {
             params: { sortBy: pitcherSortBy }
           });
-          if (isMounted) setPitcherStats(normalizeAny(response.data, 'pitcher'));
+          if (isMounted) setPitcherStats(response.data);
         }
         if (isMounted) setError(null);
       } catch (err) {
@@ -134,8 +123,8 @@ const KboPage = () => {
       case '타자':
         const hittersToRender = hitterSortBy === 'battingAverage'
           ? hitterStats.filter(hitter => {
-              const gameNum = getTeamGameNum(hitter.team);
-              return hitter.plateAppearances >= gameNum * 3.1;
+              const gameNum = getTeamGameNum(hitter.playerTeam);
+              return hitter.plateAppearance >= gameNum * 3.1;
             })
           : hitterStats;
 
@@ -148,12 +137,12 @@ const KboPage = () => {
                 <th>팀명</th>
                 <th><button onClick={() => handleHitterSort('battingAverage')} className="sort-btn">타율</button></th>
                 <th><button onClick={() => handleHitterSort('gameNum')} className="sort-btn">경기 수</button></th>
-                <th><button onClick={() => handleHitterSort('plateAppearances')} className="sort-btn">타석</button></th>
+                <th><button onClick={() => handleHitterSort('plateAppearance')} className="sort-btn">타석</button></th>
                 <th><button onClick={() => handleHitterSort('run')} className="sort-btn">득점</button></th>
-                <th><button onClick={() => handleHitterSort('hits')} className="sort-btn">안타</button></th>
-                <th><button onClick={() => handleHitterSort('twoBases')} className="sort-btn">2루타</button></th>
-                <th><button onClick={() => handleHitterSort('threeBases')} className="sort-btn">3루타</button></th>
-                <th><button onClick={() => handleHitterSort('homeRuns')} className="sort-btn">홈런</button></th>
+                <th><button onClick={() => handleHitterSort('hit')} className="sort-btn">안타</button></th>
+                <th><button onClick={() => handleHitterSort('twoBase')} className="sort-btn">2루타</button></th>
+                <th><button onClick={() => handleHitterSort('threeBase')} className="sort-btn">3루타</button></th>
+                <th><button onClick={() => handleHitterSort('homeRun')} className="sort-btn">홈런</button></th>
                 <th><button onClick={() => handleHitterSort('runsBattedIn')} className="sort-btn">타점</button></th>
                 <th><button onClick={() => handleHitterSort('fourBall')} className="sort-btn">볼넷</button></th>
                 <th><button onClick={() => handleHitterSort('strikeOut')} className="sort-btn">삼진</button></th>
@@ -165,16 +154,16 @@ const KboPage = () => {
               {Array.isArray(hittersToRender) && hittersToRender.map((hitter, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
-                  <td>{hitter.name}</td>
-                  <td>{hitter.team}</td>
+                  <td>{hitter.playerName}</td>
+                  <td>{hitter.playerTeam}</td>
                   <td>{hitter.battingAverage}</td>
                   <td>{hitter.gameNum}</td>
-                  <td>{hitter.plateAppearances}</td>
+                  <td>{hitter.plateAppearance}</td>
                   <td>{hitter.run}</td>
-                  <td>{hitter.hits}</td>
-                  <td>{hitter.twoBases}</td>
-                  <td>{hitter.threeBases}</td>
-                  <td>{hitter.homeRuns}</td>
+                  <td>{hitter.hit}</td>
+                  <td>{hitter.twoBase}</td>
+                  <td>{hitter.threeBase}</td>
+                  <td>{hitter.homeRun}</td>
                   <td>{hitter.runsBattedIn}</td>
                   <td>{hitter.fourBall}</td>
                   <td>{hitter.strikeOut}</td>
@@ -189,7 +178,7 @@ const KboPage = () => {
       case '투수':
         const pitchersToRender = pitcherSortBy === 'era'
           ? pitcherStats.filter(pitcher => {
-              const gameNum = getTeamGameNum(pitcher.team);
+              const gameNum = getTeamGameNum(pitcher.playerTeam);
               return pitcher.inningsPitched >= gameNum * 1;
             })
           : pitcherStats;
@@ -221,8 +210,8 @@ const KboPage = () => {
               {Array.isArray(pitchersToRender) && pitchersToRender.map((pitcher, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
-                  <td>{pitcher.name}</td>
-                  <td>{pitcher.team}</td>
+                  <td>{pitcher.playerName}</td>
+                  <td>{pitcher.playerTeam}</td>
                   <td>{pitcher.earnedRunAverage}</td>
                   <td>{pitcher.gameNum}</td>
                   <td>{pitcher.win}</td>

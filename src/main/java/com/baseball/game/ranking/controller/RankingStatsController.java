@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.ui.Model; // Model 객체 추가
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +29,7 @@ public class RankingStatsController {
 
     // --- 타자 기록 페이지 ---
     @GetMapping("/hitter-stats")
-    public String getHitterStats(@RequestParam(required = false) String sortBy, Model model) {
+    public List<KboHitterStatsDto> getHitterStats(@RequestParam(required = false) String sortBy) {
         List<KboHitterStatsDto> hitterStats;
         if (sortBy == null) {
             hitterStats = kboStatsService.getHitterStatsOrderByBattingAverage(); // Default
@@ -78,13 +77,12 @@ public class RankingStatsController {
                     break;
             }
         }
-        model.addAttribute("hitterStats", hitterStats); // 데이터를 모델에 추가
-        return "hitter-stats"; // 뷰 이름 반환
+        return hitterStats;
     }
 
     // --- 투수 기록 페이지 ---
     @GetMapping("/pitcher-stats")
-    public String getPitcherStats(@RequestParam(required = false) String sortBy, Model model) {
+    public List<KboPitcherStatsDto> getPitcherStats(@RequestParam(required = false) String sortBy) {
         List<KboPitcherStatsDto> pitcherStats;
         if (sortBy == null) {
             pitcherStats = kboStatsService.getPitcherStatsOrderByERADesc(); // Default
@@ -135,15 +133,13 @@ public class RankingStatsController {
                     break;
             }
         }
-        model.addAttribute("pitcherStats", pitcherStats); // 데이터를 모델에 추가
-        return "pitcher-stats"; // 뷰 이름 반환
+        return pitcherStats;
     }
 
     // --- 팀 기록 페이지 ---
     @GetMapping("/team-stats")
-    public String getTeamStats(@RequestParam(required = false) String sortBy, Model model) {
+    public List<KboTeamStatsDto> getTeamStats(@RequestParam(required = false) String sortBy) {
         List<KboTeamStatsDto> teamStats = kboStatsService.getTeamStatsOrderByWinPercentage(); // 팀 기록은 정렬 옵션이 하나뿐이므로 별도 처리 없이 호출
-        model.addAttribute("teamStats", teamStats); // 데이터를 모델에 추가
-        return "team-stats"; // 뷰 이름 반환
+        return teamStats;
     }
 }

@@ -166,7 +166,7 @@ const PostFormWithComments = () => {
                 <div key={c.id} className="comment-item">
                   <p>{c.text}</p>
                   <small>{c.writer} | {c.createdAt}</small>
-                  {user && parseInt(user.Id, 10) === c.writer && (
+                  {user && parseInt(user.id, 10) === c.writer && (
                     <button onClick={() => deleteComment(c.id, c.writer)}>삭제</button>
                   )}
                 </div>

@@ -101,8 +101,8 @@ export const playerAPI = {
 
 // --------- 인증 API ----------
 export const authAPI = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
+  login: (credentials) => api.post('/login/login', credentials),
+  register: (userData) => api.post('/login/register', userData),
   logout: () => api.post('/auth/logout'),
   refresh: (refreshToken) => api.post('/auth/refresh', { refreshToken }),
 };

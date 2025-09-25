@@ -64,7 +64,7 @@ const Scoreboard = ({ gameState, homeTeam, awayTeam, lineups, inningCount }) => 
           <tr>
             <th>Team</th>
             {Array.from({ length: totalInnings }).map((_, i) => <th key={i}>{i + 1}</th>)}
-            <th>R</th><th>H</th><th>K</th><th>BB</th>
+            <th>R</th><th>H</th><th>B</th>
           </tr>
         </thead>
         <tbody>
@@ -74,7 +74,6 @@ const Scoreboard = ({ gameState, homeTeam, awayTeam, lineups, inningCount }) => 
             {awayScore.map((s, i) => <td key={i}>{s}</td>)}
             <td style={{ fontWeight: "bold" }}>{awayScore.reduce((a, b) => a + b, 0)}</td>
             <td style={{ fontWeight: "bold" }}>{gameState?.awayHit ?? 0}</td>
-            <td style={{ fontWeight: "bold" }}>{gameState?.pitcherGameStats?.strikeouts ?? 0}</td>
             <td style={{ fontWeight: "bold" }}>{gameState?.awayWalks ?? 0}</td>
           </tr>
 
@@ -84,7 +83,6 @@ const Scoreboard = ({ gameState, homeTeam, awayTeam, lineups, inningCount }) => 
             {homeScore.map((s, i) => <td key={i}>{s}</td>)}
             <td style={{ fontWeight: "bold" }}>{homeScore.reduce((a, b) => a + b, 0)}</td>
             <td style={{ fontWeight: "bold" }}>{gameState?.homeHit ?? 0}</td>
-            <td style={{ fontWeight: "bold" }}>{gameState?.pitcherGameStats?.strikeouts ?? 0}</td>
             <td style={{ fontWeight: "bold" }}>{gameState?.homeWalks ?? 0}</td>
           </tr>
 

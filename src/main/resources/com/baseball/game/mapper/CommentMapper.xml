@@ -18,4 +18,9 @@
         SELECT * FROM comment WHERE board_no = #{boardNo} ORDER BY created_at ASC
     </select>
 
+    <insert id="comment" parameterType="com.baseball.game.dto.CommentDto" useGeneratedKeys="true" keyProperty="commentId">
+        INSERT INTO comment (board_no, writer, text, created_at)
+        VALUES (#{boardNo}, #{writer}, #{text}, CURRENT_TIMESTAMP())
+    </insert>
+
 </mapper>

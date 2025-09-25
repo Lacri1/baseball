@@ -28,16 +28,17 @@ const StrikeZone = ({ shots, CM_IN_PX, STRIKE_ZONE_SIZE, onClick }) => {
         ))}
       </div>
       {shots.map((s,i) => (
-        <div key={i} style={{
+        <span key={i} style={{
           position:'absolute',
-          width:6, height:6, borderRadius:'50%',
-          backgroundColor: s.color,
-          top: s.relY-3,
-          left: s.relX-3
-        }}></div>
+          top: s.relY - 8,   // 이모티콘 중심 맞춤
+          left: s.relX - 8,
+          fontSize: '16px',
+          pointerEvents: 'none', // 클릭 방해 안 함
+        }}>
+          ⚾
+        </span>
       ))}
     </div>
   );
 };
-
 export default StrikeZone;

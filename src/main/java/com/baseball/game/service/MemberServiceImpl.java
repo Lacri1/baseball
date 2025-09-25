@@ -21,6 +21,11 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
+    public boolean login(String id, String pw) {
+        return memberMapper.login(id, pw);
+    }
+
+    @Override
     public boolean checkId(String id) {
         return memberMapper.checkId(id);
     }

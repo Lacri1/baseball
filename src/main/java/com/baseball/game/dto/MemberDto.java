@@ -8,8 +8,8 @@ public class MemberDto {
 	private String pw;
 	private String email;
 	private String nickname;
-	private int game;
-	private int win;
-	private int lose;
-	private int draw;
+	private int Game;
+	private int Win;
+	private int Lose;
+	private int Draw;
 }

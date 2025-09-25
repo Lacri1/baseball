@@ -249,24 +249,109 @@
     }
 }
 
+/* 게시글 헤더 - 수정된 레이아웃 */
 .board-detail-header {
+    position: relative;
     border-bottom: 2px solid #f0f0f0;
     padding-bottom: 1.5rem;
     margin-bottom: 2rem;
 }
 
+/* 더보기 메뉴 */
+.board-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.board-actions .menu-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.board-actions .menu-button:hover {
+    background: #f0f0f0;
+    color: var(--text-primary);
+}
+
+.board-actions .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-hover);
+    min-width: 120px;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.board-actions .dropdown-menu.hidden {
+    display: none;
+}
+
+.board-actions .dropdown-menu button {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: none;
+    background: white;
+    text-align: left;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: var(--transition);
+    border-bottom: 1px solid #f0f0f0;
+    color: var(--text-primary); /* 기본 텍스트 색상 추가 */
+}
+
+.board-actions .dropdown-menu button:last-child {
+    border-bottom: none;
+}
+
+.board-actions .dropdown-menu button:hover {
+    background: var(--background-light);
+}
+
+.board-actions .dropdown-menu button.edit-btn {
+    color: var(--text-primary); /* 수정 버튼 기본 색상 */
+}
+
+.board-actions .dropdown-menu button.edit-btn:hover {
+    color: var(--primary-color);
+}
+
+.board-actions .dropdown-menu button.delete-btn {
+    color: #dc3545; /* 삭제 버튼 기본 색상을 빨간색으로 설정 */
+}
+
+.board-actions .dropdown-menu button.delete-btn:hover {
+    color: #c82333; /* 호버 시 더 진한 빨간색 */
+    background: #fff5f5; /* 호버 시 연한 빨간 배경 */
+}
+
+/* 제목 중앙 정렬 */
 .board-detail-title {
     font-size: 1.8rem;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 1rem;
     line-height: 1.4;
+    text-align: center;
+    padding-right: 3rem; /* 더보기 버튼 공간 확보 */
 }
 
+/* 메타 정보 오른쪽 정렬 */
 .board-detail-meta {
     display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
     color: var(--text-muted);
     font-size: 0.9rem;
 }
@@ -283,9 +368,9 @@
     white-space: pre-wrap;
 }
 
-/* 뒤로가기 버튼 */
+/* 뒤로가기 버튼 - 파란색으로 변경 */
 .back-button {
-    background: var(--text-secondary);
+    background: var(--primary-color);
     color: white;
     border: none;
     padding: 0.7rem 1.5rem;
@@ -301,7 +386,7 @@
 }
 
 .back-button:hover {
-    background: #5a6268;
+    background: #00acc1;
     transform: translateY(-1px);
 }
 
@@ -531,6 +616,11 @@
 
     .board-detail-title {
         font-size: 1.4rem;
+        padding-right: 2rem;
+    }
+
+    .board-detail-meta {
+        align-items: flex-start;
     }
 
     .pagination {

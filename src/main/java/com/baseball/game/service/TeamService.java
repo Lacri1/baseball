@@ -13,7 +13,5 @@ public interface TeamService {
 	/**
 	 * 팀별 로스터(타자+투수)를 함께 반환
 	 */
-	    public TeamRoster getRosterByTeam(String teamId);
-
-    public void registerLineup(String gameId, List<String> battingOrder, String startPitcher);
+	public TeamRoster getRosterByTeam(String teamId);
 }

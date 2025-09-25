@@ -1,18 +1,17 @@
 package com.baseball.game.service;
 
-import com.baseball.game.constant.GameConstants;
-import com.baseball.game.dto.*;
-import com.baseball.game.exception.InvalidGameStateException;
+import com.baseball.game.dto.GameDto;
+import com.baseball.game.dto.Batter;
 import com.baseball.game.mapper.MemberMapper;
+import com.baseball.game.exception.InvalidGameStateException;
 import com.baseball.game.util.GameLogicUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.baseball.game.constant.GameConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -43,8 +42,6 @@ public class GameStateServiceImpl implements GameStateService {
 
         // 이전 공격팀의 타순을 다음 타자로 넘겨준다 (3아웃으로 이닝 종료된 타자는 다음 타석에서 제외)
         boolean wasTop = game.isTop();
-        log.info("nextInning: Before toggle, isTop: {}", wasTop);
-
         // 야구 규칙: 마지막 이닝(또는 연장) 초가 끝났고 홈이 앞서면 즉시 경기 종료 (말 생략)
         if (wasTop && game.getInning() >= game.getMaxInning() && game.getHomeScore() > game.getAwayScore()) {
             endGame(gameId);
@@ -72,13 +69,13 @@ public class GameStateServiceImpl implements GameStateService {
         } else {
             // 말에서 다음 이닝 초로: 연장 없음 → 규정 이닝이면 즉시 종료
             if (game.getInning() >= game.getMaxInning()) {
+                log.info("규정 이닝 도달로 게임 종료: {}회 말", game.getInning());
                 endGame(gameId);
                 return game;
             }
             game.setInning(game.getInning() + 1);
             game.setTop(true);
         }
-        log.info("nextInning: After toggle, isTop: {}", game.isTop());
 
         game.setOut(0);
         game.setStrike(0);
@@ -86,7 +83,7 @@ public class GameStateServiceImpl implements GameStateService {
         GameLogicUtil.resetBases(game);
 
         // 초/말 전환에 따라 현재 투수/타자를 재설정 (야구 규칙: 타순은 팀별로 이어짐)
-        List<Batter> newOffense = game.getCurrentOffensiveLineup();
+        java.util.List<com.baseball.game.dto.Batter> newOffense = game.getCurrentOffensiveLineup();
         if (newOffense != null && !newOffense.isEmpty()) {
             if (game.isTop()) {
                 // 원정팀 공격: awayBatterIndex 사용
@@ -108,6 +105,9 @@ public class GameStateServiceImpl implements GameStateService {
 
         log.info("Inning changed to: {} {}", game.getInning(), game.isTop() ? "초" : "말");
 
+        // 이닝 전환 후 게임 종료 조건 확인
+        checkGameOver(gameId);
+
         return game;
     }
 
@@ -115,6 +115,9 @@ public class GameStateServiceImpl implements GameStateService {
     @Transactional
     public GameDto endGame(String gameId) {
         GameDto game = lifecycleService.getGame(gameId);
+
+        log.info("endGame 호출됨 - 게임 ID: {}, 현재 상태: {}회 {}, Home: {} - Away: {}",
+                gameId, game.getInning(), game.isTop() ? "초" : "말", game.getHomeScore(), game.getAwayScore());
 
         game.setGameOver(true);
 
@@ -126,11 +129,12 @@ public class GameStateServiceImpl implements GameStateService {
             game.setWinner("무승부");
         }
 
-        log.info("Game ended. Winner: {}", game.getWinner());
+        log.info("Game ended. Winner: {}, Home: {} - Away: {}", game.getWinner(), game.getHomeScore(),
+                game.getAwayScore());
 
         // 경기 종료 이벤트 기록
         try {
-            PlayEvent end = PlayEvent.builder()
+            com.baseball.game.dto.PlayEvent end = com.baseball.game.dto.PlayEvent.builder()
                     .type("GAME_END")
                     .inning(game.getInning())
                     .isTop(game.isTop())
@@ -150,7 +154,7 @@ public class GameStateServiceImpl implements GameStateService {
                     .awayWalks(game.getAwayWalks())
                     .build();
             if (game.getEventLog() == null) {
-                game.setEventLog(new ArrayList<>());
+                game.setEventLog(new java.util.ArrayList<>());
             }
             game.getEventLog().add(end);
         } catch (Exception ignored) {
@@ -212,9 +216,9 @@ public class GameStateServiceImpl implements GameStateService {
             try {
                 if (batterName != null) {
                     if (game.getBatterGameStatsMap() == null)
-                        game.setBatterGameStatsMap(new HashMap<>());
-                    BatterGameStats bs = game.getBatterGameStatsMap()
-                            .getOrDefault(batterName, BatterGameStats.builder()
+                        game.setBatterGameStatsMap(new java.util.HashMap<>());
+                    com.baseball.game.dto.BatterGameStats bs = game.getBatterGameStatsMap()
+                            .getOrDefault(batterName, com.baseball.game.dto.BatterGameStats.builder()
                                     .playerName(batterName).build());
                     bs.setPlateAppearances(bs.getPlateAppearances() + 1);
                     bs.setAtBats(bs.getAtBats() + 1);
@@ -223,9 +227,9 @@ public class GameStateServiceImpl implements GameStateService {
                 }
                 if (pitcherName != null) {
                     if (game.getPitcherGameStatsMap() == null)
-                        game.setPitcherGameStatsMap(new HashMap<>());
-                    PitcherGameStats ps = game.getPitcherGameStatsMap()
-                            .getOrDefault(pitcherName, PitcherGameStats.builder()
+                        game.setPitcherGameStatsMap(new java.util.HashMap<>());
+                    com.baseball.game.dto.PitcherGameStats ps = game.getPitcherGameStatsMap()
+                            .getOrDefault(pitcherName, com.baseball.game.dto.PitcherGameStats.builder()
                                     .playerName(pitcherName).build());
                     ps.setStrikeouts(ps.getStrikeouts() + 1);
                     ps.setOutsRecorded(ps.getOutsRecorded() + 1);
@@ -236,7 +240,7 @@ public class GameStateServiceImpl implements GameStateService {
 
             // 이벤트 로그 추가: 삼진 아웃 (리셋 전 카운트 기록)
             try {
-                PlayEvent ev = PlayEvent.builder()
+                com.baseball.game.dto.PlayEvent ev = com.baseball.game.dto.PlayEvent.builder()
                         .type("PA_END")
                         .inning(game.getInning())
                         .isTop(game.isTop())
@@ -252,13 +256,15 @@ public class GameStateServiceImpl implements GameStateService {
                         .awayScore(game.getAwayScore())
                         .build();
                 if (game.getEventLog() == null) {
-                    game.setEventLog(new ArrayList<>());
+                    game.setEventLog(new java.util.ArrayList<>());
                 }
                 game.getEventLog().add(ev);
             } catch (Exception ignored) {
             }
 
-            advanceBattingOrder(gameId);
+            if (game.getOut() < 3) {
+                advanceBattingOrder(gameId);
+            }
             log.debug("Strikeout. Outs: {}", game.getOut());
         }
 
@@ -289,9 +295,9 @@ public class GameStateServiceImpl implements GameStateService {
             try {
                 if (batterName != null) {
                     if (game.getBatterGameStatsMap() == null)
-                        game.setBatterGameStatsMap(new HashMap<>());
-                    BatterGameStats bs = game.getBatterGameStatsMap()
-                            .getOrDefault(batterName, BatterGameStats.builder()
+                        game.setBatterGameStatsMap(new java.util.HashMap<>());
+                    com.baseball.game.dto.BatterGameStats bs = game.getBatterGameStatsMap()
+                            .getOrDefault(batterName, com.baseball.game.dto.BatterGameStats.builder()
                                     .playerName(batterName).build());
                     // 볼넷은 타석(Plate Appearance)만 증가, 타수(At-bat)는 증가하지 않음
                     bs.setPlateAppearances(bs.getPlateAppearances() + 1);
@@ -303,9 +309,9 @@ public class GameStateServiceImpl implements GameStateService {
                 }
                 if (pitcherName != null) {
                     if (game.getPitcherGameStatsMap() == null)
-                        game.setPitcherGameStatsMap(new HashMap<>());
-                    PitcherGameStats ps = game.getPitcherGameStatsMap()
-                            .getOrDefault(pitcherName, PitcherGameStats.builder()
+                        game.setPitcherGameStatsMap(new java.util.HashMap<>());
+                    com.baseball.game.dto.PitcherGameStats ps = game.getPitcherGameStatsMap()
+                            .getOrDefault(pitcherName, com.baseball.game.dto.PitcherGameStats.builder()
                                     .playerName(pitcherName).build());
                     ps.setWalks(ps.getWalks() + 1);
                     if (runsScored > 0) {
@@ -318,7 +324,7 @@ public class GameStateServiceImpl implements GameStateService {
 
             // 이벤트 로그: 볼넷 기록 (리셋 전 카운트 기록, PA_END를 먼저 기록)
             try {
-                PlayEvent ev = PlayEvent.builder()
+                com.baseball.game.dto.PlayEvent ev = com.baseball.game.dto.PlayEvent.builder()
                         .type("PA_END")
                         .inning(game.getInning())
                         .isTop(game.isTop())
@@ -334,7 +340,7 @@ public class GameStateServiceImpl implements GameStateService {
                         .awayScore(game.getAwayScore())
                         .build();
                 if (game.getEventLog() == null) {
-                    game.setEventLog(new ArrayList<>());
+                    game.setEventLog(new java.util.ArrayList<>());
                 }
                 game.getEventLog().add(ev);
             } catch (Exception ignored) {
@@ -384,15 +390,28 @@ public class GameStateServiceImpl implements GameStateService {
         // 역할: 규정 이닝 도달/초말 상태에 따른 경기 종료 조건 확인
         GameDto game = lifecycleService.getGame(gameId);
 
+        log.debug("게임 종료 조건 확인: {}회 {}, Home: {} - Away: {}",
+                game.getInning(), game.isTop() ? "초" : "말", game.getHomeScore(), game.getAwayScore());
+
         // 끝내기: 마지막 이닝(이상) 말이고 홈이 앞서는 순간 즉시 종료
         if (game.getInning() >= game.getMaxInning() && !game.isTop()) {
             if (game.getHomeScore() > game.getAwayScore()) {
+                log.info("끝내기 조건 만족으로 게임 종료: {}회 말, Home: {} - Away: {}",
+                        game.getInning(), game.getHomeScore(), game.getAwayScore());
                 endGame(gameId);
                 return;
             }
         }
 
-        // 연장은 제외하므로, 위의 walk-off 조건 외 추가 처리는 불필요
+        // 규정 이닝 종료: 9회 말이 끝나면 게임 종료 (3아웃으로 이닝이 끝난 경우)
+        if (game.getInning() > game.getMaxInning()) {
+            log.info("규정 이닝 초과로 게임 종료: {}회, Home: {} - Away: {}",
+                    game.getInning(), game.getHomeScore(), game.getAwayScore());
+            endGame(gameId);
+            return;
+        }
+
+        // 연장은 제외하므로, 위의 조건 외 추가 처리는 불필요
     }
 
     @Override

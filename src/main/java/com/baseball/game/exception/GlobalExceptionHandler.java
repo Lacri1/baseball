@@ -6,8 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import java.util.stream.Collectors;
 import com.baseball.game.dto.ApiResponse;
 
 @RestControllerAdvice
@@ -36,17 +34,6 @@ public class GlobalExceptionHandler {
         logger.warn("입력값 검증 실패: {}", e.getMessage());
 
         ApiResponse<Void> response = ApiResponse.error(e.getMessage(), "VALIDATION_ERROR");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .collect(Collectors.joining(", "));
-        logger.warn("유효성 검사 실패: {}", errorMessage);
-
-        ApiResponse<Void> response = ApiResponse.error(errorMessage, "VALIDATION_ERROR");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

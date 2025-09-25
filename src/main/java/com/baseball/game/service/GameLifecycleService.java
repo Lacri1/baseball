@@ -43,13 +43,4 @@ public interface GameLifecycleService {
      * 영속 저장소가 주입되지 않은 환경에서는 no-op.
      */
     void saveGame(String gameId);
-
-    /**
-     * 게임의 라인업을 업데이트합니다.
-     * 
-     * @param gameId 게임 ID
-     * @param teamName 팀 이름
-     * @param lineupRequest 라인업 요청 DTO
-     */
-    void updateLineup(String gameId, String teamName, com.baseball.game.dto.LineupRequest lineupRequest);
 }

@@ -211,12 +211,12 @@ class GameControllerTest {
                 // Given
                 GameActionRequest request = new GameActionRequest();
                 request.setSwing(true);
-                request.setTiming(0.5); // Changed to Double
+                request.setTiming(true); // Changed to Boolean
                 request.setPitchType("strike"); // Added to satisfy @NotNull
                 String swingResult = "홈런!";
 
                 // Mocking
-                given(gameService.batterSwing(anyString(), anyBoolean(), anyDouble())).willReturn(swingResult);
+                given(gameService.batterSwing(anyString(), anyBoolean(), anyBoolean())).willReturn(swingResult);
                 sampleGameDto.setCurrentBatter(null);
                 sampleGameDto.setCurrentPitcher(null);
                 given(gameService.getGame(gameId)).willReturn(sampleGameDto);
@@ -248,7 +248,7 @@ class GameControllerTest {
                 // Given: 스윙 결정 정보가 없는 잘못된 요청
                 GameActionRequest request = new GameActionRequest();
                 request.setSwing(null);
-                request.setTiming(0.5);
+                request.setTiming(null);
 
                 // When & Then
                 mockMvc.perform(post("/api/baseball/game/{gameId}/batter", gameId)

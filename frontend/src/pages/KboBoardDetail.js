@@ -17,36 +17,70 @@ const KboBoardDetail = () => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingCommentText, setEditingCommentText] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showDropdown, setShowDropdown] = useState(false); // 더보기 메뉴 상태
+  const [prevCommentsLength, setPrevCommentsLength] = useState(0); // 이전 댓글 수 추적
 
   const commentsEndRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   const scrollToBottom = () => {
     commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // 더보기 메뉴 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // 게시글 + 댓글 불러오기
   const fetchBoardDetail = async () => {
     try {
       const res = await axios.get(`http://localhost:8080/api/board/${id}`);
       setBoard(res.data.board);
-      setComments(res.data.comments || []);
+      const newComments = res.data.comments || [];
+      setComments(newComments);
+      return newComments.length;
     } catch (err) {
       console.error(err);
       alert('게시글 로딩 실패');
+      return 0;
     }
   };
 
   useEffect(() => {
     setLoading(true);
-    fetchBoardDetail().finally(() => setLoading(false));
+    fetchBoardDetail().then(commentsLength => {
+      setPrevCommentsLength(commentsLength);
+      setLoading(false);
+    });
 
-    const interval = setInterval(fetchBoardDetail, 5000); // 5초마다 댓글 갱신
+    const interval = setInterval(async () => {
+      const commentsLength = await fetchBoardDetail();
+      // 댓글 수가 증가했을 때만 스크롤
+      if (commentsLength > prevCommentsLength) {
+        setPrevCommentsLength(commentsLength);
+        setTimeout(scrollToBottom, 100); // 약간의 지연 후 스크롤
+      }
+    }, 5000); // 5초마다 댓글 갱신
+
     return () => clearInterval(interval);
   }, [id]);
 
+  // 댓글이 새로 작성되었을 때만 스크롤 (댓글 수가 증가한 경우)
   useEffect(() => {
-    scrollToBottom();
-  }, [comments]);
+    if (comments.length > prevCommentsLength && prevCommentsLength > 0) {
+      scrollToBottom();
+    }
+  }, [comments.length, prevCommentsLength]);
 
   // 댓글 작성
   const handleCommentSubmit = async () => {
@@ -59,12 +93,14 @@ const KboBoardDetail = () => {
     try {
       await axios.post(`http://localhost:8080/api/comment`, {
         boardNo: id,
-        writer: user.Id,
+        writer: user.id, // Changed user.Id to user.id
         text: newComment.trim(),
       }, { headers: { 'Content-Type': 'application/json' } });
 
       setNewComment('');
-      fetchBoardDetail(); // 댓글 목록 갱신
+      const newCommentsLength = await fetchBoardDetail(); // 댓글 목록 갱신
+      setPrevCommentsLength(newCommentsLength);
+      setTimeout(scrollToBottom, 100); // 새 댓글 작성 시 스크롤
     } catch (err) {
       console.error(err);
       alert('댓글 작성 실패');
@@ -73,7 +109,7 @@ const KboBoardDetail = () => {
 
   // 댓글 삭제
   const handleCommentDelete = async (commentId, commentWriter) => {
-    if (!user || user.Id !== commentWriter) {
+    if (!user || user.id !== commentWriter) { // Changed user.Id to user.id
       alert('자신의 댓글만 삭제 가능합니다.');
       return;
     }
@@ -86,6 +122,35 @@ const KboBoardDetail = () => {
       console.error(err);
       alert('댓글 삭제 실패');
     }
+  };
+
+  // 게시글 삭제
+  const handleDeletePost = async () => {
+    if (!user || user.id !== board.writer) {
+      alert('본인 글만 삭제 가능합니다.');
+      return;
+    }
+    if (!window.confirm('게시글을 삭제하시겠습니까?')) return;
+
+    try {
+      await axios.delete(`http://localhost:8080/api/board/${id}`, { params: { writer: user.id } });
+      alert('게시글이 삭제되었습니다.');
+      navigate('/kboBoard');
+    } catch (err) {
+      console.error(err);
+      alert('게시글 삭제 실패');
+    }
+    setShowDropdown(false); // 드롭다운 닫기
+  };
+
+  // 게시글 수정
+  const handleEditPost = () => {
+    if (!user || user.id !== board.writer) {
+      alert('본인 글만 수정 가능합니다.');
+      return;
+    }
+    navigate(`/PostFormWithComments/edit/${id}`);
+    setShowDropdown(false); // 드롭다운 닫기
   };
 
   const startEditing = (commentId, text) => {
@@ -102,7 +167,8 @@ const KboBoardDetail = () => {
       });
       setEditingCommentId(null);
       setEditingCommentText('');
-      fetchBoardDetail();
+      const newCommentsLength = await fetchBoardDetail();
+      setPrevCommentsLength(newCommentsLength);
     } catch (err) {
       console.error(err);
       alert('댓글 수정 실패');
@@ -132,6 +198,11 @@ const KboBoardDetail = () => {
     }
   };
 
+  // 더보기 메뉴 토글
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
+
   if (loading) {
     return (
         <div className="board-detail-container">
@@ -151,13 +222,24 @@ const KboBoardDetail = () => {
   return (
       <div className="board-detail-container">
         <button className="back-button" onClick={() => navigate(-1)}>
-          ← 목록으로
+          ⬅
         </button>
 
         {/* 게시글 상세 */}
         <div className="board-detail-content">
           <div className="board-detail-header">
             <h1 className="board-detail-title">{board.title}</h1>
+            {user && user.id === board.writer && (
+                <div className="board-actions" ref={dropdownRef}>
+                  <button onClick={toggleDropdown} className="menu-button">
+                    ⋯
+                  </button>
+                  <div className={`dropdown-menu ${!showDropdown ? 'hidden' : ''}`}>
+                    <button onClick={handleEditPost} className="edit-btn">수정</button>
+                    <button onClick={handleDeletePost} className="delete-btn">삭제</button>
+                  </div>
+                </div>
+            )}
             <div className="board-detail-meta">
               <span>작성자: {board.writer}</span>
               <span>작성일: {formatDate(board.createdAt)}</span>

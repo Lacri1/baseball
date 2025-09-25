@@ -3,12 +3,9 @@ package com.baseball.game.service;
 import com.baseball.game.dto.MemberDto;
 import java.util.Map;
 public interface MemberService {
+    boolean login(String id, String pw);
 
     boolean checkId(String id);
-
-    boolean checkNickname(String nickname);
-
-    boolean checkNicknameForUpdate(String nickname, String id);
 
     void register(MemberDto memberDto);
 
@@ -17,6 +14,10 @@ public interface MemberService {
     Map<String, Object> loginProcess(MemberDto memberDto);
 
     Map<String, Object> registerProcess(MemberDto memberDto);
+
+    boolean checkNickname(String nickname);
+
+    boolean checkNicknameForUpdate(String nickname, String id);
 
     void updateMember(MemberDto memberDto);
 

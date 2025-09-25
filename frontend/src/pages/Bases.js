@@ -1,44 +1,26 @@
-
 // Bases.js
 import React from 'react';
-import img111 from '../styles/111.png';
+import '../styles/Bases.css';
 
-const Bases = ({ bases }) => {
+const Bases = ({ bases, basePlayers }) => {
   const positions = [
-    { left: '220px', top: '250px' }, // 1루
-    { left: '130px', top: '150px' }, // 2루
-    { left: '40px', top: '250px' }   // 3루
+    { left: '320px', top: '250px' }, // 1루
+    { left: '200px', top: '150px' }, // 2루
+    { left: '80px', top: '250px' }   // 3루
   ];
 
   if (!bases) return null;
 
   return (
-    <div style={{
-      position: 'relative',
-      width: 300,
-      height: 500,
-      border: '1px solid #ccc',
-      marginTop: 10,
-      backgroundImage: `url(${img111})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center'
-    }}>
+    <div className="bases-field">
       {bases.map((b, i) => positions[i] && (
-        <div key={i} style={{
-          position: 'absolute',
-          width: 40,
-          height: 40,
-          background: b ? 'yellow' : 'white',
-          border: '2px solid #333',
-          left: positions[i].left,
-          top: positions[i].top,
-          transform: 'rotate(45deg)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          cursor: 'default'
-        }}>
-          <span style={{ transform: 'rotate(-45deg)', color: b ? '#000' : '#666' }}>{i+1}루</span>
+        <div key={i} className={`base base-${i + 1} ${b ? 'occupied' : 'empty'}`}>
+          <span className="base-number"></span>
+          {b && basePlayers && basePlayers[i] && (
+            <span className="base-player">
+              {basePlayers[i].name || basePlayers[i]}
+            </span>
+          )}
         </div>
       ))}
     </div>

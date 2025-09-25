@@ -8,6 +8,7 @@ import StrikeZoneContainer from "./StrikeZoneContainer";
 import Bases from "./Bases";
 import { PitchGauge, SwingGauge } from "./PitchGauge";
 import MessageBox from "./MessageBox";
+import "../styles/GamePage.css";
 
 const GamePage = () => {
   const { state } = useLocation();
@@ -15,7 +16,8 @@ const GamePage = () => {
 
   // 로컬스토리지 또는 state에서 게임 정보 가져오기
   const savedGameInfo = JSON.parse(localStorage.getItem("gameInfo") || "{}");
-  const { gameId, userTeam, homeTeam, awayTeam, inningCount } = state || savedGameInfo || {};
+  const { gameId, userTeam, homeTeam, awayTeam, inningCount } =
+    state || savedGameInfo || {};
 
   useEffect(() => {
     if (state) localStorage.setItem("gameInfo", JSON.stringify(state));
@@ -52,7 +54,8 @@ const GamePage = () => {
 
   // ===== 사용자 공격 여부 판단 =====
   const userIsHome = homeTeam === userTeam;
-  const offenseIsTop = String(gameState.isTop ? "TOP" : "BOTTOM").toUpperCase() === "TOP";
+  const offenseIsTop =
+    String(gameState.isTop ? "TOP" : "BOTTOM").toUpperCase() === "TOP";
   const isUserOffenseNow = offenseIsTop ? !userIsHome : userIsHome;
 
   // ===== 메시지 & 게이지 상태 =====
@@ -63,15 +66,82 @@ const GamePage = () => {
   const [currentType, setCurrentType] = useState(null);
   const [selectedShot, setSelectedShot] = useState(null);
 
+  // ===== 이벤트 로그 상태 =====
+  const [showEventLog, setShowEventLog] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
+  const handleMessageBoxClick = () => {
+    setShowEventLog(!showEventLog); // 클릭 시 토글
+  };
+
+  // ----- 서버 메시지 파싱 -----
+  const parseServerMessage = (rawMsg = "") => {
+    let msg = rawMsg || "";
+    msg = msg.replace("스윙/노스윙 처리 완료:", "").trim();
+    const [leftRaw, rightRaw] = msg
+      .split("|")
+      .map((s) => (s || "").trim());
+    const leftPitch = (leftRaw || "").replace("투구 처리 완료:", "").trim();
+    const rightAction = rightRaw || "";
+    const isNoSwing = /스윙\s*안\s*함/u.test(msg);
+
+    if (isNoSwing) return leftPitch || "볼";
+    if (msg.includes("타격")) {
+      let onlyHit = rightAction || msg;
+      onlyHit = onlyHit.replace(/^컴퓨터\s*타격:\s*/u, "").trim();
+      return onlyHit || "타석 결과";
+    }
+    if (leftPitch) return leftPitch;
+    return msg || "타석 결과";
+  };
+
+  // ----- 볼넷/삼진 판정용 이전 카운트 저장 -----
+  const countsBeforeActionRef = useRef({
+    balls: 0,
+    strikes: 0,
+    homeWalks: 0,
+    awayWalks: 0,
+  });
+
+  const snapshotCounts = () => {
+    countsBeforeActionRef.current = {
+      balls: gameState.balls ?? 0,
+      strikes: gameState.strikes ?? 0,
+      homeWalks: gameState.homeWalks ?? 0,
+      awayWalks: gameState.awayWalks ?? 0,
+    };
+  };
+
+  // ----- 메시지 결정 -----
+  const inferAndSetMessage = (rawMsg = "", resData = null) => {
+    const prev = countsBeforeActionRef.current;
+    const parsed = parseServerMessage(rawMsg);
+
+    if (/볼넷|4구/u.test(rawMsg)) return setMessage("볼넷");
+    if (parsed === "볼") {
+      const newBall = (prev.balls ?? 0) + 1;
+      if (newBall >= 4) return setMessage("볼넷");
+      return setMessage(`${newBall}볼`);
+    }
+    if (parsed === "스트라이크") {
+      const newStrike = (prev.strikes ?? 0) + 1;
+      if (newStrike >= 3) return setMessage("삼진 아웃");
+      return setMessage(`${newStrike}스트라이크`);
+    }
+    setMessage(parsed || "타석 결과");
+  };
+
   // ===== 게임 상태 fetch =====
   const fetchGameState = async () => {
     if (!gameId) return;
     try {
       const res = await gameAPI.getGameView(gameId);
       const data = res.data.data;
-      const basesArray = data.bases ? data.bases.map(b => b !== null) : [false, false, false];
+      const basesArray = data.bases
+        ? data.bases.map((b) => b !== null)
+        : [false, false, false];
 
-      setGameState(prev => ({
+      setGameState((prev) => ({
         ...prev,
         inning: data.inning,
         isTop: data.offenseSide === "TOP",
@@ -109,7 +179,7 @@ const GamePage = () => {
     const myScores = Array(gameState.inningCount).fill(0);
     const opponentScores = Array(gameState.inningCount).fill(0);
 
-    gameState.eventLog.forEach(event => {
+    gameState.eventLog.forEach((event) => {
       const idx = event.inning - 1;
       if (event.team === homeTeam) myScores[idx] += event.run || 0;
       else if (event.team === awayTeam) opponentScores[idx] += event.run || 0;
@@ -122,7 +192,7 @@ const GamePage = () => {
   useEffect(() => {
     if (!gameState.eventLog || gameState.eventLog.length === 0) return;
 
-    const gameEndEvent = gameState.eventLog.find(e => e.type === "GAME_END");
+    const gameEndEvent = gameState.eventLog.find((e) => e.type === "GAME_END");
     if (gameEndEvent) {
       navigate("/game/result", {
         state: {
@@ -152,8 +222,9 @@ const GamePage = () => {
     setCurrentType(null);
     setSwingGauge(0);
     try {
+      snapshotCounts();
       const res = await gameAPI.swing(gameId, { swing: true, timing: true });
-      setMessage(res.data.message || "스윙 완료!");
+      inferAndSetMessage(res.data.message, res.data.data);
       await fetchGameState();
     } catch (err) {
       console.error(err);
@@ -167,8 +238,9 @@ const GamePage = () => {
     setCurrentType(null);
     setSwingGauge(0);
     try {
+      snapshotCounts();
       const res = await gameAPI.swing(gameId, { swing: false, timing: false });
-      setMessage(res.data.message || "타격 건너뛰기!");
+      inferAndSetMessage(res.data.message, res.data.data);
       await fetchGameState();
     } catch (err) {
       console.error(err);
@@ -176,64 +248,148 @@ const GamePage = () => {
     }
   };
 
-  if (!gameId) return <div style={{ padding: 20, textAlign: "center" }}><h2>게임 정보를 불러오는 중...</h2></div>;
+  if (!gameId)
+    return (
+      <div style={{ padding: 20, textAlign: "center" }}>
+        <h2>게임 정보를 불러오는 중...</h2>
+      </div>
+    );
 
   return (
-    <div style={{ padding: 20 }}>
-      <MessageBox message={message} />
-      <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
-        <Scoreboard
-          gameState={{ ...gameState, score: inningScores }}
-          homeTeam={homeTeam}
-          awayTeam={awayTeam}
-          lineups={{}}
-          inningCount={gameState.inningCount}
-        />
-        <div style={{ margin: 180, display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <div style={{ transform: "scale(1.8)" }}>
+    <div className="game-container">
+      <div className="game-content">
+        <div className="game-left-section">
+          <Scoreboard
+            gameState={{ ...gameState, score: inningScores }}
+            homeTeam={homeTeam}
+            awayTeam={awayTeam}
+            lineups={{}}
+            inningCount={gameState.inningCount}
+          />
+          <Scoreboard22
+            strike={gameState.strikes}
+            ball={gameState.balls}
+            out={gameState.outs}
+            innings={inningScores}
+            bases={gameState.bases}
+          />
+        </div>
+
+        <div className="game-center-section">
+          <div className="bases-container">
             <Bases bases={gameState.bases} basePlayers={gameState.basePlayers} />
           </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
 
-          {/* 공격일 때: 스윙 게이지 + 타격 버튼 + 스트라이크존 */}
-          {isUserOffenseNow && (
-            <>
-              <SwingGauge value={swingGauge} />
-              <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-                <button onClick={startSwingGauge} disabled={animating} style={{ padding: "8px 16px", backgroundColor: "#4A90E2", color: "white", borderRadius: 6 }}>⚾ 타격 준비</button>
-                <button onClick={handleSwing} disabled={!animating || currentType !== "swing"} style={{ padding: "8px 16px", backgroundColor: "#4A90E2", color: "white", borderRadius: 6 }}>🏏 스윙</button>
-                <button onClick={handleNoSwing} style={{ padding: "8px 16px", backgroundColor: "#6C757D", color: "white", borderRadius: 6 }}>❌ 노스윙</button>
+        <div className="game-right-section">
+          <div onClick={handleMessageBoxClick}>
+            <MessageBox message={message} />
+          </div>
+
+          {/* 이벤트 로그 목록 */}
+          {showEventLog && (
+            <div
+              style={{
+                marginTop: "10px",
+                maxHeight: "200px",
+                overflowY: "auto",
+                border: "1px solid #4a69bd",
+                padding: "10px",
+                background: "#f0f4ff",
+                minWidth: "200px",
+              }}
+            >
+              {gameState.eventLog.map((event, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setSelectedEvent(event)}
+                  style={{
+                    padding: "5px",
+                    marginBottom: "5px",
+                    cursor: "pointer",
+                    background: selectedEvent === event ? "#d0d8ff" : "transparent",
+                  }}
+                >
+                  {event.inning}회 {event.offenseTeam} - {event.batter} ({event.result})
+                </div>
+              ))}
+            </div>
+          )}
+
+
+          <div className={`game-status ${isUserOffenseNow ? "offense" : "defense"}`}>
+            <p className="game-status-text">
+              {isUserOffenseNow ? "⚾ 공격 중" : "🥎 수비 중"}
+            </p>
+            <p className="game-status-info">
+              {gameState.inning}회 {gameState.isTop ? "초" : "말"} |{" "}
+              {gameState.offenseTeam} vs {gameState.defenseTeam}
+            </p>
+          </div>
+
+
+          <div className="game-controls">
+            {isUserOffenseNow && (
+              <div className="game-controls-container">
+          <div className="gauge-container">
+            <div className="gauge-label">타격 게이지</div>
+            <div className="gauge-bar">
+              <div className="gauge-fill swing" style={{ width: `${swingGauge}%` }} />
+            </div>
+          </div>
+                <button
+                  className="game-button swing"
+                  onClick={startSwingGauge}
+                  disabled={animating}
+                >
+                  ⚾ 타격 준비
+                </button>
+                <button
+                  className="game-button swing"
+                  onClick={handleSwing}
+                  disabled={!animating || currentType !== "swing"}
+                >
+                  🏏 스윙
+                </button>
+                <button className="game-button no-swing" onClick={handleNoSwing}>
+                  ❌ 노스윙
+                </button>
               </div>
-            
-            </>
-          )}
+            )}
 
-          {/* 수비일 때: 투구 버튼 + 스트라이크존 + 투구 게이지 */}
-          {!isUserOffenseNow && (
-            <>
-            <StrikeZoneContainer selectedShot={selectedShot} setSelectedShot={setSelectedShot} />
-              <PitchGauge value={pitchGauge} />
-              <button
-                onClick={async () => {
-                  if (!selectedShot) {
-                    setMessage("스트라이크존을 선택하세요!");
-                    return;
-                  }
-                  const type = selectedShot.color === "blue" ? "strike" : "ball";
-                  await gameAPI.pitch(gameId, { type, pitchType: type, zoneColor: selectedShot.color });
-                  setMessage(`투구 전송 완료: ${type}`);
-                  setSelectedShot(null);
-                  await fetchGameState();
-                }}
-                style={{ padding: "8px 16px", backgroundColor: "#28A745", color: "white", borderRadius: 6 }}
-              >
-                🥎 투구
-              </button>
-            </>
-          )}
-
-          <Scoreboard22 strike={gameState.strikes} ball={gameState.balls} out={gameState.outs} innings={inningScores} bases={gameState.bases} />
+            {!isUserOffenseNow && (
+              <div className="game-controls-container">
+                <div className="strike-zone-container">
+                  <StrikeZoneContainer
+                    selectedShot={selectedShot}
+                    setSelectedShot={setSelectedShot}
+                  />
+                </div>
+                
+                <button
+                  className="game-button pitch"
+                  onClick={async () => {
+                    if (!selectedShot) {
+                      setMessage("스트라이크존을 선택하세요!");
+                      return;
+                    }
+                    snapshotCounts();
+                    const type = selectedShot.color === "blue" ? "strike" : "ball";
+                    const res = await gameAPI.pitch(gameId, {
+                      type,
+                      pitchType: type,
+                      zoneColor: selectedShot.color,
+                    });
+                    inferAndSetMessage(res.data.message, res.data.data);
+                    setSelectedShot(null);
+                    await fetchGameState();
+                  }}
+                >
+                  🥎 투구
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

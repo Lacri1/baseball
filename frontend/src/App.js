@@ -7,7 +7,7 @@ import HomePage from './pages/HomePage';
 import KboPage from './pages/KboPage';
 import KboBoard from './pages/KboBoard';
 import KboBoardDetail from './pages/KboBoardDetail';
-import LoginPage from './pages/loginpage.js';
+import LoginPage from './pages/LoginPage.js';
 import ProfilePage from './pages/ProfilePage';
 import PostForm2 from './pages/PostForm2';
 import PostFormWithComments from './pages/PostFormWithComments';
