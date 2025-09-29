@@ -36,6 +36,7 @@ function App() {
             <Route path="/kboBoard" element={<KboBoard />} />
             <Route path="/kboBoard/:id" element={<KboBoardDetail />} />
             <Route path="/PostFormWithComments/new" element={<PostFormWithComments />} />
+            <Route path="/PostFormWithComments/edit/:id" element={<PostFormWithComments />} />
             <Route path="/PostForm2/edit/:id" element={<PostForm2 />} />
             <Route path="/game/setup" element={<TeamSetupPage />} />
             <Route path="/game/game" element={<MainPage />} />

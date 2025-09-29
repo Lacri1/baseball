@@ -36,8 +36,8 @@ public class BoardServiceImpl implements BoardService {
 	}
 
 	@Override
-	public void modify(int no, String text, String writer) {
-		int updated = mapper.modify(no, text, writer);
+	public void modify(int no, BoardRequestDto requestDto) {
+		int updated = mapper.modify(no, requestDto.getTitle(), requestDto.getText(), requestDto.getCategory(), requestDto.getWriter());
 		if (updated == 0) {
 			throw new RuntimeException("FORBIDDEN: writer mismatch or post not found");
 		}

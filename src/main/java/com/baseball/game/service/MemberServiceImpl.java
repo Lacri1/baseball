@@ -4,7 +4,6 @@ import com.baseball.game.dto.MemberDto;
 import com.baseball.game.mapper.MemberMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import lombok.Setter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.baseball.game.exception.ValidationException;
 import org.slf4j.Logger;
@@ -13,13 +12,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public
-class MemberServiceImpl implements MemberService {
-    @Setter(onMethod_ = @Autowired)
-    private MemberMapper memberMapper;
+public class MemberServiceImpl implements MemberService {
 
+    private final MemberMapper memberMapper;
+    private final PasswordEncoder passwordEncoder;
     private static final Logger logger = LoggerFactory.getLogger(MemberServiceImpl.class);
 
+    @Autowired
+    public MemberServiceImpl(MemberMapper memberMapper, PasswordEncoder passwordEncoder) {
+        this.memberMapper = memberMapper;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public boolean login(String id, String pw) {
@@ -80,9 +83,6 @@ class MemberServiceImpl implements MemberService {
         }
         return response;
     }
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Override
     public boolean checkNickname(String nickname) {

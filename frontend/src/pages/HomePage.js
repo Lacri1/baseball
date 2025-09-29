@@ -33,9 +33,14 @@ const HomePage = () => {
         // setLoginMessage(''); // This line will be removed
 
         try {
-            const res = await authAPI.login({
-                id: username,
-                pw: password
+            const params = new URLSearchParams();
+            params.append('username', username);
+            params.append('password', password);
+
+            const res = await api.post('/login', params, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
             });
 
             if (res.data.success) {

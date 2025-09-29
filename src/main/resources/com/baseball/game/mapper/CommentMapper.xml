@@ -23,4 +23,15 @@
         VALUES (#{boardNo}, #{writer}, #{text}, CURRENT_TIMESTAMP())
     </insert>
 
+    <update id="update">
+        UPDATE comment
+        SET text = #{text}
+        WHERE board_no = #{boardNo} AND comment_id = #{commentId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM comment
+        WHERE board_no = #{boardNo} AND comment_id = #{commentId}
+    </delete>
+
 </mapper>

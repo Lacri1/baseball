@@ -15,7 +15,6 @@ const LoginPage = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        console.log("Login attempt with ID:", id, "PW:", pw); // ★★★ 추가된 로그 ★★★
         try {
             // Spring Security가 기대하는 form-urlencoded 형태로 데이터 전송
             const params = new URLSearchParams();
@@ -27,8 +26,6 @@ const LoginPage = () => {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 }
             });
-
-            console.log("Backend response on login:", res.data); // ★★★ 추가된 로그 ★★★
 
             if (res.data.success) {
                 login(res.data.userInfo); // <-- userInfo가 제대로 전달되는지 확인
