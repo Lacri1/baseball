@@ -39,7 +39,7 @@ spring:
         min-idle: 0 
   logging:
     level:
-      com.baseball.game: DEBUG # 애플리케이션 패키지 로그 레벨 DEBUG
+      com.baseball.game: INFO # 애플리케이션 패키지 로그 레벨 DEBUG
       org.springframework.data.redis: WARN
       org.springframework.security: DEBUG # Spring Security 로그 레벨 DEBUG
     pattern:

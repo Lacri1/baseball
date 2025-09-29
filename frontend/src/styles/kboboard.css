@@ -175,7 +175,7 @@
 }
 
 .delete-btn:hover {
-    background: #c82333;
+    background: #ff6363;
     transform: scale(1.05);
 }
 
@@ -565,21 +565,16 @@
     background: #5a6268;
 }
 
-/* 로딩 및 빈 상태 */
-.loading,
 .empty-state {
     text-align: center;
-    padding: 3rem;
-    color: var(--text-muted);
-    font-size: 1.1rem;
-}
-
-.empty-state {
-    background: var(--background-card);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-light);
     margin: 2rem auto;
-    max-width: 400px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 3rem;
+    color: var(--text-muted);
+    font-size: 1.1rem;
 }
 
 /* 반응형 디자인 */

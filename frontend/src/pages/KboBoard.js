@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 import { AuthContext } from "../context/AuthContext";
 import '../styles/kboboard.css';
 
@@ -24,7 +24,7 @@ const KboBoardList = () => {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8080/api/board", {
+      const res = await api.get("/board", {
         params: { category: categoryValueMap[category], keyword: keyword||null, page, size }
       });
       setPosts(res.data.list || []);
@@ -41,15 +41,15 @@ const KboBoardList = () => {
 
   // 게시글 삭제
   const handleDelete = async (no, writerId) => {
-    if (!user || user.id !== writerId?.toString()) { // Changed user.Id to user.id
+    if (!user || user.id !== writerId?.toString()) {
       alert("본인 글만 삭제 가능합니다.");
       return;
     }
     if (!window.confirm("정말 삭제하시겠습니까?")) return;
 
     try {
-      await axios.delete(`http://localhost:8080/api/board/${no}`, {
-        params: { writer: user.Id } // Changed user.id to user.Id
+      await api.delete(`/board/${no}`, {
+        params: { writer: user.id }
       });
       alert("삭제 완료");
       fetchPosts();

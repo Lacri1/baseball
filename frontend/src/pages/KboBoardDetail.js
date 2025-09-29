@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../api/api';
 import '../styles/kboboard.css';
 
 const categoryTextMap = { 1:"자유",2:"KBO",3:"NPB",4:"MLB",5:"사회인야구" };
@@ -44,7 +44,7 @@ const KboBoardDetail = () => {
   // 게시글 + 댓글 불러오기
   const fetchBoardDetail = async () => {
     try {
-      const res = await axios.get(`http://localhost:8080/api/board/${id}`);
+      const res = await api.get(`/board/${id}`);
       setBoard(res.data.board);
       const newComments = res.data.comments || [];
       setComments(newComments);
@@ -91,7 +91,7 @@ const KboBoardDetail = () => {
     if (!newComment.trim()) return;
 
     try {
-      await axios.post(`http://localhost:8080/api/comment`, {
+      await api.post(`/comment`, {
         boardNo: id,
         writer: user.id, // Changed user.Id to user.id
         text: newComment.trim(),
@@ -116,7 +116,7 @@ const KboBoardDetail = () => {
     if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
 
     try {
-      await axios.delete(`http://localhost:8080/api/comment/${id}/${commentId}`);
+      await api.delete(`/comment/${id}/${commentId}`);
       setComments(prev => prev.filter(c => c.commentId !== commentId));
     } catch (err) {
       console.error(err);
@@ -133,7 +133,7 @@ const KboBoardDetail = () => {
     if (!window.confirm('게시글을 삭제하시겠습니까?')) return;
 
     try {
-      await axios.delete(`http://localhost:8080/api/board/${id}`, { params: { writer: user.id } });
+      await api.delete(`/board/${id}`, { params: { writer: user.id } });
       alert('게시글이 삭제되었습니다.');
       navigate('/kboBoard');
     } catch (err) {
@@ -162,7 +162,7 @@ const KboBoardDetail = () => {
     if (!editingCommentText.trim()) return;
 
     try {
-      await axios.put(`http://localhost:8080/api/comment/${id}/${editingCommentId}`, {
+      await api.put(`/comment/${id}/${editingCommentId}`, {
         text: editingCommentText
       });
       setEditingCommentId(null);

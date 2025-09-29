@@ -1,7 +1,7 @@
 // src/pages/PostFormWithComments.js
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 import { AuthContext } from "../context/AuthContext";
 import "../styles/PostForm2.css";
 
@@ -28,7 +28,6 @@ const PostFormWithComments = () => {
 
   // 로그인 체크 및 draft / 기존 글 불러오기
   useEffect(() => {
-    console.log("User object in PostFormWithComments:", user); // Added console.log
     if (!user) {
       alert("로그인이 필요합니다.");
       navigate("/login");
@@ -46,7 +45,7 @@ const PostFormWithComments = () => {
   const fetchPost = async (postId) => {
     try {
       setLoading(true);
-      const res = await axios.get(`/api/board/${postId}`);
+      const res = await api.get(`/board/${postId}`);
       const board = res.data.board;
       setForm({
         title: board.title || "",
@@ -76,7 +75,7 @@ const PostFormWithComments = () => {
   };
 
   const savePost = async () => {
-    if (!user || !user.id) { // Corrected to user.id
+    if (!user || !user.id) { 
       alert("로그인이 필요하거나 사용자 정보가 유효하지 않습니다.");
       return;
     }
@@ -87,10 +86,10 @@ const PostFormWithComments = () => {
     try {
       setLoading(true);
       if (isEdit) {
-        await axios.put(`/api/board/${id}`, requestData);
+        await api.put(`/board/${id}`, requestData);
         alert("글이 수정되었습니다.");
       } else {
-        await axios.post("/api/board", requestData);
+        await api.post("/board", requestData);
         alert("글이 등록되었습니다.");
         setForm({ title: "", text: "", category: "general" });
       }
@@ -107,7 +106,7 @@ const PostFormWithComments = () => {
     if (!newComment.trim()) return;
     if (!user) { alert("로그인 후 작성 가능합니다."); return; }
     try {
-      const res = await axios.post(`/api/board/${id}/comments`, { writer: parseInt(user.id, 10), text: newComment.trim() });
+      const res = await api.post(`/board/${id}/comments`, { writer: parseInt(user.id, 10), text: newComment.trim() });
       setComments(prev => [...prev, res.data]);
       setNewComment("");
     } catch (err) {
@@ -121,7 +120,7 @@ const PostFormWithComments = () => {
     if (!user || parseInt(user.id, 10) !== commentWriter) { alert("자신의 댓글만 삭제할 수 있습니다."); return; }
     if (!window.confirm("댓글을 삭제하시겠습니까?")) return;
     try {
-      await axios.delete(`/api/board/${id}/comments/${commentId}`);
+      await api.delete(`/board/${id}/comments/${commentId}`);
       setComments(prev => prev.filter(c => c.id !== commentId));
     } catch (err) {
       console.error(err);
