@@ -1,126 +1,112 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { authAPI } from '../api/api'; // Import authAPI
+import api from '../api/api'; // api 인스턴스 임포트
 import '../styles/LoginPage.css';
 
 const LoginPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  // const [loginMessage, setLoginMessage] = useState('');
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useContext(AuthContext);
-  const navigate = useNavigate();
+    const [id, setId] = useState('');
+    const [pw, setPw] = useState('');
+    const [email, setEmail] = useState('');
+    const [nickname, setNickname] = useState('');
+    const [isRegistering, setIsRegistering] = useState(false);
+    const { login } = useContext(AuthContext);
+    const navigate = useNavigate();
 
-  const validateForm = () => {
-    const newErrors = {};
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        console.log("Login attempt with ID:", id, "PW:", pw); // ★★★ 추가된 로그 ★★★
+        try {
+            // Spring Security가 기대하는 form-urlencoded 형태로 데이터 전송
+            const params = new URLSearchParams();
+            params.append('username', id); // 'id'를 'username'으로 변경
+            params.append('password', pw); // 'pw'를 'password'로 변경
 
-    if (!username.trim()) {
-      newErrors.username = '아이디를 입력해주세요';
-    }
-    if (!password.trim()) {
-      newErrors.password = '비밀번호를 입력해주세요';
-    }
+            const res = await api.post('/login', params, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+            console.log("Backend response on login:", res.data); // ★★★ 추가된 로그 ★★★
 
-  const handleChange = (field, value) => {
-    if (field === 'username') {
-      setUsername(value);
-    } else if (field === 'password') {
-      setPassword(value);
-    }
+            if (res.data.success) {
+                login(res.data.userInfo); // <-- userInfo가 제대로 전달되는지 확인
+                navigate('/');
+            } else {
+                alert(res.data.message);
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("로그인 중 오류가 발생했습니다.");
+        }
+    };
 
-    // 에러가 있던 필드의 에러 제거
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await api.post('/login/register', { id, pw, email, nickname });
+            if (res.data.success) {
+                alert("회원가입 성공! 로그인 해주세요.");
+                setIsRegistering(false);
+                setId('');
+                setPw('');
+                setEmail('');
+                setNickname('');
+            } else {
+                alert(res.data.message);
+            }
+        } catch (error) {
+            console.error("Register error:", error);
+            alert("회원가입 중 오류가 발생했습니다.");
+        }
+    };
 
-    // 로그인 메시지 초기화
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const res = await authAPI.login({ id: username, pw: password }); // Actual API call
-
-      if (res.data.success) {
-        login(res.data.userInfo); // Assuming res.data.userInfo contains user info
-        alert('로그인 성공!');
-        setTimeout(() => {
-          navigate('/');
-        }, 1500);
-      } else {
-        // Handle login failure based on backend response
-        alert(res.data.message || '로그인 실패: 알 수 없는 오류');
-      }
-
-    } catch (error) {
-      console.error('Login error:', error);
-      if (error.response && error.response.data && error.response.data.message) {
-        alert(error.response.data.message);
-      } else {
-        alert('로그인 중 오류가 발생했습니다.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRegisterNavigation = () => {
-    navigate('/ProfilePage'); // 회원가입 페이지로 이동
-  };
-
-  return (
-      <div className="login-container">
-        <div className="login-card">
-          <h1>로그인</h1>
-          <form onSubmit={handleLogin} className="login-form">
-            <input
-                type="text"
-                placeholder="아이디"
-                value={username}
-                onChange={(e) => handleChange('username', e.target.value)}
-                disabled={isLoading}
-                className={errors.username ? 'error' : ''}
-                autoComplete="username"
-            />
-            {errors.username && <div className="error-text">{errors.username}</div>}
-
-            <input
-                type="password"
-                placeholder="비밀번호"
-                value={password}
-                onChange={(e) => handleChange('password', e.target.value)}
-                disabled={isLoading}
-                className={errors.password ? 'error' : ''}
-                autoComplete="current-password"
-            />
-            {errors.password && <div className="error-text">{errors.password}</div>}
-
-
-
-            <button type="submit" disabled={isLoading}>
-              {isLoading ? '로그인 중...' : '로그인'}
-            </button>
-          </form>
-
-          <button onClick={handleRegisterNavigation} disabled={isLoading}>
-            회원가입하러 가기
-          </button>
+    return (
+        <div className="login-container">
+            <div className="login-card">
+                <h1>{isRegistering ? '회원가입' : '로그인'}</h1>
+                <form onSubmit={isRegistering ? handleRegister : handleLogin} className="login-form">
+                    <input
+                        type="text"
+                        placeholder="아이디"
+                        value={id}
+                        onChange={(e) => setId(e.target.value)}
+                        required
+                    />
+                    <input
+                        type="password"
+                        placeholder="비밀번호"
+                        value={pw}
+                        onChange={(e) => setPw(e.target.value)}
+                        required
+                    />
+                    {isRegistering && (
+                        <>
+                            <input
+                                type="email"
+                                placeholder="이메일"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                            <input
+                                type="text"
+                                placeholder="닉네임"
+                                value={nickname}
+                                onChange={(e) => setNickname(e.target.value)}
+                                required
+                            />
+                        </>
+                    )}
+                    <button type="submit">{isRegistering ? '회원가입' : '로그인'}</button>
+                </form>
+                <button onClick={() => setIsRegistering(!isRegistering)} className="toggle-button">
+                    {isRegistering ? '로그인 페이지로' : '회원가입하기'}
+                </button>
+            </div>
         </div>
-      </div>
-  );
+    );
 };
 
 export default LoginPage;

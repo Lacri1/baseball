@@ -54,7 +54,7 @@ public class GameLogicUtil {
         // batter: getStrikeouts(), getPlateAppearances(), getWalks(), getHitByPitch()
 
         // 투수/타자 데이터가 0인 경우를 대비한 안전장치
-        double pitcherTotalBatters = pitcher.getPitchersBattersFaced() > 0 ? pitcher.getPitchersBattersFaced() : 1;
+        double pitcherTotalBatters = pitcher.getTotalBattersFaced() > 0 ? pitcher.getTotalBattersFaced() : 1;
         double batterTotalPAs = batter.getPlateAppearances() > 0 ? batter.getPlateAppearances() : 1;
 
         // 1. 스트라이크 확률 계산
@@ -203,7 +203,7 @@ public class GameLogicUtil {
         // 1) 컨택 확률: 배터 K%와 피처 K% 기반 + 존/타이밍 보정
         double batterPA = batter.getPlateAppearances() > 0 ? batter.getPlateAppearances() : 1;
         double batterKRate = Math.max(0.0, Math.min(1.0, (double) batter.getStrikeOut() / batterPA));
-        double pitcherBF = pitcher.getPitchersBattersFaced() > 0 ? pitcher.getPitchersBattersFaced() : 1;
+        double pitcherBF = pitcher.getTotalBattersFaced() > 0 ? pitcher.getTotalBattersFaced() : 1;
         double pitcherKRate = Math.max(0.0, Math.min(1.0, (double) pitcher.getStrikeouts() / pitcherBF));
 
         double contactProb = 1.0 - ((batterKRate * 0.5) + (pitcherKRate * 0.5));
@@ -223,8 +223,8 @@ public class GameLogicUtil {
         // 2) 인플레이 시 안타 확률: 배터 BA와 투수 피안타율 기반 + 존/타이밍 보정
         double batterBA = batter.getBattingAverage() > 0 ? batter.getBattingAverage()
                 : batter.calculateBattingAverage();
-        double pitcherHitRate = pitcher.getPitchersBattersFaced() > 0
-                ? ((double) pitcher.getHits() / pitcher.getPitchersBattersFaced())
+        double pitcherHitRate = pitcher.getTotalBattersFaced() > 0
+                ? ((double) pitcher.getHits() / pitcher.getTotalBattersFaced())
                 : 0.25;
         double pHit = batterBA * 0.6 + pitcherHitRate * 0.4; // 기본 가중 평균
         pHit += "strike".equals(pitchType) ? 0.03 : -0.05; // 존 보정

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+import api from '../api/api'; // api 인스턴스 임포트
 import '../styles/HomePage.css';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -18,15 +18,22 @@ const HomePage = () => {
     const { user, login, logout } = useContext(AuthContext);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [loginMessage, setLoginMessage] = useState('');
+    const [popup, setPopup] = useState({ show: false, message: '', type: '' }); // State for popup
+
+    const showPopup = (message, type) => {
+        setPopup({ show: true, message, type });
+        setTimeout(() => {
+            setPopup({ show: false, message: '', type: '' });
+        }, 3000); // Popup disappears after 3 seconds
+    };
 
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setLoginMessage('');
         try {
-            const res = await axios.post('http://localhost:8080/api/login/login', {
+            // api 인스턴스 사용 및 올바른 경로로 수정
+            const res = await api.post('/login', {
                 id: username,
                 pw: password
             });
@@ -35,21 +42,20 @@ const HomePage = () => {
                 // userInfo가 없으면 최소 Id를 넣어줌
                 const userInfo = res.data.userInfo || { Id: username };
                 login(userInfo);
-                setLoginMessage('');
+                showPopup('로그인 성공!', 'success');
                 setUsername('');
                 setPassword('');
             } else {
-                setLoginMessage(res.data.message || '로그인 실패');
+                showPopup(res.data.message || '로그인 실패', 'error');
             }
         } catch (err) {
             console.error(err);
-            setLoginMessage('로그인 처리 중 오류 발생');
+            showPopup('로그인 처리 중 오류 발생', 'error');
         }
     };
 
     const handleLogout = () => {
         logout();  // Context user 상태를 null로
-        setLoginMessage('');
     };
 
     const parseTeamHtmlToArray = (htmlString) => {
@@ -81,10 +87,11 @@ const HomePage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // api 인스턴스 사용
                 const [hitterRes, pitcherRes, teamRes] = await Promise.all([
-                    axios.get('/kbo/hitter-stats', { params: { sortBy: 'run' } }),
-                    axios.get('/kbo/pitcher-stats', { params: { sortBy: 'era' } }),
-                    axios.get('/kbo/team-stats')
+                    api.get('/kbo/hitter-stats', { params: { sortBy: 'run' } }),
+                    api.get('/kbo/pitcher-stats', { params: { sortBy: 'era' } }),
+                    api.get('/kbo/team-stats')
                 ]);
 
                 setHitterStats(Array.isArray(hitterRes.data) ? hitterRes.data : (typeof hitterRes.data === 'string' ? parseHitterHtmlToArray(hitterRes.data) : normalizeList(hitterRes.data)));
@@ -247,7 +254,7 @@ const HomePage = () => {
                                 <button type="button" className="login-button" onClick={()=>navigate('/ProfilePage')}>회원가입</button>
                             </form>
                         )}
-                        {loginMessage && <div className="login-message">{loginMessage}</div>}
+
                     </div>
 
                     {/* Team Ranking */}
@@ -274,6 +281,12 @@ const HomePage = () => {
                     </div>
                 </div>
             </div>
+
+            {popup.show && (
+              <div className={`popup ${popup.type}`}>
+                {popup.message}
+              </div>
+            )}
         </div>
     );
 };

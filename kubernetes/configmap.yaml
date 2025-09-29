@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: baseball-config
+  namespace: baseball-app
+data:
+  # 프론트엔드에서 백엔드 API를 호출할 주소 (Kubernetes Service 이름 사용)
+  REACT_APP_API_URL: http://backend-service:8080/api
+  # Spring Boot Actuator 경로 (헬스 체크용)
+  SPRING_BOOT_ACTUATOR_PATH: /actuator/health
+  # Redis 호스트 (ElastiCache 엔드포인트)
+  SPRING_REDIS_HOST: <YOUR_ELASTICACHE_REDIS_ENDPOINT_HERE>
+  SPRING_REDIS_PORT: "6379"

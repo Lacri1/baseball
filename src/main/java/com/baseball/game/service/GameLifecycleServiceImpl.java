@@ -208,13 +208,13 @@ public class GameLifecycleServiceImpl implements GameLifecycleService {
                 try {
                     homeSP = homeSPName != null ? pitcherMapper.findByName(homeSPName) : null;
                 } catch (Throwable t) {
-                    log.warn("선발투수 DB 조회 실패(홈). 이름 기반 폴백을 사용합니다.", t);
+                    // log.warn("선발투수 DB 조회 실패(홈). 이름 기반 폴백을 사용합니다.", t);
                     homeSP = null;
                 }
                 try {
                     awaySP = awaySPName != null ? pitcherMapper.findByName(awaySPName) : null;
                 } catch (Throwable t) {
-                    log.warn("선발투수 DB 조회 실패(원정). 이름 기반 폴백을 사용합니다.", t);
+                    // log.warn("선발투수 DB 조회 실패(원정). 이름 기반 폴백을 사용합니다.", t);
                     awaySP = null;
                 }
             }

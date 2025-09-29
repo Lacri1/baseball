@@ -61,7 +61,8 @@ public class GameStatisticsUtil {
      * @return 계산된 ERA
      */
     public static double calculateERA(Pitcher pitcher) {
-        return pitcher.getInningsPitched() > 0 ? (pitcher.getEarnedRuns() * 9.0) / pitcher.getInningsPitched() : 0.0;
+        return pitcher.getInningsPitched() > 0 ? (pitcher
+                .getEarnedRun() * 9.0) / pitcher.getInningsPitched() : 0.0;
     }
 
     /**
@@ -83,8 +84,8 @@ public class GameStatisticsUtil {
      * @return 계산된 삼진율 (0.000 ~ 1.000)
      */
     public static double calculateStrikeoutRate(Pitcher pitcher) {
-        return pitcher.getPitchersBattersFaced() > 0
-                ? (double) pitcher.getStrikeouts() / pitcher.getPitchersBattersFaced()
+        return pitcher.getTotalBattersFaced() > 0
+                ? (double) pitcher.getStrikeouts() / pitcher.getTotalBattersFaced()
                 : 0.0;
     }
 
@@ -95,7 +96,7 @@ public class GameStatisticsUtil {
      * @return 계산된 볼넷율 (0.000 ~ 1.000)
      */
     public static double calculateWalkRate(Pitcher pitcher) {
-        return pitcher.getPitchersBattersFaced() > 0 ? (double) pitcher.getWalks() / pitcher.getPitchersBattersFaced()
+        return pitcher.getTotalBattersFaced() > 0 ? (double) pitcher.getWalks() / pitcher.getTotalBattersFaced()
                 : 0.0;
     }
 

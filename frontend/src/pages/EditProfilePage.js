@@ -5,7 +5,7 @@ import api from '../api/api';
 import '../styles/LoginPage.css'; // Reuse styles
 
 const EditProfilePage = () => {
-    const { user, login, logout } = useContext(AuthContext);
+    const { user, login, logout, loading } = useContext(AuthContext);
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         nickname: '',
@@ -17,18 +17,21 @@ const EditProfilePage = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (user) {
-            setFormData({
-                nickname: user.nickname || '',
-                email: user.email || '',
-                pw: '',
-                pwConfirm: '',
-            });
-        } else {
-            // If no user is logged in, redirect to login page
-            navigate('/login');
+        // AuthContext의 로딩이 끝나고, user 상태가 확정되었을 때만 로직 수행
+        if (!loading) {
+            if (user) {
+                setFormData({
+                    nickname: user.nickname || '',
+                    email: user.email || '',
+                    pw: '',
+                    pwConfirm: '',
+                });
+            } else {
+                // 로딩이 끝났는데 user가 없으면 로그인 페이지로 이동
+                navigate('/login');
+            }
         }
-    }, [user, navigate]);
+    }, [user, loading, navigate]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

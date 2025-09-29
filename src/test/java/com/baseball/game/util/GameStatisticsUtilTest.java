@@ -15,7 +15,7 @@ class GameStatisticsUtilTest {
     void calculateWHIP() {
         Pitcher p = new Pitcher();
         p.setInningsPitched(10);
-        p.setBaseOnBalls(5);
+        p.setWalks(5);
         p.setHits(10);
 
         double whip = GameStatisticsUtil.calculateWHIP(p);
