@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: baseball-app
+spec:
+  replicas: 2 # 필요에 따라 레플리카 수 조정
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: <YOUR_DOCKER_IMAGE_REPO>/baseball-frontend:latest # 실제 이미지 경로로 변경
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: baseball-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"

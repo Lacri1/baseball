@@ -6,9 +6,9 @@ const KboPage = () => {
   const [selectedTab, setSelectedTab] = useState('team');
   const [selectedHitter, setSelectedHitter] = useState('');
 
-  // 타자와 투수 기록의 정렬 기준을 각각 관리할 상태 추가
   const [hitterSortBy, setHitterSortBy] = useState('battingAverage');
   const [pitcherSortBy, setPitcherSortBy] = useState('era');
+  const [pitcherSortDirection, setPitcherSortDirection] = useState('desc'); // 'desc' for descending, 'asc' for ascending
 
   const [teamStats, setTeamStats] = useState([]);
   const [hitterStats, setHitterStats] = useState([]);
@@ -16,6 +16,23 @@ const KboPage = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // 타자 기록 정렬 기준을 업데이트하는 함수
+  const handleHitterSort = (key) => {
+    setHitterSortBy(key);
+  };
+
+  // 투수 기록 정렬 기준을 업데이트하는 함수
+  const handlePitcherSort = (key) => {
+    if (pitcherSortBy === key) {
+      // If the same key is clicked, toggle sort direction
+      setPitcherSortDirection(pitcherSortDirection === 'desc' ? 'asc' : 'desc');
+    } else {
+      // If a new key is clicked, set it as sortBy and default to descending
+      setPitcherSortBy(key);
+      setPitcherSortDirection('desc');
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -34,7 +51,7 @@ const KboPage = () => {
           if (isMounted) setHitterStats(response.data);
         } else if (selectedTab === 'hitter' && selectedHitter === '투수') {
           const response = await api.get('/kbo/pitcher-stats', {
-            params: { sortBy: pitcherSortBy }
+            params: { sortBy: pitcherSortBy, sortDirection: pitcherSortDirection } // Pass sortDirection
           });
           if (isMounted) setPitcherStats(response.data);
         }
@@ -51,7 +68,7 @@ const KboPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [selectedTab, selectedHitter, hitterSortBy, pitcherSortBy]); 
+  }, [selectedTab, selectedHitter, hitterSortBy, pitcherSortBy, pitcherSortDirection]);
 
   const handleTabClick = (tab) => {
     setSelectedTab(tab);
@@ -60,16 +77,6 @@ const KboPage = () => {
     } else {
       setSelectedHitter('타자');
     }
-  };
-  
-  // 타자 기록 정렬 기준을 업데이트하는 함수
-  const handleHitterSort = (key) => {
-    setHitterSortBy(key);
-  };
-
-  // 투수 기록 정렬 기준을 업데이트하는 함수
-  const handlePitcherSort = (key) => {
-    setPitcherSortBy(key);
   };
 
   const renderTeamInfo = () => {

@@ -10,16 +10,17 @@
   overflow-x: auto;
 }
 
-/* ================= 레이아웃 - 완전 재설계 ================= */
+/* ================= 레이아웃 - 완전 재설계 (스코어보드 공간 확대) ================= */
 .game-content {
   display: grid;
-  grid-template-columns: 400px 1fr 320px;
+  grid-template-columns: 480px minmax(500px, 600px) 320px; /* 중앙 섹션 최소/최대 너비 지정 */
   gap: 20px;
   width: 100%;
-  min-width: 1200px;
-  max-width: 1600px;
+  min-width: 1280px; /* 최소 너비도 확대 */
+  max-width: 1500px; /* 최대 너비 줄여서 여백 감소 */
   justify-content: center;
   align-items: flex-start;
+  margin: 0 auto; /* 중앙 정렬 */
 }
 
 /* ===== 좌측 스코어보드 - 충분한 공간 확보 ===== */
@@ -28,7 +29,8 @@
   flex-direction: column;
   gap: 20px;
   width: 100%;
-  min-width: 400px;
+  min-width: 480px; /* 최소 너비 확대 */
+  overflow: visible; /* 오버플로우 방지 */
 }
 
 .scoreboard-container {
@@ -37,18 +39,22 @@
   border-radius: var(--radius-lg);
   padding: 15px;
   box-shadow: var(--shadow-sm);
+  width: 100%;
+  overflow-x: auto; /* 가로 스크롤 허용 */
+  min-width: 0; /* flexbox 최소 너비 제약 해제 */
 }
 
-/* ===== 중앙 베이스 - 남은 공간 모두 활용 ===== */
+/* ===== 중앙 베이스 - 적절한 크기로 조정 ===== */
 .game-center-section {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
   min-height: 500px;
+  padding: 0; /* 패딩 제거 */
 }
 
-/* Bases 감싸는 500x500 컨테이너 */
+/* Bases 감싸는 컨테이너 - 크기 최적화 */
 .bases-wrapper {
   width: 500px;
   height: 500px;
@@ -60,6 +66,7 @@
   box-shadow: inset 0 0 30px rgba(0,0,0,0.2);
   border: 3px solid #2e7d32;
   position: relative;
+  margin: 0 auto; /* 중앙 정렬 */
 }
 
 /* 우측 섹션 - 충분한 너비 확보 */
@@ -528,82 +535,138 @@
   font-weight: bold;
 }
 
-/* StrikeZone - 적절한 크기와 비율로 재설계 */
+/* StrikeZone → PitchZone 완전 재설계 */
 .strike-zone-container {
   margin-bottom: 15px;
-  background: linear-gradient(145deg, #f8f9fa, #ffffff);
-  border: 3px solid #495057;
-  border-radius: var(--radius-lg);
-  padding: 15px;
-  box-shadow:
-          0 4px 8px rgba(0, 0, 0, 0.15),
-          inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: transparent; /* 배경 투명화 */
+  border: none; /* 굵은 외각선 제거 */
+  border-radius: 0;
+  padding: 25px 10px 10px 10px;
+  box-shadow: none; /* 그림자 제거 */
   position: relative;
   width: 100%;
-  aspect-ratio: 1;
   max-width: 200px;
-  max-height: 200px;
+  min-height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto 15px auto;
 }
 
 .strike-zone-container::before {
-  content: "스트라이크 존";
+  content: "투구 존";
   position: absolute;
-  top: -12px;
-  left: 15px;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
   background: linear-gradient(135deg, #495057, #6c757d);
   color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.8rem;
+  padding: 8px 18px;
+  border-radius: 18px;
+  font-size: 0.85rem;
   font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+  z-index: 3;
 }
 
-/* 스트라이크 존 내부 그리드 스타일링 (StrikeZoneContainer 컴포넌트에서 사용) */
+/* 투구 존 그리드 - 5x7 또는 3x5로 더 실용적으로 변경 */
 .strike-zone-grid {
-  background: linear-gradient(45deg, rgba(108, 117, 125, 0.1) 25%, transparent 25%),
-  linear-gradient(-45deg, rgba(108, 117, 125, 0.1) 25%, transparent 25%),
-  linear-gradient(45deg, transparent 75%, rgba(108, 117, 125, 0.1) 75%),
-  linear-gradient(-45deg, transparent 75%, rgba(108, 117, 125, 0.1) 75%);
-  background-size: 15px 15px;
-  background-position: 0 0, 0 7.5px, 7.5px -7.5px, -7.5px 0px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(5, 1fr); /* 세로로 더 길게 */
+  gap: 2px;
+  width: 120px; /* 너비 줄임 */
+  height: 150px; /* 높이 증가 */
+  background: transparent;
+  border: 2px solid #6c757d; /* 얇은 테두리만 유지 */
+  border-radius: 6px;
+  padding: 2px;
 }
 
-/* 스트라이크 존 공 가시성 최대화 */
+/* 투구 존 개별 셀 */
+.strike-zone-cell {
+  background: rgba(255, 255, 255, 0.5); /* 더 투명하게 */
+  border: 1px dotted rgba(108, 117, 125, 0.4); /* 점선으로 변경 */
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  min-height: 25px; /* 높이 줄임 */
+  width: 100%;
+  height: 100%;
+}
+
+.strike-zone-cell:hover {
+  background: rgba(33, 150, 243, 0.15);
+  border-color: #2196f3;
+  border-style: solid; /* 호버시 실선으로 */
+  transform: scale(1.03); /* 확대 효과 줄임 */
+}
+
+.strike-zone-cell.selected {
+  background: rgba(33, 150, 243, 0.25);
+  border-color: #1976d2;
+  border-width: 2px;
+  border-style: solid;
+}
+
+/* 투구 존 내부의 공 스타일 - 위치 정확히 수정 */
 .strike-zone-ball {
-  opacity: 0.95 !important;
-  border: 3px solid rgba(0, 0, 0, 0.8) !important;
+  width: 18px !important; /* 크기 더 줄임 */
+  height: 18px !important;
+  border-radius: 50% !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  opacity: 1 !important; /* 불투명도 증가 */
+  border: 2px solid rgba(0, 0, 0, 0.9) !important;
   box-shadow:
-          0 4px 8px rgba(0, 0, 0, 0.4),
-          0 0 0 1px rgba(255, 255, 255, 0.9),
-          inset 0 2px 4px rgba(255, 255, 255, 0.3) !important;
-  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6));
-  transform: scale(1.1);
+          0 1px 3px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(255, 255, 255, 1),
+          inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+  transition: all 0.15s ease !important;
+  z-index: 15 !important; /* z-index 더 높게 */
+  pointer-events: none !important;
 }
 
-/* 스트라이크 공 (파란색) - 더 진하고 선명하게 */
+.strike-zone-cell:hover .strike-zone-ball {
+  transform: translate(-50%, -50%) scale(1.2) !important;
+  box-shadow:
+          0 2px 4px rgba(0, 0, 0, 0.6),
+          0 0 0 2px rgba(255, 255, 255, 1),
+          inset 0 1px 3px rgba(255, 255, 255, 0.7) !important;
+}
+
+/* 스트라이크 공 (파란색) */
 .strike-zone-ball.strike {
-  background: radial-gradient(circle at 25% 25%, #90caf9, #2196f3, #0d47a1) !important;
+  background: radial-gradient(circle at 30% 30%,
+  #bbdefb,
+  #2196f3,
+  #0d47a1) !important;
   border-color: rgba(13, 71, 161, 0.9) !important;
   box-shadow:
-          0 4px 8px rgba(13, 71, 161, 0.4),
-          0 0 0 2px rgba(255, 255, 255, 0.9),
-          inset 0 2px 4px rgba(255, 255, 255, 0.4) !important;
+          0 3px 6px rgba(13, 71, 161, 0.4),
+          0 0 0 1px rgba(255, 255, 255, 0.9),
+          inset 0 1px 3px rgba(255, 255, 255, 0.4) !important;
 }
 
-/* 볼 공 (빨간색) - 더 진하고 선명하게 */
+/* 볼 공 (빨간색) */
 .strike-zone-ball.ball {
-  background: radial-gradient(circle at 25% 25%, #ff8a80, #f44336, #b71c1c) !important;
+  background: radial-gradient(circle at 30% 30%,
+  #ffcdd2,
+  #f44336,
+  #b71c1c) !important;
   border-color: rgba(183, 28, 28, 0.9) !important;
   box-shadow:
-          0 4px 8px rgba(183, 28, 28, 0.4),
-          0 0 0 2px rgba(255, 255, 255, 0.9),
-          inset 0 2px 4px rgba(255, 255, 255, 0.4) !important;
+          0 3px 6px rgba(183, 28, 28, 0.4),
+          0 0 0 1px rgba(255, 255, 255, 0.9),
+          inset 0 1px 3px rgba(255, 255, 255, 0.4) !important;
 }
 
 /* 버튼 비활성화 상태 */
@@ -624,10 +687,28 @@
 }
 
 /* 반응형 디자인 */
+@media (max-width: 1440px) {
+  .game-content {
+    grid-template-columns: 440px minmax(480px, 560px) 300px;
+    min-width: 1200px;
+    max-width: 1400px;
+  }
+
+  .game-left-section {
+    min-width: 440px;
+  }
+}
+
 @media (max-width: 768px) {
   .game-content {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
     gap: 15px;
+    min-width: 100%;
+  }
+
+  .game-left-section {
+    min-width: 100%;
   }
 
   .game-status-text {
@@ -642,5 +723,18 @@
   .game-button.pitch {
     padding: 12px 16px;
     font-size: 1rem;
+  }
+
+  .strike-zone-container {
+    max-width: 180px;
+  }
+
+  .strike-zone-grid {
+    max-width: 140px;
+    max-height: 140px;
+  }
+
+  .strike-zone-cell {
+    min-height: 40px;
   }
 }

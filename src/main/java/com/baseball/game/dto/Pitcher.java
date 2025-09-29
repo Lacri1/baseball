@@ -19,79 +19,45 @@ public class Pitcher extends Player {
     private int strikeouts; // 삼진
     private int walks; // 볼넷
     private int hits; // 피안타
-    private int earnedRuns; // 자책점
-    private double era; // 평균자책점
-    private double earnedRunAverage; // 평균자책점 (MyBatis 매핑용)
+    private int earnedRun; // 자책점 (earnedRuns -> earnedRun)
+    private double earnedRunAverage; // 평균자책점 (era -> earnedRunAverage)
     private double whip; // WHIP (Walks plus Hits per Inning Pitched)
-    private int pitchersBattersFaced; // 상대 타자 수
-    private int hitByPitch;
+    private int totalBattersFaced; // 상대 타자 수 (pitchersBattersFaced -> totalBattersFaced)
+    private int hitByPitch; // 몸에 맞는 볼
     private int win; // 승리
     private int lose; // 패배
+    private int save; // 세이브
+    private int hold; // 홀드
+    private double winningPercentage; // 승률
+    private int homeRun; // 피홈런
+    private int strikeOut; // 탈삼진
+    private int runs; // 실점
+    private int completeGame; // 완투
+    private int shutout; // 완봉
+    private int qualityStart; // 퀄리티 스타트
+    private int blownSave; // 블론 세이브
+    private int numberOfPitching; // 투구 수
+    private double opponentBattingAverage; // 피안타율
+    private int twoBases; // 2루타 허용
+    private int threeBases; // 3루타 허용
+    private int sacrificeBunt; // 희생 번트 허용
+    private int sacrificeFly; // 희생 플라이 허용
+    private int ibb; // 고의 4구
+    private int wildPitch; // 폭투
+    private int balk; // 보크
+    private int control; // 제구
+    private int speed; // 구속
+    private int stamina; // 스태미너
+    private int movement; // 무브먼트
 
     public Pitcher(String name, String team) {
         this.setName(name);
         this.setTeam(team);
     }
 
-    public void setNo(int no) {
-        this.no = no;
-    }
-
-    public void setGameNum(int gameNum) {
-        this.gameNum = gameNum;
-    }
-
-    public void setInningsPitched(int inningsPitched) {
-        this.inningsPitched = inningsPitched;
-    }
-
-    public void setStrikeouts(int strikeouts) {
-        this.strikeouts = strikeouts;
-    }
-
-    public void setWalks(int walks) {
-        this.walks = walks;
-    }
-
-    public void setHits(int hits) {
-        this.hits = hits;
-    }
-
-    public void setEarnedRuns(int earnedRuns) {
-        this.earnedRuns = earnedRuns;
-    }
-
-    public void setEra(double era) {
-        this.era = era;
-    }
-
-    public void setEarnedRunAverage(double earnedRunAverage) {
-        this.earnedRunAverage = earnedRunAverage;
-    }
-
-    public void setWhip(double whip) {
-        this.whip = whip;
-    }
-
-    public void setPitchersBattersFaced(int pitchersBattersFaced) {
-        this.pitchersBattersFaced = pitchersBattersFaced;
-    }
-
-    public void setHitByPitch(int hitByPitch) {
-        this.hitByPitch = hitByPitch;
-    }
-
-    public void setWin(int win) {
-        this.win = win;
-    }
-
-    public void setLose(int lose) {
-        this.lose = lose;
-    }
-
-    // ERA 계산 메서드
+    // ERA 계산 메서드 (earnedRunAverage 사용)
     public double calculateERA() {
-        return inningsPitched > 0 ? (earnedRuns * 9.0) / inningsPitched : 0.0;
+        return inningsPitched > 0 ? (earnedRun * 9.0) / inningsPitched : 0.0;
     }
 
     // WHIP 계산 메서드
@@ -101,16 +67,16 @@ public class Pitcher extends Player {
 
     // 삼진율 계산 메서드
     public double calculateStrikeoutRate() {
-        return pitchersBattersFaced > 0 ? (double) strikeouts / pitchersBattersFaced : 0.0;
+        return totalBattersFaced > 0 ? (double) strikeouts / totalBattersFaced : 0.0;
     }
 
     // 볼넷율 계산 메서드
     public double calculateWalkRate() {
-        return pitchersBattersFaced > 0 ? (double) walks / pitchersBattersFaced : 0.0;
+        return totalBattersFaced > 0 ? (double) walks / totalBattersFaced : 0.0;
     }
 
     // 피안타율 계산 메서드
     public double calculateHitRate() {
-        return pitchersBattersFaced > 0 ? (double) hits / pitchersBattersFaced : 0.0;
+        return totalBattersFaced > 0 ? (double) hits / totalBattersFaced : 0.0;
     }
 }

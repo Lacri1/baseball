@@ -173,7 +173,7 @@ public class GameActionServiceImpl implements GameActionService {
         double batterStrikeoutRate = computerBatter.getStrikeOut()
                 / (double) (computerBatter.getPlateAppearances() > 0 ? computerBatter.getPlateAppearances() : 1);
         double pitcherStrikeoutRate = currentPitcher.getStrikeouts()
-                / (double) (currentPitcher.getPitchersBattersFaced() > 0 ? currentPitcher.getPitchersBattersFaced()
+                / (double) (currentPitcher.getTotalBattersFaced() > 0 ? currentPitcher.getTotalBattersFaced()
                         : 1);
 
         double swingProbability = 0.5 + (batterStrikeoutRate - pitcherStrikeoutRate);

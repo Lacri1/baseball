@@ -15,7 +15,7 @@ class GameLogicUtilTest {
         Pitcher pitcher = new Pitcher();
         pitcher.setTotalBattersFaced(100);
         pitcher.setStrikeOut(30);
-        pitcher.setBaseOnBalls(10);
+        pitcher.setWalks(10);
         pitcher.setHitByPitch(2);
         Batter batter = new Batter();
         batter.setPlateAppearances(100);

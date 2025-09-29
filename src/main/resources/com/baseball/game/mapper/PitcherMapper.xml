@@ -4,8 +4,8 @@
 
     <resultMap id="pitcherResultMap" type="com.baseball.game.dto.Pitcher">
         <id property="no" column="no"/>
-        <result property="name" column="name"/>
-        <result property="team" column="team"/>
+        <result property="name" column="Player_Name"/>
+        <result property="team" column="Player_Team"/>
         <result property="earnedRunAverage" column="earned_run_average"/>
         <result property="gameNum" column="game_num"/>
         <result property="win" column="win"/>
@@ -16,9 +16,9 @@
         <result property="inningsPitched" column="innings_pitched"/>
         <result property="hits" column="hits"/>
         <result property="homeRun" column="home_run"/>
-        <result property="baseOnBalls" column="base_on_balls"/>
+        <result property="walks" column="base_on_balls"/>
         <result property="hitByPitch" column="hit_by_pitch"/>
-        <result property="strikeOut" column="strike_out"/>
+        <result property="strikeouts" column="strike_out"/>
         <result property="runs" column="runs"/>
         <result property="earnedRun" column="earned_run"/>
         <result property="whip" column="whip"/>

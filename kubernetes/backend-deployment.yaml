@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: baseball-app
+spec:
+  replicas: 1 # H2는 단일 인스턴스만 지원하므로 1로 설정
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: <YOUR_DOCKER_IMAGE_REPO>/baseball-backend:latest # 실제 이미지 경로로 변경
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: baseball-config
+        # H2는 Secret이 필요 없으므로 secretRef 제거
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness # Spring Boot Actuator 헬스 체크
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness # Spring Boot Actuator 헬스 체크
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1024Mi"
+            cpu: "500m"

@@ -13,7 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class MemberServiceImpl implements MemberService {
+public
+class MemberServiceImpl implements MemberService {
     @Setter(onMethod_ = @Autowired)
     private MemberMapper memberMapper;
 

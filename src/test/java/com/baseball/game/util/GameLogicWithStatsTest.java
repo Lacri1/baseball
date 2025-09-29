@@ -32,7 +32,7 @@ class GameLogicWithStatsTest {
         Pitcher p = new Pitcher();
         p.setTotalBattersFaced(600);
         p.setStrikeOut(180); // 30% K
-        p.setBaseOnBalls(30); // 5% BB
+        p.setWalks(30); // 5% BB
         p.setHitByPitch(3);
 
         Batter b = new Batter();

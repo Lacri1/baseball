@@ -4,8 +4,8 @@
 
     <resultMap id="batterResultMap" type="com.baseball.game.dto.Batter">
         <id property="no" column="no"/>
-        <result property="name" column="name"/>
-        <result property="team" column="team"/>
+        <result property="name" column="Player_Name"/>
+        <result property="team" column="Player_Team"/>
         <result property="gameNum" column="game_num"/>
         <result property="plateAppearances" column="plate_appearances"/>
         <result property="atBats" column="at_bats"/>
