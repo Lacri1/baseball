@@ -1,6 +1,10 @@
 package com.baseball.game.ranking.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +16,9 @@ import com.baseball.game.ranking.mapper.KboHitterStatsMapper;
 import com.baseball.game.ranking.mapper.KboPitcherStatsMapper;
 import com.baseball.game.ranking.mapper.KboTeamStatsMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service // Spring 서비스 컴포넌트임을 나타냅니다.
 public class KboStatsServiceImpl implements KboStatsService{
 	private final KboHitterStatsMapper hitterStatsMapper;
@@ -27,11 +34,38 @@ public class KboStatsServiceImpl implements KboStatsService{
         this.teamStatsMapper = teamStatsMapper;
     }
 
+    // Helper method to get team game counts
+    private java.util.Map<String, Integer> getTeamGameCounts() {
+        List<KboTeamStatsDto> teamStats = teamStatsMapper.findTeamStatsOrderByWinPercentageDesc();
+        java.util.Map<String, Integer> teamGameCounts = new java.util.HashMap<>();
+        for (KboTeamStatsDto team : teamStats) {
+            teamGameCounts.put(team.getTeamName(), team.getGameNum());
+        }
+        return teamGameCounts;
+    }
+
     // --- 타자 기록 관련 method ---
     
     @Override
     public List<KboHitterStatsDto> getHitterStatsOrderByBattingAverage() { // 타율 기준으로 내림차순 정렬하여 모든 타자 기록 조회 - Default
-        return hitterStatsMapper.findHitterStatsOrderByBattingAverageDesc();
+        java.util.Map<String, Integer> teamGameCounts = getTeamGameCounts();
+        List<KboHitterStatsDto> allHitterStats = hitterStatsMapper.findHitterStatsOrderByBattingAverageDesc();
+        List<KboHitterStatsDto> qualifiedHitterStats = new java.util.ArrayList<>();
+
+        for (KboHitterStatsDto hitter : allHitterStats) {
+            Integer gameNum = teamGameCounts.get(hitter.getPlayerTeam());
+            if (gameNum != null) {
+                double requiredPlateAppearance = gameNum * 3.1;
+                log.info("Hitter: {}, Team: {}, GameNum: {}, Required PA: {}, Actual PA: {}", 
+                         hitter.getPlayerName(), hitter.getPlayerTeam(), gameNum, requiredPlateAppearance, hitter.getPlateAppearance());
+                if (hitter.getPlateAppearance() != null && hitter.getPlateAppearance() >= requiredPlateAppearance) {
+                    qualifiedHitterStats.add(hitter);
+                }
+            } else {
+                log.warn("Team game count not found for hitter: {} (Team: {})", hitter.getPlayerName(), hitter.getPlayerTeam());
+            }
+        }
+        return qualifiedHitterStats;
     } 
     
     @Override
@@ -96,7 +130,24 @@ public class KboStatsServiceImpl implements KboStatsService{
     
     @Override
     public List<KboHitterStatsDto> getHitterStatsOrderByBattingAverageLimitFive() { // 타율 기준으로 내림차순 명 정렬하여 모든 타자 기록 조회 - 초기 화면
-        return hitterStatsMapper.findHitterStatsOrderByBattingAverageDescLimitFive();
+        java.util.Map<String, Integer> teamGameCounts = getTeamGameCounts();
+        List<KboHitterStatsDto> allHitterStats = hitterStatsMapper.findHitterStatsOrderByBattingAverageDescLimitFive();
+        List<KboHitterStatsDto> qualifiedHitterStats = new java.util.ArrayList<>();
+
+        for (KboHitterStatsDto hitter : allHitterStats) {
+            Integer gameNum = teamGameCounts.get(hitter.getPlayerTeam());
+            if (gameNum != null) {
+                double requiredPlateAppearance = gameNum * 3.1;
+                log.info("Hitter (LimitFive): {}, Team: {}, GameNum: {}, Required PA: {}, Actual PA: {}", 
+                         hitter.getPlayerName(), hitter.getPlayerTeam(), gameNum, requiredPlateAppearance, hitter.getPlateAppearance());
+                if (hitter.getPlateAppearance() != null && hitter.getPlateAppearance() >= requiredPlateAppearance) {
+                    qualifiedHitterStats.add(hitter);
+                }
+            } else {
+                log.warn("Team game count not found for hitter (LimitFive): {} (Team: {})", hitter.getPlayerName(), hitter.getPlayerTeam());
+            }
+        }
+        return qualifiedHitterStats.stream().limit(5).collect(Collectors.toList());
     } 
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,7 +155,24 @@ public class KboStatsServiceImpl implements KboStatsService{
     // --- 투수 기록 관련 method ---    
     @Override
     public List<KboPitcherStatsDto> getPitcherStatsOrderByERADesc(){ // 평균자책점 기준으로 오름차순 정렬하여 모든 투수 기록 조회 - Default
-    	return pitcherStatsMapper.findPitcherStatsOrderByEarnedRunAverageAsc();
+        java.util.Map<String, Integer> teamGameCounts = getTeamGameCounts();
+        List<KboPitcherStatsDto> allPitcherStats = pitcherStatsMapper.findPitcherStatsOrderByEarnedRunAverageAsc();
+        List<KboPitcherStatsDto> qualifiedPitcherStats = new java.util.ArrayList<>();
+
+        for (KboPitcherStatsDto pitcher : allPitcherStats) {
+            Integer gameNum = teamGameCounts.get(pitcher.getPlayerTeam());
+            if (gameNum != null) {
+                double requiredInningsPitched = gameNum * 1.0;
+                log.info("Pitcher: {}, Team: {}, GameNum: {}, Required IP: {}, Actual IP: {}", 
+                         pitcher.getPlayerName(), pitcher.getPlayerTeam(), gameNum, requiredInningsPitched, pitcher.getInningsPitched());
+                if (pitcher.getInningsPitched() != null && pitcher.getInningsPitched() >= requiredInningsPitched) {
+                    qualifiedPitcherStats.add(pitcher);
+                }
+            } else {
+                log.warn("Team game count not found for pitcher: {} (Team: {})", pitcher.getPlayerName(), pitcher.getPlayerTeam());
+            }
+        }
+        return qualifiedPitcherStats;
     }
     
     @Override
@@ -174,7 +242,24 @@ public class KboStatsServiceImpl implements KboStatsService{
     
     @Override
     public List<KboPitcherStatsDto> getPitcherStatsOrderByERADescLimitFive(){ // 평균자책점 기준으로 오름차순 정렬하여 모든 투수 기록 조회 - Default
-    	return pitcherStatsMapper.findPitcherStatsOrderByEarnedRunAverageAscLimitFive();
+        java.util.Map<String, Integer> teamGameCounts = getTeamGameCounts();
+        List<KboPitcherStatsDto> allPitcherStats = pitcherStatsMapper.findPitcherStatsOrderByEarnedRunAverageAscLimitFive();
+        List<KboPitcherStatsDto> qualifiedPitcherStats = new java.util.ArrayList<>();
+
+        for (KboPitcherStatsDto pitcher : allPitcherStats) {
+            Integer gameNum = teamGameCounts.get(pitcher.getPlayerTeam());
+            if (gameNum != null) {
+                double requiredInningsPitched = gameNum * 1.0;
+                log.info("Pitcher (LimitFive): {}, Team: {}, GameNum: {}, Required IP: {}, Actual IP: {}", 
+                         pitcher.getPlayerName(), pitcher.getPlayerTeam(), gameNum, requiredInningsPitched, pitcher.getInningsPitched());
+                if (pitcher.getInningsPitched() != null && pitcher.getInningsPitched() >= requiredInningsPitched) {
+                    qualifiedPitcherStats.add(pitcher);
+                }
+            } else {
+                log.warn("Team game count not found for pitcher (LimitFive): {} (Team: {})", pitcher.getPlayerName(), pitcher.getPlayerTeam());
+            }
+        }
+        return qualifiedPitcherStats.stream().limit(5).collect(java.util.stream.Collectors.toList());
     }
     
 	//////////////////////////////////////////////////////////////////////////////////////////////////
