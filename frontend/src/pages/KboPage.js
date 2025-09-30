@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { parseTeamHtmlToArray, parseHitterHtmlToArray, parsePitcherHtmlToArray, normalizeList } from '../utils/htmlTableParser';
+import api from '../api/api';
 import '../styles/kboPage.css';
+import { convertInnings } from '../utils/inningsConverter';
 
 const KboPage = () => {
   const [selectedTab, setSelectedTab] = useState('team');
   const [selectedHitter, setSelectedHitter] = useState('');
 
-  // 타자와 투수 기록의 정렬 기준을 각각 관리할 상태 추가
   const [hitterSortBy, setHitterSortBy] = useState('battingAverage');
   const [pitcherSortBy, setPitcherSortBy] = useState('era');
+  const [pitcherSortDirection, setPitcherSortDirection] = useState('desc'); // 'desc' for descending, 'asc' for ascending
 
   const [teamStats, setTeamStats] = useState([]);
   const [hitterStats, setHitterStats] = useState([]);
@@ -18,33 +18,43 @@ const KboPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // 타자 기록 정렬 기준을 업데이트하는 함수
+  const handleHitterSort = (key) => {
+    setHitterSortBy(key);
+  };
+
+  // 투수 기록 정렬 기준을 업데이트하는 함수
+  const handlePitcherSort = (key) => {
+    if (pitcherSortBy === key) {
+      // If the same key is clicked, toggle sort direction
+      setPitcherSortDirection(pitcherSortDirection === 'desc' ? 'asc' : 'desc');
+    } else {
+      // If a new key is clicked, set it as sortBy and default to descending
+      setPitcherSortBy(key);
+      setPitcherSortDirection('desc');
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
       setLoading(true);
       try {
-        const normalizeAny = (data, type) => {
-          if (Array.isArray(data)) return data;
-          if (typeof data === 'string') {
-            if (type === 'team') return parseTeamHtmlToArray(data);
-            if (type === 'hitter') return parseHitterHtmlToArray(data);
-            if (type === 'pitcher') return parsePitcherHtmlToArray(data);
-          }
-          return normalizeList(data);
-        };
-        if (selectedTab === 'team') {
-          const response = await axios.get('/kbo/team-stats');
-          if (isMounted) setTeamStats(normalizeAny(response.data, 'team'));
-        } else if (selectedTab === 'hitter' && selectedHitter === '타자') {
-          const response = await axios.get('/kbo/hitter-stats', {
+        const teamResponse = await api.get('/kbo/team-stats');
+        if (isMounted) {
+          setTeamStats(teamResponse.data);
+        }
+
+        if (selectedTab === 'hitter' && selectedHitter === '타자') {
+          const response = await api.get('/kbo/hitter-stats', {
             params: { sortBy: hitterSortBy }
           });
-          if (isMounted) setHitterStats(normalizeAny(response.data, 'hitter'));
+          if (isMounted) setHitterStats(response.data);
         } else if (selectedTab === 'hitter' && selectedHitter === '투수') {
-          const response = await axios.get('/kbo/pitcher-stats', {
-            params: { sortBy: pitcherSortBy }
+          const response = await api.get('/kbo/pitcher-stats', {
+            params: { sortBy: pitcherSortBy, sortDirection: pitcherSortDirection } // Pass sortDirection
           });
-          if (isMounted) setPitcherStats(normalizeAny(response.data, 'pitcher'));
+          if (isMounted) setPitcherStats(response.data);
         }
         if (isMounted) setError(null);
       } catch (err) {
@@ -59,7 +69,7 @@ const KboPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [selectedTab, selectedHitter, hitterSortBy, pitcherSortBy]); 
+  }, [selectedTab, selectedHitter, hitterSortBy, pitcherSortBy, pitcherSortDirection]);
 
   const handleTabClick = (tab) => {
     setSelectedTab(tab);
@@ -68,16 +78,6 @@ const KboPage = () => {
     } else {
       setSelectedHitter('타자');
     }
-  };
-  
-  // 타자 기록 정렬 기준을 업데이트하는 함수
-  const handleHitterSort = (key) => {
-    setHitterSortBy(key);
-  };
-
-  // 투수 기록 정렬 기준을 업데이트하는 함수
-  const handlePitcherSort = (key) => {
-    setPitcherSortBy(key);
   };
 
   const renderTeamInfo = () => {
@@ -88,31 +88,31 @@ const KboPage = () => {
 
       <table className="record-table">
         <thead>
-            <tr>
-                <th>순위</th>
-                <th>팀명</th>
-                <th>경기 수</th>
-                <th>승</th>
-                <th>패</th>
-                <th>무</th>
-                <th>승률</th>
-                <th>게임차</th>
-            </tr>
+          <tr>
+            <th>순위</th>
+            <th>팀명</th>
+            <th>경기 수</th>
+            <th>승</th>
+            <th>패</th>
+            <th>무</th>
+            <th>승률</th>
+            <th>게임차</th>
+          </tr>
         </thead>
 
         <tbody>
-            {Array.isArray(teamStats) && teamStats.map((team, index) => (
-                <tr key={index}>
-                    <td>{index + 1}</td>
-                    <td>{team.teamName}</td>
-                    <td>{team.gameNum}</td>
-                    <td>{team.win}</td>
-                    <td>{team.lose}</td>
-                    <td>{team.draw}</td>
-                    <td>{team.winPercentage}</td>
-                    <td>{team.gamesBehind}</td>
-                </tr>
-            ))}
+          {Array.isArray(teamStats) && teamStats.map((team, index) => (
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td>{team.teamName}</td>
+              <td>{team.gameNum}</td>
+              <td>{team.win}</td>
+              <td>{team.lose}</td>
+              <td>{team.draw}</td>
+              <td>{team.winPercentage}</td>
+              <td>{team.gamesBehind}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     );
@@ -122,18 +122,29 @@ const KboPage = () => {
     if (loading) return <p>선수 기록을 불러오는 중...</p>;
     if (error) return <p className="error">{error}</p>;
 
+    const getTeamGameNum = (teamName) => {
+      const team = teamStats.find(t => t.teamName === teamName);
+      return team ? team.gameNum : 0;
+    };
+
     switch (hitter) {
       case '타자':
+        const hittersToRender = hitterSortBy === 'battingAverage'
+          ? hitterStats.filter(hitter => {
+            const gameNum = getTeamGameNum(hitter.playerTeam);
+            return hitter.plateAppearance >= gameNum * 3.1;
+          })
+          : hitterStats;
+
         return (
           <table className="record-table">
             <thead>
               <tr>
-                {/* 각 th에 onClick 이벤트와 정렬 키 연결 */}
                 <th>순위</th>
                 <th>선수명</th>
                 <th>팀명</th>
                 <th><button onClick={() => handleHitterSort('battingAverage')} className="sort-btn">타율</button></th>
-                <th><button onClick={() => handleHitterSort('numberOfGames')} className="sort-btn">경기 수</button></th>
+                <th><button onClick={() => handleHitterSort('gameNum')} className="sort-btn">경기 수</button></th>
                 <th><button onClick={() => handleHitterSort('plateAppearance')} className="sort-btn">타석</button></th>
                 <th><button onClick={() => handleHitterSort('run')} className="sort-btn">득점</button></th>
                 <th><button onClick={() => handleHitterSort('hit')} className="sort-btn">안타</button></th>
@@ -144,11 +155,11 @@ const KboPage = () => {
                 <th><button onClick={() => handleHitterSort('fourBall')} className="sort-btn">볼넷</button></th>
                 <th><button onClick={() => handleHitterSort('strikeOut')} className="sort-btn">삼진</button></th>
                 <th><button onClick={() => handleHitterSort('onBasePercentage')} className="sort-btn">출루율</button></th>
-                <th><button onClick={() => handleHitterSort('ops')} className="sort-btn">OPS</button></th>
+                <th><button onClick={() => handleHitterSort('onbasePlusSlug')} className="sort-btn">OPS</button></th>
               </tr>
             </thead>
             <tbody>
-              {Array.isArray(hitterStats) && hitterStats.map((hitter, index) => (
+              {Array.isArray(hittersToRender) && hittersToRender.map((hitter, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td>{hitter.playerName}</td>
@@ -173,32 +184,38 @@ const KboPage = () => {
         );
 
       case '투수':
+        const pitchersToRender = pitcherSortBy === 'era'
+          ? pitcherStats.filter(pitcher => {
+            const gameNum = getTeamGameNum(pitcher.playerTeam);
+            return pitcher.inningsPitched >= gameNum * 1;
+          })
+          : pitcherStats;
+
         return (
           <table className="record-table">
             <thead>
               <tr>
-                {/* 각 th에 onClick 이벤트와 정렬 키 연결 */}
                 <th>순위</th>
                 <th>선수명</th>
                 <th>팀명</th>
                 <th><button onClick={() => handlePitcherSort('era')} className="sort-btn">평균 자책점</button></th>
-                <th><button onClick={() => handlePitcherSort('numberOfGames')} className="sort-btn">경기 수</button></th>
+                <th><button onClick={() => handlePitcherSort('gameNum')} className="sort-btn">경기 수</button></th>
                 <th><button onClick={() => handlePitcherSort('win')} className="sort-btn">승</button></th>
                 <th><button onClick={() => handlePitcherSort('lose')} className="sort-btn">패</button></th>
                 <th><button onClick={() => handlePitcherSort('save')} className="sort-btn">세이브</button></th>
                 <th><button onClick={() => handlePitcherSort('hold')} className="sort-btn">홀드</button></th>
-                <th><button onClick={() => handlePitcherSort('numberOfInning')} className="sort-btn">이닝</button></th>
+                <th><button onClick={() => handlePitcherSort('inningsPitched')} className="sort-btn">이닝</button></th>
                 <th><button onClick={() => handlePitcherSort('hits')} className="sort-btn">피안타</button></th>
                 <th><button onClick={() => handlePitcherSort('homeRun')} className="sort-btn">피홈런</button></th>
-                <th><button onClick={() => handlePitcherSort('fourBall')} className="sort-btn">볼넷</button></th>
+                <th><button onClick={() => handlePitcherSort('baseOnBalls')} className="sort-btn">볼넷</button></th>
                 <th><button onClick={() => handlePitcherSort('strikeOut')} className="sort-btn">탈삼진</button></th>
-                <th><button onClick={() => handlePitcherSort('run')} className="sort-btn">실점</button></th>
+                <th><button onClick={() => handlePitcherSort('runs')} className="sort-btn">실점</button></th>
                 <th><button onClick={() => handlePitcherSort('earnedRun')} className="sort-btn">자책</button></th>
                 <th><button onClick={() => handlePitcherSort('whip')} className="sort-btn">WHIP</button></th>
               </tr>
             </thead>
             <tbody>
-              {Array.isArray(pitcherStats) && pitcherStats.map((pitcher, index) => (
+              {Array.isArray(pitchersToRender) && pitchersToRender.map((pitcher, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td>{pitcher.playerName}</td>
@@ -209,7 +226,7 @@ const KboPage = () => {
                   <td>{pitcher.lose}</td>
                   <td>{pitcher.save}</td>
                   <td>{pitcher.hold}</td>
-                  <td>{pitcher.inningsPitched}</td>
+                  <td>{convertInnings(pitcher.inningsPitched)}</td>
                   <td>{pitcher.hits}</td>
                   <td>{pitcher.homeRun}</td>
                   <td>{pitcher.baseOnBalls}</td>
@@ -230,12 +247,7 @@ const KboPage = () => {
 
   return (
     <div className="about-container">
-      <div className="kbo-header">
-        <h1 className="kbo-title">KBO</h1>
-        <p className="kbo-subtitle">한국 프로야구의 모든 정보를 확인하세요</p>
-      </div>
-      
-      <div className="kbo-content">
+      <h1>KBO</h1>
 
       <div className="player-record-container">
 
@@ -274,7 +286,6 @@ const KboPage = () => {
             <div className="hitter-info-container">{renderHitterInfo(selectedHitter)}</div>
           </div>
         )}
-      </div>
       </div>
     </div>
   );
