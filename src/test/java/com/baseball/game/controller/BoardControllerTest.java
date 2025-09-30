@@ -146,7 +146,7 @@ class BoardControllerTest {
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk());
 
-        verify(boardService, times(1)).modify(eq(3), eq("updated"), eq("w"));
+        verify(boardService, times(1)).modify(eq(3), any(BoardRequestDto.class));
     }
 
     @Test

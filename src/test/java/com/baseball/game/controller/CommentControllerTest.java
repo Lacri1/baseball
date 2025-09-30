@@ -64,7 +64,7 @@ class CommentControllerTest {
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
 
-        verify(commentService, times(1)).modify(eq(2), eq(9), eq("upd"));
+        verify(commentService, times(1)).update(eq(2), eq(9), eq("upd"));
     }
 
     @Test
@@ -73,6 +73,6 @@ class CommentControllerTest {
         mockMvc.perform(delete("/api/comment/3/5"))
                 .andExpect(status().isOk());
 
-        verify(commentService, times(1)).delcom(3, 5);
+        verify(commentService, times(1)).delete(eq(3), eq(5));
     }
 }
