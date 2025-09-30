@@ -78,9 +78,18 @@ class BoardServiceImplTest {
     @Test
     @DisplayName("modify - 매퍼 호출")
     void modify() {
-        when(boardMapper.modify(anyInt(), anyString(), anyString())).thenReturn(1);
-        boardService.modify(3, "updated","w");
-        verify(boardMapper, times(1)).modify(eq(3), eq("updated"),eq("w"));
+        BoardRequestDto requestDto = new BoardRequestDto();
+        requestDto.setTitle("updated");
+        requestDto.setText("new content");
+
+        BoardDto boardDto = new BoardDto();
+        boardDto.setNo(3);
+        boardDto.setTitle("updated");
+        boardDto.setText("new content");
+
+        doNothing().when(boardMapper).modify(any(BoardDto.class));
+        boardService.modify(3, requestDto);
+        verify(boardMapper, times(1)).modify(eq(boardDto));
     }
 
     @Test
