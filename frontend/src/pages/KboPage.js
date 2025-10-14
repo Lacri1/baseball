@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/api';
 import '../styles/kboPage.css';
+import { convertInnings } from '../utils/inningsConverter';
 
 const KboPage = () => {
   const [selectedTab, setSelectedTab] = useState('team');
@@ -87,31 +88,31 @@ const KboPage = () => {
 
       <table className="record-table">
         <thead>
-            <tr>
-                <th>순위</th>
-                <th>팀명</th>
-                <th>경기 수</th>
-                <th>승</th>
-                <th>패</th>
-                <th>무</th>
-                <th>승률</th>
-                <th>게임차</th>
-            </tr>
+          <tr>
+            <th>순위</th>
+            <th>팀명</th>
+            <th>경기 수</th>
+            <th>승</th>
+            <th>패</th>
+            <th>무</th>
+            <th>승률</th>
+            <th>게임차</th>
+          </tr>
         </thead>
 
         <tbody>
-            {Array.isArray(teamStats) && teamStats.map((team, index) => (
-                <tr key={index}>
-                    <td>{index + 1}</td>
-                    <td>{team.teamName}</td>
-                    <td>{team.gameNum}</td>
-                    <td>{team.win}</td>
-                    <td>{team.lose}</td>
-                    <td>{team.draw}</td>
-                    <td>{team.winPercentage}</td>
-                    <td>{team.gamesBehind}</td>
-                </tr>
-            ))}
+          {Array.isArray(teamStats) && teamStats.map((team, index) => (
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td>{team.teamName}</td>
+              <td>{team.gameNum}</td>
+              <td>{team.win}</td>
+              <td>{team.lose}</td>
+              <td>{team.draw}</td>
+              <td>{team.winPercentage}</td>
+              <td>{team.gamesBehind}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     );
@@ -130,9 +131,9 @@ const KboPage = () => {
       case '타자':
         const hittersToRender = hitterSortBy === 'battingAverage'
           ? hitterStats.filter(hitter => {
-              const gameNum = getTeamGameNum(hitter.playerTeam);
-              return hitter.plateAppearance >= gameNum * 3.1;
-            })
+            const gameNum = getTeamGameNum(hitter.playerTeam);
+            return hitter.plateAppearance >= gameNum * 3.1;
+          })
           : hitterStats;
 
         return (
@@ -185,9 +186,9 @@ const KboPage = () => {
       case '투수':
         const pitchersToRender = pitcherSortBy === 'era'
           ? pitcherStats.filter(pitcher => {
-              const gameNum = getTeamGameNum(pitcher.playerTeam);
-              return pitcher.inningsPitched >= gameNum * 1;
-            })
+            const gameNum = getTeamGameNum(pitcher.playerTeam);
+            return pitcher.inningsPitched >= gameNum * 1;
+          })
           : pitcherStats;
 
         return (
@@ -225,7 +226,7 @@ const KboPage = () => {
                   <td>{pitcher.lose}</td>
                   <td>{pitcher.save}</td>
                   <td>{pitcher.hold}</td>
-                  <td>{pitcher.inningsPitched}</td>
+                  <td>{convertInnings(pitcher.inningsPitched)}</td>
                   <td>{pitcher.hits}</td>
                   <td>{pitcher.homeRun}</td>
                   <td>{pitcher.baseOnBalls}</td>

@@ -82,13 +82,14 @@ const PostFormWithComments = () => {
     const { title, text, category } = form;
     if (!title.trim() || !text.trim()) { alert("제목과 내용을 입력해주세요."); return; }
 
-    const requestData = { writer: user.id, title: title.trim(), text: text.trim(), category: categoryMap[category] };
     try {
       setLoading(true);
       if (isEdit) {
+        const requestData = { title: title.trim(), text: text.trim(), category: categoryMap[category] };
         await api.put(`/board/${id}`, requestData);
         alert("글이 수정되었습니다.");
       } else {
+        const requestData = { writer: user.id, title: title.trim(), text: text.trim(), category: categoryMap[category] };
         await api.post("/board", requestData);
         alert("글이 등록되었습니다.");
         setForm({ title: "", text: "", category: "general" });
@@ -106,7 +107,7 @@ const PostFormWithComments = () => {
     if (!newComment.trim()) return;
     if (!user) { alert("로그인 후 작성 가능합니다."); return; }
     try {
-      const res = await api.post(`/board/${id}/comments`, { writer: parseInt(user.id, 10), text: newComment.trim() });
+      const res = await api.post(`/board/${id}/comments`, { writer: user.id, text: newComment.trim() });
       setComments(prev => [...prev, res.data]);
       setNewComment("");
     } catch (err) {
@@ -117,7 +118,7 @@ const PostFormWithComments = () => {
 
   // 댓글 삭제
   const deleteComment = async (commentId, commentWriter) => {
-    if (!user || parseInt(user.id, 10) !== commentWriter) { alert("자신의 댓글만 삭제할 수 있습니다."); return; }
+    if (!user || user.id !== commentWriter.toString()) { alert("자신의 댓글만 삭제할 수 있습니다."); return; }
     if (!window.confirm("댓글을 삭제하시겠습니까?")) return;
     try {
       await api.delete(`/board/${id}/comments/${commentId}`);
@@ -165,7 +166,7 @@ const PostFormWithComments = () => {
                 <div key={c.id} className="comment-item">
                   <p>{c.text}</p>
                   <small>{c.writer} | {c.createdAt}</small>
-                  {user && parseInt(user.id, 10) === c.writer && (
+                  {user && c.writer && user.id === c.writer.toString() && (
                     <button onClick={() => deleteComment(c.id, c.writer)}>삭제</button>
                   )}
                 </div>

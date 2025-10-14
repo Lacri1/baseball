@@ -96,9 +96,9 @@
 			</if>
 		</where>
 	</select>
-    <insert id="write">
-        INSERT INTO board(title,writer,text,category) 
-        VALUES(#{title},#{writer},#{text},#{category})
+    <insert id="write" parameterType="com.baseball.game.dto.BoardDto">
+        INSERT INTO board(title,writer,text,category, CREATEDAT) 
+        VALUES(#{title},#{writer},#{text},#{category}, #{createdAt})
     </insert>
     <update id="modify">
         UPDATE board 

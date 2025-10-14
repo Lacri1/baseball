@@ -282,9 +282,10 @@ ORDER BY Player_Name
     <!-- 기본 라인업 조회 (상위 타자 9명 + 상위 투수 1명) -->
     <select id="findDefaultLineupByTeam" resultMap="teamLineupResultMap">
         (SELECT
+            No as id,
             'default' as user_id,
             Player_Team as team_name,
-            ROW_NUMBER() OVER (ORDER BY Batting_average DESC) as position,
+            CAST(ROW_NUMBER() OVER (ORDER BY Batting_average DESC) AS VARCHAR(10)) as position,
             Player_Name as player_name,
             CAST(No AS VARCHAR(255)) as player_id
         FROM kbo_hitter_stats_2024
@@ -293,6 +294,7 @@ ORDER BY Player_Name
         LIMIT 9)
         UNION ALL
         (SELECT
+            No as id,
             'default' as user_id,
             Player_Team as team_name,
             'P' as position,

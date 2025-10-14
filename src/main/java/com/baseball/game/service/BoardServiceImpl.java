@@ -7,6 +7,7 @@ import com.baseball.game.mapper.BoardMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
+import java.time.ZoneId;
 
 @Service
 public class BoardServiceImpl implements BoardService {
@@ -30,9 +31,16 @@ public class BoardServiceImpl implements BoardService {
 		return m;
 	}
 
+
 	@Override
 	public void write(BoardRequestDto d) {
-		mapper.write(d);
+		BoardDto boardDto = new BoardDto();
+		boardDto.setTitle(d.getTitle());
+		boardDto.setWriter(d.getWriter());
+		boardDto.setText(d.getText());
+		boardDto.setCategory(d.getCategory());
+		boardDto.setCreatedAt(java.time.LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+		mapper.write(boardDto);
 	}
 
     @Override
@@ -41,6 +49,7 @@ public class BoardServiceImpl implements BoardService {
         boardDto.setNo(no);
         boardDto.setTitle(requestDto.getTitle());
         boardDto.setText(requestDto.getText());
+        boardDto.setCategory(requestDto.getCategory());
         mapper.modify(boardDto);
     }
 

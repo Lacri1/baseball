@@ -98,10 +98,21 @@ public class SecurityConfig {
         return (request, response, exception) -> {
             response.setStatus(401);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding("UTF-8");
+
+            String message = "로그인 처리 중 오류가 발생했습니다."; // 기본 메시지
+            if (exception instanceof org.springframework.security.core.userdetails.UsernameNotFoundException) {
+                message = "존재하지 않는 사용자입니다.";
+            } else if (exception instanceof org.springframework.security.authentication.BadCredentialsException) {
+                message = "아이디 또는 비밀번호가 올바르지 않습니다.";
+            }
+
             try {
-                response.getWriter().write("{\"success\": false, \"message\": \"Invalid credentials\"}");
-                response.flushBuffer(); // 응답을 즉시 커밋
-            } catch (IOException e) { e.printStackTrace(); }
+                response.getWriter().write("{\"success\": false, \"message\": \"" + message + "\"}");
+                response.flushBuffer();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         };
     }
 

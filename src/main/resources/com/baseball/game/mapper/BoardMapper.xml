@@ -7,23 +7,37 @@
         <result property="category" column="category"/>
         <result property="title" column="title"/>
         <result property="text" column="text"/>
-        <result property="writer" column="writer"/>
+        <result property="writerId" column="writer_id"/>
+        <result property="writer" column="writer_nickname"/>
         <result property="view" column="view"/>
         <result property="createdAt" column="CREATEDAT"/>
         <result property="updatedAt" column="UPDATEDAT"/>
-        <result property="keyword" column="keyword"/>
     </resultMap>
 
+    <sql id="selectBoard">
+        SELECT
+            b.no, b.category, b.title, b.text, b.view, b.CREATEDAT, b.UPDATEDAT,
+            m.nickname as writer_nickname,
+            b.writer as writer_id
+        FROM
+            board b
+            LEFT JOIN member m ON b.writer = m.id
+    </sql>
+
     <select id="getBoard" resultMap="boardResultMap">
-        SELECT * FROM board WHERE no = #{no}
+        <include refid="selectBoard"/>
+        WHERE b.no = #{no}
     </select>
 
     <select id="getList" resultMap="boardResultMap">
-        SELECT * FROM board ORDER BY CREATEDAT DESC
+        <include refid="selectBoard"/>
+        ORDER BY b.CREATEDAT DESC
     </select>
 
     <select id="getListCategory" resultMap="boardResultMap">
-        SELECT * FROM board WHERE category = #{category} ORDER BY CREATEDAT DESC
+        <include refid="selectBoard"/>
+        WHERE b.category = #{category}
+        ORDER BY b.CREATEDAT DESC
     </select>
 
     <insert id="write" parameterType="com.baseball.game.dto.BoardRequestDto">
@@ -32,7 +46,7 @@
     </insert>
 
     <update id="modify">
-        UPDATE board SET title = #{title}, text = #{text}, category = #{category}, UPDATEDAT = CURRENT_TIMESTAMP() WHERE no = #{no} AND writer = #{writer}
+        UPDATE board SET title = #{title}, text = #{text}, category = #{category}, UPDATEDAT = CURRENT_TIMESTAMP() WHERE no = #{no}
     </update>
 
     <delete id="delete">
@@ -40,11 +54,16 @@
     </delete>
 
     <select id="getPagedList" resultMap="boardResultMap">
-        SELECT * FROM board ORDER BY CREATEDAT DESC LIMIT #{offset}, #{size}
+        <include refid="selectBoard"/>
+        ORDER BY b.CREATEDAT DESC
+        LIMIT #{offset}, #{size}
     </select>
 
     <select id="getPagedListCate" resultMap="boardResultMap">
-        SELECT * FROM board WHERE category = #{category} ORDER BY CREATEDAT DESC LIMIT #{offset}, #{size}
+        <include refid="selectBoard"/>
+        WHERE b.category = #{category}
+        ORDER BY b.CREATEDAT DESC
+        LIMIT #{offset}, #{size}
     </select>
 
     <select id="getTotalCount" resultType="int">
@@ -56,11 +75,17 @@
     </select>
 
     <select id="getPagedListSearch" resultMap="boardResultMap">
-        SELECT * FROM board WHERE title LIKE CONCAT('%', #{keyword}, '%') OR text LIKE CONCAT('%', #{keyword}, '%') ORDER BY CREATEDAT DESC LIMIT #{offset}, #{size}
+        <include refid="selectBoard"/>
+        WHERE b.title LIKE CONCAT('%', #{keyword}, '%') OR b.text LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY b.CREATEDAT DESC
+        LIMIT #{offset}, #{size}
     </select>
 
     <select id="getPagedListCateSearch" resultMap="boardResultMap">
-        SELECT * FROM board WHERE category = #{category} AND (title LIKE CONCAT('%', #{keyword}, '%') OR text LIKE CONCAT('%', #{keyword}, '%')) ORDER BY CREATEDAT DESC LIMIT #{offset}, #{size}
+        <include refid="selectBoard"/>
+        WHERE b.category = #{category} AND (b.title LIKE CONCAT('%', #{keyword}, '%') OR b.text LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY b.CREATEDAT DESC
+        LIMIT #{offset}, #{size}
     </select>
 
     <select id="getTotalCountSearch" resultType="int">

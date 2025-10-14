@@ -72,7 +72,7 @@ class BoardServiceImplTest {
         req.setCategory("c");
 
         boardService.write(req);
-        verify(boardMapper, times(1)).write(any(BoardRequestDto.class));
+        verify(boardMapper, times(1)).write(any(BoardDto.class));
     }
 
     @Test

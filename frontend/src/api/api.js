@@ -111,8 +111,13 @@ export const boardAPI = {
   getPosts: (params) => api.get('/board', { params }),
   getPost: (id) => api.get(`/board/${id}`),
   createPost: (data) => api.post('/board', data),
-  updatePost: (id, data) => api.put(`/board/${id}`, data),
+  updatePost: (id, data) => api.put(`/board/${id}`),
   deletePost: (id) => api.delete(`/board/${id}`),
+};
+
+// --------- 라인업 API ----------
+export const lineupAPI = {
+  getDefaultLineup: (teamName) => api.get(`/lineup/default/${encodeURIComponent(teamName)}`),
 };
 
 export default api;

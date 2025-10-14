@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import { AuthContext } from "../context/AuthContext";
@@ -21,27 +21,27 @@ const KboBoardList = () => {
   const size = 10;
 
   // 게시글 불러오기
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get("/board", {
-        params: { category: categoryValueMap[category], keyword: keyword||null, page, size }
+        params: { category: categoryValueMap[category], keyword: keyword || null, page, size },
       });
       setPosts(res.data.list || []);
       setTotalPages(Math.ceil((res.data.totalCount || 0) / size));
-    } catch(err){
+    } catch (err) {
       console.error(err);
       alert("게시글 로딩 실패");
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, keyword, page, size]);
 
-  useEffect(() => { fetchPosts(); }, [category, keyword, page]);
+  useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
   // 게시글 삭제
   const handleDelete = async (no, writerId) => {
-    if (!user || user.id !== writerId?.toString()) {
+    if (!user || !writerId || user.id.toString() !== writerId.toString()) {
       alert("본인 글만 삭제 가능합니다.");
       return;
     }
@@ -135,16 +135,16 @@ const KboBoardList = () => {
                     >
                       <td>{board.no}</td>
                       <td>{board.title}</td>
-                      <td>{board.writer}</td>
+                      <td>{board.writer || '알 수 없음'}</td>
                       <td>{categoryTextMap[board.category] || board.category}</td>
                       <td>{new Date(board.createdAt).toLocaleDateString()}</td>
                       <td>
-                        {user && user.id === board.writer.toString() && (
+                        {user && board.writerId && user.id.toString() === board.writerId.toString() && (
                             <button
                                 className="delete-btn"
                                 onClick={e => {
                                   e.stopPropagation();
-                                  handleDelete(board.no, board.writer);
+                                  handleDelete(board.no, board.writerId);
                                 }}
                             >
                               삭제

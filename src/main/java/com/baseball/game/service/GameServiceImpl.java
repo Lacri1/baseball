@@ -170,7 +170,6 @@ public class GameServiceImpl implements GameService {
         ValidationUtil.validateTeamLineupSetRequest(request);
 
         GameDto game = lifecycleService.getGame(gameId);
-        // 팀명 정규화 후 홈/원정 매칭 판단
         String reqDbTeam = getOrDefaultIgnoreCase(DB_TEAM_NAMES, request.getTeamName(), request.getTeamName());
         String homeDbTeam = getOrDefaultIgnoreCase(DB_TEAM_NAMES, game.getHomeTeam(), game.getHomeTeam());
         String awayDbTeam = getOrDefaultIgnoreCase(DB_TEAM_NAMES, game.getAwayTeam(), game.getAwayTeam());
@@ -180,79 +179,100 @@ public class GameServiceImpl implements GameService {
             throw new com.baseball.game.exception.ValidationException("요청 팀이 게임의 홈/원정팀과 일치하지 않습니다.");
         }
 
-        // 사용자 팀만 라인업 변경 가능: isUserOffense=true면 사용자 팀은 원정팀, false면 홈팀
-        // boolean isUsersTeam = (game.isUserOffense() && isAway) || (!game.isUserOffense() && isHome);
-        // if (!isUsersTeam) {
-        //     throw new com.baseball.game.exception.ValidationException("사용자 팀이 아닌 팀의 라인업은 변경할 수 없습니다.");
-        // }
-
-        // 요청 팀을 DB 팀 표기로 정규화
         String dbTeamOfRequest = reqDbTeam;
+        java.util.List<com.baseball.game.dto.Batter> orderedBatters;
+        com.baseball.game.dto.Pitcher startingPitcher;
 
-        // 타자 9명 로딩 및 선발 투수 로딩
-        java.util.List<com.baseball.game.dto.Batter> batters = batterMapper.findByNames(request.getBattingOrder());
-        java.util.Map<String, com.baseball.game.dto.Batter> byName = new java.util.HashMap<>();
-        if (batters != null) {
-            for (com.baseball.game.dto.Batter b : batters) {
-                if (b != null && b.getName() != null) {
-                    if (b.getAtBats() > 0 && b.getBattingAverage() == 0.0) {
-                        b.setBattingAverage(b.calculateBattingAverage());
+        // ID 기반 조회 우선
+        if (request.getBattingOrderIds() != null && !request.getBattingOrderIds().isEmpty() && request.getPitcherId() != null) {
+            orderedBatters = batterMapper.findByIds(request.getBattingOrderIds());
+            startingPitcher = pitcherMapper.findById(request.getPitcherId());
+
+            // 순서 재정렬
+            java.util.Map<String, com.baseball.game.dto.Batter> batterMap = new java.util.HashMap<>();
+            for(com.baseball.game.dto.Batter b : orderedBatters) {
+                batterMap.put(String.valueOf(b
+                        .getNo()), b);
+            }
+            java.util.List<com.baseball.game.dto.Batter> sortedBatters = new java.util.ArrayList<>();
+            for(String id : request.getBattingOrderIds()) {
+                com.baseball.game.dto.Batter b = batterMap.get(id);
+                if (b == null) {
+                    throw new com.baseball.game.exception.ValidationException("라인업에 포함된 타자 ID '" + id + "'를 찾을 수 없습니다.");
+                }
+                sortedBatters.add(b);
+            }
+            orderedBatters = sortedBatters;
+
+        } else {
+            // 이름 기반 조회 (폴백)
+            java.util.List<com.baseball.game.dto.Batter> batters = batterMapper.findByNames(request.getBattingOrder());
+            java.util.Map<String, com.baseball.game.dto.Batter> byName = new java.util.HashMap<>();
+            if (batters != null) {
+                for (com.baseball.game.dto.Batter b : batters) {
+                    if (b != null && b.getName() != null) {
+                        if (b.getAtBats() > 0 && b.getBattingAverage() == 0.0) {
+                            b.setBattingAverage(b.calculateBattingAverage());
+                        }
+                        byName.put(b.getName(), b);
                     }
-                    byName.put(b.getName(), b);
                 }
             }
+            orderedBatters = new java.util.ArrayList<>();
+            for (String n : request.getBattingOrder()) {
+                com.baseball.game.dto.Batter b = byName.get(n);
+                if (b == null) {
+                    throw new com.baseball.game.exception.ValidationException("타자를 찾을 수 없습니다: " + n);
+                }
+                orderedBatters.add(b);
+            }
+            startingPitcher = pitcherMapper.findByName(request.getStartingPitcher());
         }
-        java.util.List<com.baseball.game.dto.Batter> ordered = new java.util.ArrayList<>();
-        for (String n : request.getBattingOrder()) {
-            com.baseball.game.dto.Batter b = byName.get(n);
+
+        // 선수 검증
+        for (com.baseball.game.dto.Batter b : orderedBatters) {
             if (b == null) {
-                throw new com.baseball.game.exception.ValidationException("타자를 찾을 수 없습니다: " + n);
+                throw new com.baseball.game.exception.ValidationException("라인업에 유효하지 않은 타자가 포함되어 있습니다.");
             }
             String bTeam = b.getTeam() == null ? null : b.getTeam().trim();
             String reqTeam = dbTeamOfRequest == null ? null : dbTeamOfRequest.trim();
             if (bTeam == null || reqTeam == null || !bTeam.equalsIgnoreCase(reqTeam)) {
                 throw new com.baseball.game.exception.ValidationException(
-                        "요청 팀과 다른 팀 소속의 타자입니다: " + n + " (소속: " + b.getTeam() + ")");
+                        "요청 팀과 다른 팀 소속의 타자입니다: " + b.getName() + " (소속: " + b.getTeam() + ")");
             }
-            ordered.add(b);
         }
 
-        com.baseball.game.dto.Pitcher sp = pitcherMapper.findByName(request.getStartingPitcher());
-        if (sp == null) {
+        if (startingPitcher == null) {
             throw new com.baseball.game.exception.ValidationException(
-                    "선발 투수를 찾을 수 없습니다: " + request.getStartingPitcher());
+                    "선발 투수 ID를 찾을 수 없습니다: " + request.getPitcherId());
         }
-        String spTeam = sp.getTeam() == null ? null : sp.getTeam().trim();
+        String spTeam = startingPitcher.getTeam() == null ? null : startingPitcher.getTeam().trim();
         String reqTeam2 = dbTeamOfRequest == null ? null : dbTeamOfRequest.trim();
         if (spTeam == null || reqTeam2 == null || !spTeam.equalsIgnoreCase(reqTeam2)) {
             throw new com.baseball.game.exception.ValidationException(
-                    "요청 팀과 다른 팀 소속의 선발 투수입니다: " + sp.getName() + " (소속: " + sp.getTeam() + ")");
+                    "요청 팀과 다른 팀 소속의 선발 투수입니다: " + startingPitcher.getName() + " (소속: " + startingPitcher.getTeam() + ")");
         }
 
         if (isHome) {
-            game.setHomeBattingOrder(ordered);
-            game.setHomeStartingPitcher(sp);
+            game.setHomeBattingOrder(orderedBatters);
+            game.setHomeStartingPitcher(startingPitcher);
             if (!game.isTop()) {
-                // 말(홈 공격)일 때: 홈 타자 시작, 수비 투수는 원정 선발
                 game.setCurrentBatterIndex(0);
-                if (!ordered.isEmpty())
-                    game.setCurrentBatter(ordered.get(0));
+                if (!orderedBatters.isEmpty())
+                    game.setCurrentBatter(orderedBatters.get(0));
                 game.setCurrentPitcher(game.getAwayStartingPitcher());
             } else {
-                // 초(원정 공격)일 때: 수비는 홈팀이므로 현재 투수를 홈 선발로 반영
                 game.setCurrentPitcher(game.getHomeStartingPitcher());
             }
         } else {
-            game.setAwayBattingOrder(ordered);
-            game.setAwayStartingPitcher(sp);
+            game.setAwayBattingOrder(orderedBatters);
+            game.setAwayStartingPitcher(startingPitcher);
             if (game.isTop()) {
-                // 초(원정 공격)일 때: 원정 타자 시작, 수비 투수는 홈 선발
                 game.setCurrentBatterIndex(0);
-                if (!ordered.isEmpty())
-                    game.setCurrentBatter(ordered.get(0));
+                if (!orderedBatters.isEmpty())
+                    game.setCurrentBatter(orderedBatters.get(0));
                 game.setCurrentPitcher(game.getHomeStartingPitcher());
             } else {
-                // 말(홈 공격)일 때: 수비는 원정이므로 현재 투수를 원정 선발로 반영
                 game.setCurrentPitcher(game.getAwayStartingPitcher());
             }
         }

@@ -22,12 +22,13 @@ class BoardMapperIntegrationTest {
     private BoardMapper boardMapper;
 
     private void insertBoard(String category, String title, String writer) {
-        BoardRequestDto req = new BoardRequestDto();
-        req.setCategory(category);
-        req.setTitle(title);
-        req.setText("content");
-        req.setWriter(writer);
-        boardMapper.write(req);
+        BoardDto boardDto = new BoardDto();
+        boardDto.setCategory(category);
+        boardDto.setTitle(title);
+        boardDto.setText("content");
+        boardDto.setWriter(writer);
+        boardDto.setCreatedAt(java.time.LocalDateTime.now()); // Set createdAt
+        boardMapper.write(boardDto);
     }
 
     @Test

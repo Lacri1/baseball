@@ -10,6 +10,7 @@ public class BoardDto {
 	private int no;
 	private String title;
 	private String text;
+	private String writerId;
 	private String writer;
 	private int view;
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

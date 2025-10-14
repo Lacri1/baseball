@@ -5,10 +5,10 @@ import { gameAPI } from "../api/api";
 const TeamSetup = ({ gameId, homeTeam, awayTeam }) => {
   const navigate = useNavigate();
 
-  const [homeLineup, setHomeLineup] = useState([]);
-  const [awayLineup, setAwayLineup] = useState([]);
-  const [homePitcher, setHomePitcher] = useState("");
-  const [awayPitcher, setAwayPitcher] = useState("");
+  const [homeLineup] = useState([]);
+  const [awayLineup] = useState([]);
+  const [homePitcher] = useState("");
+  const [awayPitcher] = useState("");
 
   const handleSubmit = async () => {
     try {

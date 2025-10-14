@@ -18,4 +18,7 @@ public interface PitcherMapper {
 
     // 팀별 투수 이름만 리스트
     List<String> findNamesByTeam(@Param("team") String team);
+
+    // ID로 투수 1명 조회
+    Pitcher findById(@Param("id") String id);
 }

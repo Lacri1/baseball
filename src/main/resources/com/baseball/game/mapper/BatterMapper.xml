@@ -47,4 +47,11 @@
         </foreach>
     </select>
 
+    <select id="findByIds" resultMap="batterResultMap">
+        SELECT *, No as no FROM kbo_hitter_stats_2024 WHERE CAST(No AS VARCHAR(255)) IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
 </mapper>

@@ -27,7 +27,7 @@ spring:
       enabled: true
       path: /h2-console
   mybatis:
-    mapper-locations: classpath:com/baseball/game/mapper/*.xml
+    mapper-locations: classpath:com/baseball/mapper/*.xml
   redis:
     host: ${SPRING_REDIS_HOST:localhost} # 기본값은 localhost, EKS에서는 ElastiCache 호스트로 오버라이드
     port: ${SPRING_REDIS_PORT:6379}

@@ -185,11 +185,10 @@ const EditProfilePage = () => {
                     <button type="submit" disabled={isLoading}>
                         {isLoading ? '수정 중...' : '정보 수정'}
                     </button>
+                    <button type="button" onClick={() => navigate('/')} disabled={isLoading} className="cancel-button-blue">
+                        취소
+                    </button>
                 </form>
-
-                <button onClick={() => navigate('/')} disabled={isLoading} style={{ marginTop: '10px' }}>
-                    취소
-                </button>
 
                 <hr style={{ width: '100%', margin: '20px 0' }} />
 

@@ -499,29 +499,33 @@ public class GameController {
 	// ======== 추가: TeamLineup(List) -> TeamLineupSetRequest 변환 헬퍼 ========
 	private TeamLineupSetRequest buildSetRequestFromDefault(String teamName, List<TeamLineup> defaultList) {
 		java.util.List<String> battingOrder = new java.util.ArrayList<>(9);
+		java.util.List<String> battingOrderIds = new java.util.ArrayList<>(9);
 		String startingPitcher = null;
+		String pitcherId = null;
 
-		// 1) 정렬까지는 stream 사용 (투수는 뒤로, 타자는 타순 숫자 오름차순)
+		// 1) 정렬
 		java.util.List<TeamLineup> sorted = defaultList.stream()
 				.filter(tl -> tl != null && tl.getPosition() != null && tl.getPlayerName() != null)
 				.sorted((a, b) -> {
 					String pa = a.getPosition();
 					String pb = b.getPosition();
-					if ("Starting_Pitcher".equals(pa)) return 1;   // 선발 투수는 뒤로
+					if ("Starting_Pitcher".equals(pa)) return 1;
 					if ("Starting_Pitcher".equals(pb)) return -1;
-					int ia = parseOrder(pa); // "1th_Batter" → 1
+					int ia = parseOrder(pa);
 					int ib = parseOrder(pb);
 					return Integer.compare(ia, ib);
 				})
 				.collect(java.util.stream.Collectors.toList());
 
-		// 2) 값 채우기는 일반 루프에서 (람다 캡처 문제 회피)
+		// 2) 값 채우기
 		for (TeamLineup tl : sorted) {
 			if ("Starting_Pitcher".equals(tl.getPosition())) {
 				startingPitcher = tl.getPlayerName();
+				pitcherId = tl.getPlayerId();
 			} else {
 				if (battingOrder.size() < 9) {
 					battingOrder.add(tl.getPlayerName());
+					battingOrderIds.add(tl.getPlayerId());
 				}
 			}
 		}
@@ -535,9 +539,11 @@ public class GameController {
 		}
 
 		TeamLineupSetRequest req = new TeamLineupSetRequest();
-		req.setTeamName(teamName);               // 서비스 계층에서 팀명 정규화 처리
-		req.setBattingOrder(battingOrder);       // 9명
-		req.setStartingPitcher(startingPitcher); // 1명
+		req.setTeamName(teamName);
+		req.setBattingOrder(battingOrder);
+		req.setStartingPitcher(startingPitcher);
+		req.setBattingOrderIds(battingOrderIds);
+		req.setPitcherId(pitcherId);
 		return req;
 	}
 

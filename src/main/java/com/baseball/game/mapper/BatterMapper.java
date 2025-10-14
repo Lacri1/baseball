@@ -15,4 +15,7 @@ public interface BatterMapper {
 
     // 여러 이름으로 타자 리스트
     List<Batter> findByNames(@Param("names") List<String> names);
+
+    // ID로 타자 리스트 조회
+    List<Batter> findByIds(@Param("ids") List<String> ids);
 }

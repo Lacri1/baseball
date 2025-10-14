@@ -12,7 +12,7 @@ public interface BoardMapper {
 
 	public ArrayList<BoardDto> getListCategory(String category);
 
-	public void write(BoardRequestDto d);
+	public void write(BoardDto d);
 
 	public int modify(BoardDto boardDto);
 

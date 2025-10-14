@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/api';
@@ -42,7 +42,7 @@ const KboBoardDetail = () => {
   }, []);
 
   // 게시글 + 댓글 불러오기
-  const fetchBoardDetail = async () => {
+  const fetchBoardDetail = useCallback(async () => {
     try {
       const res = await api.get(`/board/${id}`);
       setBoard(res.data.board);
@@ -54,7 +54,7 @@ const KboBoardDetail = () => {
       alert('게시글 로딩 실패');
       return 0;
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     setLoading(true);
@@ -73,7 +73,7 @@ const KboBoardDetail = () => {
     }, 5000); // 5초마다 댓글 갱신
 
     return () => clearInterval(interval);
-  }, [id]);
+  }, [id, fetchBoardDetail, prevCommentsLength]);
 
   // 댓글이 새로 작성되었을 때만 스크롤 (댓글 수가 증가한 경우)
   useEffect(() => {
@@ -126,7 +126,7 @@ const KboBoardDetail = () => {
 
   // 게시글 삭제
   const handleDeletePost = async () => {
-    if (!user || user.id !== board.writer) {
+    if (!user || !board || !board.writerId || user.id.toString() !== board.writerId.toString()) {
       alert('본인 글만 삭제 가능합니다.');
       return;
     }
@@ -145,7 +145,7 @@ const KboBoardDetail = () => {
 
   // 게시글 수정
   const handleEditPost = () => {
-    if (!user || user.id !== board.writer) {
+    if (!user || !board || !board.writerId || user.id.toString() !== board.writerId.toString()) {
       alert('본인 글만 수정 가능합니다.');
       return;
     }
@@ -229,7 +229,7 @@ const KboBoardDetail = () => {
         <div className="board-detail-content">
           <div className="board-detail-header">
             <h1 className="board-detail-title">{board.title}</h1>
-            {user && user.id === board.writer && (
+            {user && board && board.writerId && user.id.toString() === board.writerId.toString() && (
                 <div className="board-actions" ref={dropdownRef}>
                   <button onClick={toggleDropdown} className="menu-button">
                     ⋯
@@ -241,7 +241,7 @@ const KboBoardDetail = () => {
                 </div>
             )}
             <div className="board-detail-meta">
-              <span>작성자: {board.writer}</span>
+              <span>작성자: {board.writer || '알 수 없음'}</span>
               <span>작성일: {formatDate(board.createdAt)}</span>
               <span>카테고리: {categoryTextMap[board.category] || board.category}</span>
             </div>

@@ -2004,7 +2004,7 @@ INSERT INTO kbo_hitter_stats_2025 (Player_Name, Player_Team, Batting_average, Ga
 INSERT INTO kbo_hitter_stats_2025 (Player_Name, Player_Team, Batting_average, Game_Num, Plate_Appearance, Run, Hit, two_Base, three_Base, Home_Run, Runs_Batted_In, Four_Ball,
                                    Strike_Out, On_Base_Percentage, Onbase_Plus_Slug) VALUES ('김민수', 'LG', 0.182, 13, 13, 0, 2, 0, 0, 0, 1, 1, 6, 0.231, 0.413);
 INSERT INTO kbo_hitter_stats_2025 (Player_Name, Player_Team, Batting_average, Game_Num, Plate_Appearance, Run, Hit, two_Base, three_Base, Home_Run, Runs_Batted_In, Four_Ball,
-                                   Strike_Out, On_Base_Percentage, Onbase_Plus_Slug) VALUES ('김민혁', 'KT', 0.289, 82, 320, 34, 85, 7, 1, 0, 30, 17, 26, 0.34, 0.66);
+                                   Strike_Out, On_Base_Percentage, Onbase_Plus_Slug) VALUES ('김혁', 'KT', 0.289, 82, 320, 34, 85, 7, 1, 0, 30, 17, 26, 0.34, 0.66);
 INSERT INTO kbo_hitter_stats_2025 (Player_Name, Player_Team, Batting_average, Game_Num, Plate_Appearance, Run, Hit, two_Base, three_Base, Home_Run, Runs_Batted_In, Four_Ball,
                                    Strike_Out, On_Base_Percentage, Onbase_Plus_Slug) VALUES ('김민혁', '두산', 0.118, 10, 21, 2, 2, 0, 0, 1, 1, 4, 6, 0.286, 0.58);
 INSERT INTO kbo_hitter_stats_2025 (Player_Name, Player_Team, Batting_average, Game_Num, Plate_Appearance, Run, Hit, two_Base, three_Base, Home_Run, Runs_Batted_In, Four_Ball,

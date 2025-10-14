@@ -244,3 +244,25 @@
   90% { opacity: 1; transform: translateX(-50%) translateY(0); }
   100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
 }
+
+.cancel-button-blue {
+  background-color: #4a69bd; /* Blue */
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-normal);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.cancel-button-blue:hover:not(:disabled) {
+  background-color: #3d5a9e;
+}
+
+.cancel-button-blue:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

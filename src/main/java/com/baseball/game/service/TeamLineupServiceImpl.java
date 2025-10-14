@@ -203,33 +203,13 @@ public class TeamLineupServiceImpl implements TeamLineupService {
 
     @Override
     public List<TeamLineup> getDefaultLineup(String teamName) {
-        // 인메모리 기본 라인업 제공: ComputerLineupProvider 기반으로 TeamLineup 형태 생성
-        // 팀명을 정규화(내부 코드)하고, 제공자 호출용 한글 풀네임으로 변환
-        String normalizedCode = normalizeTeamName(teamName);
-        String displayTeam = resolveDisplayTeamName(normalizedCode);
-        List<String> names = ComputerLineupProvider.getDefaultBattingOrder(displayTeam);
-        if (names == null || names.size() != 9) {
-            throw new ValidationException("기본 라인업은 9명의 타자로 구성되어야 합니다.");
+        String dbTeamName = resolveDbTeamName(teamName);
+        List<TeamLineup> lineup = teamLineupMapper.findDefaultLineupByTeam(dbTeamName);
+        if (lineup == null || lineup.isEmpty()) {
+            logger.warn("팀 '" + teamName + "' (DB: " + dbTeamName + ")의 기본 라인업을 DB에서 찾을 수 없습니다. 빈 라인업을 반환합니다.");
+            return new ArrayList<>(); // 예외 대신 빈 리스트 반환
         }
-        String englishTeam = resolveEnglishTeamName(normalizedCode);
-        List<TeamLineup> lineup = new ArrayList<>();
-        for (int i = 0; i < names.size(); i++) {
-            TeamLineup tl = new TeamLineup();
-            tl.setTeamName(englishTeam);
-            tl.setPosition((i + 1) + "th_Batter");
-            tl.setPlayerName(names.get(i));
-            lineup.add(tl);
-        }
-        String sp = ComputerLineupProvider.getDefaultStartingPitcher(displayTeam);
-        if (sp == null || sp.isEmpty()) {
-            throw new ValidationException("선발 투수가 지정되어야 합니다.");
-        }
-        TeamLineup tlPitcher = new TeamLineup();
-        tlPitcher.setTeamName(englishTeam);
-        tlPitcher.setPosition("Starting_Pitcher");
-        tlPitcher.setPlayerName(sp);
-        lineup.add(tlPitcher);
-        logger.info("팀 {}의 기본 라인업(인메모리)이 로드되었습니다.", teamName);
+        logger.info("팀 {} (DB: {})의 기본 라인업이 DB에서 로드되었습니다.", teamName, dbTeamName);
         return lineup;
     }
 
