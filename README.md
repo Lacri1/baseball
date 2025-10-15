@@ -1,5 +1,6 @@
 # baseball
 
+https://www.canva.com/design/DAG1oZzGWlY/RcMCGd3FNSkoe85pkAsZKQ/edit
 Spring Boot와 React를 활용한 야구 기록 및 게임 웹 어플리케이션
 
 ## 프로젝트 개요
